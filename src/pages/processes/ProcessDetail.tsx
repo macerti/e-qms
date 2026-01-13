@@ -6,8 +6,10 @@ import {
   AlertTriangle,
   CheckSquare,
   BarChart3,
-  Edit,
-  Archive
+  Settings,
+  Cog,
+  Wrench,
+  ListOrdered
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -15,6 +17,14 @@ import { Button } from "@/components/ui/button";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { ProcessType } from "@/types/management-system";
+import { cn } from "@/lib/utils";
+
+const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.ElementType; color: string }> = {
+  management: { label: "Management", icon: Settings, color: "text-purple-600" },
+  operational: { label: "Operational", icon: Cog, color: "text-process" },
+  support: { label: "Support", icon: Wrench, color: "text-amber-600" },
+};
 
 export default function ProcessDetail() {
   const { id } = useParams();
@@ -42,6 +52,9 @@ export default function ProcessDetail() {
     navigate("/processes");
   };
 
+  const typeConfig = PROCESS_TYPE_CONFIG[process.type];
+  const TypeIcon = typeConfig.icon;
+
   return (
     <div className="min-h-screen">
       <PageHeader 
@@ -59,9 +72,13 @@ export default function ProcessDetail() {
       />
 
       <div className="px-4 py-6 space-y-6">
-        {/* Status & Meta */}
-        <div className="flex items-center gap-3">
+        {/* Status & Type */}
+        <div className="flex items-center gap-3 flex-wrap">
           <StatusBadge status={process.status} />
+          <div className={cn("flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm", typeConfig.color)}>
+            <TypeIcon className="w-3.5 h-3.5" />
+            <span className="font-medium">{typeConfig.label}</span>
+          </div>
           <span className="text-sm text-muted-foreground font-mono">
             Rev. {format(new Date(process.revisionDate), "dd/MM/yyyy")}
           </span>
@@ -113,6 +130,35 @@ export default function ProcessDetail() {
             </ul>
           </section>
         </div>
+
+        {/* Activities */}
+        {process.activities && process.activities.length > 0 && (
+          <section className="mobile-card">
+            <div className="flex items-center gap-2 mb-3">
+              <ListOrdered className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                Activities
+              </h3>
+            </div>
+            <ol className="space-y-3">
+              {process.activities.sort((a, b) => a.sequence - b.sequence).map((activity) => (
+                <li key={activity.id} className="flex gap-3">
+                  <span className="font-mono text-xs text-muted-foreground w-6 shrink-0 pt-0.5">
+                    {activity.sequence}.
+                  </span>
+                  <div className="flex-1">
+                    <p className="font-medium">{activity.name}</p>
+                    {activity.description && (
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        {activity.description}
+                      </p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
 
         {/* Pilot */}
         {process.pilotName && (

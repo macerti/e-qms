@@ -13,7 +13,7 @@ export function useProcesses() {
     return `PRO-${count.toString().padStart(3, "0")}`;
   }, [processes.length]);
 
-  const createProcess = useCallback((data: Omit<Process, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate" | "indicatorIds" | "riskIds" | "opportunityIds" | "actionIds" | "auditIds">) => {
+  const createProcess = useCallback((data: Omit<Process, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate" | "indicatorIds" | "riskIds" | "opportunityIds" | "actionIds" | "auditIds" | "activities"> & { activities?: Process["activities"] }) => {
     const now = new Date().toISOString();
     const newProcess: Process = {
       id: crypto.randomUUID(),
@@ -27,6 +27,7 @@ export function useProcesses() {
       opportunityIds: [],
       actionIds: [],
       auditIds: [],
+      activities: data.activities || [],
       ...data,
     };
     setProcesses((prev) => [...prev, newProcess]);
