@@ -6,9 +6,31 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
-import { ProcessStatus } from "@/types/management-system";
-import { Plus, X } from "lucide-react";
+import { ProcessStatus, ProcessType, ProcessActivity } from "@/types/management-system";
+import { Plus, X, GripVertical, Settings, Cog, Wrench } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+const PROCESS_TYPES: { value: ProcessType; label: string; description: string; icon: React.ElementType }[] = [
+  { 
+    value: "management", 
+    label: "Management", 
+    description: "Strategic direction, planning, review",
+    icon: Settings
+  },
+  { 
+    value: "operational", 
+    label: "Operational", 
+    description: "Core value-creating activities",
+    icon: Cog
+  },
+  { 
+    value: "support", 
+    label: "Support", 
+    description: "Resources, infrastructure, enablers",
+    icon: Wrench
+  },
+];
 
 export default function ProcessForm() {
   const navigate = useNavigate();
@@ -20,9 +42,11 @@ export default function ProcessForm() {
 
   const [formData, setFormData] = useState({
     name: existingProcess?.name || "",
+    type: existingProcess?.type || "operational" as ProcessType,
     purpose: existingProcess?.purpose || "",
     inputs: existingProcess?.inputs || [""],
     outputs: existingProcess?.outputs || [""],
+    activities: existingProcess?.activities || [] as ProcessActivity[],
     pilotName: existingProcess?.pilotName || "",
     status: existingProcess?.status || "draft" as ProcessStatus,
   });
@@ -44,6 +68,7 @@ export default function ProcessForm() {
 
     const cleanedInputs = formData.inputs.filter(i => i.trim());
     const cleanedOutputs = formData.outputs.filter(o => o.trim());
+    const cleanedActivities = formData.activities.filter(a => a.name.trim());
 
     if (cleanedInputs.length === 0) {
       toast.error("At least one input is required");
@@ -57,9 +82,11 @@ export default function ProcessForm() {
     if (isEditing && existingProcess) {
       updateProcess(existingProcess.id, {
         name: formData.name.trim(),
+        type: formData.type,
         purpose: formData.purpose.trim(),
         inputs: cleanedInputs,
         outputs: cleanedOutputs,
+        activities: cleanedActivities.map((a, i) => ({ ...a, sequence: i + 1 })),
         pilotName: formData.pilotName.trim() || undefined,
         status: formData.status,
       }, revisionNote || "Process updated");
@@ -67,9 +94,11 @@ export default function ProcessForm() {
     } else {
       createProcess({
         name: formData.name.trim(),
+        type: formData.type,
         purpose: formData.purpose.trim(),
         inputs: cleanedInputs,
         outputs: cleanedOutputs,
+        activities: cleanedActivities.map((a, i) => ({ ...a, sequence: i + 1 })),
         pilotName: formData.pilotName.trim() || undefined,
         status: formData.status,
         standard: "ISO_9001",
@@ -116,6 +145,32 @@ export default function ProcessForm() {
     }));
   };
 
+  const addActivity = () => {
+    const newActivity: ProcessActivity = {
+      id: crypto.randomUUID(),
+      name: "",
+      description: "",
+      sequence: formData.activities.length + 1,
+    };
+    setFormData(prev => ({ ...prev, activities: [...prev.activities, newActivity] }));
+  };
+
+  const removeActivity = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      activities: prev.activities.filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateActivity = (index: number, field: keyof ProcessActivity, value: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      activities: prev.activities.map((activity, i) => 
+        i === index ? { ...activity, [field]: value } : activity
+      ),
+    }));
+  };
+
   return (
     <div className="min-h-screen">
       <PageHeader 
@@ -140,6 +195,51 @@ export default function ProcessForm() {
           />
           <p className="form-helper">
             A clear, concise name that identifies this organizational process.
+          </p>
+        </div>
+
+        {/* Process Type */}
+        <div className="form-field">
+          <Label>Process Type *</Label>
+          <div className="grid grid-cols-1 gap-2 mt-2">
+            {PROCESS_TYPES.map((typeOption) => {
+              const Icon = typeOption.icon;
+              const isSelected = formData.type === typeOption.value;
+              return (
+                <button
+                  key={typeOption.value}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, type: typeOption.value }))}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg border text-left transition-all",
+                    isSelected 
+                      ? "border-primary bg-primary/5 ring-1 ring-primary" 
+                      : "border-border hover:border-muted-foreground/30"
+                  )}
+                >
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
+                    isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
+                  )}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={cn(
+                      "font-medium",
+                      isSelected && "text-primary"
+                    )}>
+                      {typeOption.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {typeOption.description}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <p className="form-helper">
+            Classification according to ISO process approach: Management (strategic), Operational (core), or Support (enabling).
           </p>
         </div>
 
@@ -233,6 +333,67 @@ export default function ProcessForm() {
           </div>
           <p className="form-helper">
             What results from this process? (deliverables, records, decisions)
+          </p>
+        </div>
+
+        {/* Activities */}
+        <div className="form-field">
+          <Label>Activities</Label>
+          <div className="space-y-3">
+            {formData.activities.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic py-2">
+                No activities defined yet. Add activities to describe the sequence of work within this process.
+              </p>
+            ) : (
+              formData.activities.map((activity, index) => (
+                <div 
+                  key={activity.id} 
+                  className="flex gap-2 items-start p-3 bg-muted/50 rounded-lg border border-border"
+                >
+                  <div className="flex items-center gap-2 text-muted-foreground shrink-0 pt-2">
+                    <GripVertical className="w-4 h-4" />
+                    <span className="font-mono text-xs w-6">{index + 1}.</span>
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <Input
+                      value={activity.name}
+                      onChange={(e) => updateActivity(index, "name", e.target.value)}
+                      placeholder="e.g., Receive and validate order"
+                      className="bg-background"
+                    />
+                    <Textarea
+                      value={activity.description || ""}
+                      onChange={(e) => updateActivity(index, "description", e.target.value)}
+                      placeholder="Optional: Describe this activity in more detail..."
+                      rows={2}
+                      className="bg-background text-sm"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeActivity(index)}
+                    className="shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addActivity}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Activity
+            </Button>
+          </div>
+          <p className="form-helper">
+            Define the sequential activities that compose this process. Activities describe the work performed, in order.
           </p>
         </div>
 

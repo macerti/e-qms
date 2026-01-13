@@ -4,11 +4,20 @@
 export type ManagementStandard = 'ISO_9001' | 'ISO_14001' | 'ISO_45001' | 'ISO_22000';
 
 export type ProcessStatus = 'draft' | 'active' | 'archived';
+export type ProcessType = 'management' | 'operational' | 'support';
 export type ActionStatus = 'planned' | 'in_progress' | 'completed' | 'cancelled';
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 export type IssueType = 'risk' | 'opportunity';
 export type IssueOrigin = 'internal' | 'external';
 export type SwotQuadrant = 'strength' | 'weakness' | 'opportunity' | 'threat';
+
+// Process Activity
+export interface ProcessActivity {
+  id: string;
+  name: string;
+  description?: string;
+  sequence: number;
+}
 
 // Versioning interface - all major entities must implement this
 export interface Versionable {
@@ -29,9 +38,11 @@ export interface BaseEntity {
 export interface Process extends BaseEntity, Versionable {
   code: string; // e.g., "PRO-001"
   name: string;
+  type: ProcessType; // Management, Operational, or Support
   purpose: string;
   inputs: string[];
   outputs: string[];
+  activities: ProcessActivity[]; // Ordered list of process activities
   pilotId?: string; // Owner/pilot user ID
   pilotName?: string;
   status: ProcessStatus;
