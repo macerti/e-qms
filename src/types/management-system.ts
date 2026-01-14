@@ -89,6 +89,7 @@ export interface Process extends BaseEntity, Versionable {
 
 // Context Issue (Risk or Opportunity from SWOT analysis)
 export interface ContextIssue extends BaseEntity, Versionable {
+  code: string; // e.g., "ISS-001"
   type: IssueType;
   quadrant: SwotQuadrant;
   description: string;

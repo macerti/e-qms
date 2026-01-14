@@ -29,13 +29,14 @@ const sourceOptions: { value: Action["sourceType"]; label: string; description: 
 export default function ActionForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { createAction, processes, issues } = useManagementSystem();
+  const { createAction, processes, issues, generateActionCode } = useManagementSystem();
   
   const preselectedProcess = searchParams.get("process");
   const preselectedSource = searchParams.get("source") as Action["sourceType"] | null;
   const preselectedSourceId = searchParams.get("sourceId");
 
   const [formData, setFormData] = useState({
+    code: generateActionCode(),
     processId: preselectedProcess || "",
     title: "",
     description: "",
@@ -71,6 +72,7 @@ export default function ActionForm() {
     }
 
     createAction({
+      code: formData.code.trim(),
       processId: formData.processId,
       title: formData.title.trim(),
       description: formData.description.trim(),
@@ -101,6 +103,21 @@ export default function ActionForm() {
       />
 
       <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6">
+        {/* Action Code */}
+        <div className="form-field">
+          <Label htmlFor="code">Reference Code *</Label>
+          <Input
+            id="code"
+            value={formData.code}
+            onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
+            placeholder="e.g., ACT-001"
+            className="font-mono"
+          />
+          <p className="form-helper">
+            Unique identifier for this action. Auto-generated but editable.
+          </p>
+        </div>
+
         {/* Process Selection */}
         <div className="form-field">
           <Label>Process *</Label>

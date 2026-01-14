@@ -3,6 +3,7 @@ import { useProcesses } from "@/hooks/useProcesses";
 import { useContextIssues } from "@/hooks/useContextIssues";
 import { useActions } from "@/hooks/useActions";
 import { useDocuments } from "@/hooks/useDocuments";
+import { useLeadershipElements } from "@/hooks/useLeadershipElements";
 import { ManagementStandard } from "@/types/management-system";
 
 interface ManagementSystemContextType {
@@ -16,6 +17,7 @@ interface ManagementSystemContextType {
   archiveProcess: ReturnType<typeof useProcesses>["archiveProcess"];
   getProcessById: ReturnType<typeof useProcesses>["getProcessById"];
   getActiveProcesses: ReturnType<typeof useProcesses>["getActiveProcesses"];
+  generateProcessCode: ReturnType<typeof useProcesses>["generateCode"];
   
   // Context Issues
   issues: ReturnType<typeof useContextIssues>["issues"];
@@ -25,6 +27,7 @@ interface ManagementSystemContextType {
   getIssuesByProcess: ReturnType<typeof useContextIssues>["getIssuesByProcess"];
   getIssuesByQuadrant: ReturnType<typeof useContextIssues>["getIssuesByQuadrant"];
   getRisksByPriority: ReturnType<typeof useContextIssues>["getRisksByPriority"];
+  generateIssueCode: ReturnType<typeof useContextIssues>["generateCode"];
   
   // Actions
   actions: ReturnType<typeof useActions>["actions"];
@@ -32,7 +35,9 @@ interface ManagementSystemContextType {
   updateAction: ReturnType<typeof useActions>["updateAction"];
   getActionsByProcess: ReturnType<typeof useActions>["getActionsByProcess"];
   getActionsByStatus: ReturnType<typeof useActions>["getActionsByStatus"];
+  getActionsBySourceId: ReturnType<typeof useActions>["getActionsBySourceId"];
   getOverdueActions: ReturnType<typeof useActions>["getOverdueActions"];
+  generateActionCode: ReturnType<typeof useActions>["generateCode"];
 
   // Documents
   documents: ReturnType<typeof useDocuments>["documents"];
@@ -42,6 +47,16 @@ interface ManagementSystemContextType {
   getDocumentById: ReturnType<typeof useDocuments>["getDocumentById"];
   getDocumentsByProcess: ReturnType<typeof useDocuments>["getDocumentsByProcess"];
   getActiveDocuments: ReturnType<typeof useDocuments>["getActiveDocuments"];
+  generateDocumentCode: ReturnType<typeof useDocuments>["generateCode"];
+
+  // Leadership Elements
+  qualityPolicy: ReturnType<typeof useLeadershipElements>["qualityPolicy"];
+  managementReviews: ReturnType<typeof useLeadershipElements>["managementReviews"];
+  saveQualityPolicy: ReturnType<typeof useLeadershipElements>["saveQualityPolicy"];
+  createManagementReview: ReturnType<typeof useLeadershipElements>["createManagementReview"];
+  updateManagementReview: ReturnType<typeof useLeadershipElements>["updateManagementReview"];
+  getManagementReviewById: ReturnType<typeof useLeadershipElements>["getManagementReviewById"];
+  generateReviewCode: ReturnType<typeof useLeadershipElements>["generateReviewCode"];
 }
 
 const ManagementSystemContext = createContext<ManagementSystemContextType | null>(null);
@@ -51,6 +66,7 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
   const issuesHook = useContextIssues();
   const actionsHook = useActions();
   const documentsHook = useDocuments();
+  const leadershipHook = useLeadershipElements();
 
   const value: ManagementSystemContextType = {
     currentStandard: "ISO_9001",
@@ -62,6 +78,7 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     archiveProcess: processesHook.archiveProcess,
     getProcessById: processesHook.getProcessById,
     getActiveProcesses: processesHook.getActiveProcesses,
+    generateProcessCode: processesHook.generateCode,
     
     // Issues
     issues: issuesHook.issues,
@@ -71,6 +88,7 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     getIssuesByProcess: issuesHook.getIssuesByProcess,
     getIssuesByQuadrant: issuesHook.getIssuesByQuadrant,
     getRisksByPriority: issuesHook.getRisksByPriority,
+    generateIssueCode: issuesHook.generateCode,
     
     // Actions
     actions: actionsHook.actions,
@@ -78,7 +96,9 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     updateAction: actionsHook.updateAction,
     getActionsByProcess: actionsHook.getActionsByProcess,
     getActionsByStatus: actionsHook.getActionsByStatus,
+    getActionsBySourceId: actionsHook.getActionsBySourceId,
     getOverdueActions: actionsHook.getOverdueActions,
+    generateActionCode: actionsHook.generateCode,
 
     // Documents
     documents: documentsHook.documents,
@@ -88,6 +108,16 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     getDocumentById: documentsHook.getDocumentById,
     getDocumentsByProcess: documentsHook.getDocumentsByProcess,
     getActiveDocuments: documentsHook.getActiveDocuments,
+    generateDocumentCode: documentsHook.generateCode,
+
+    // Leadership Elements
+    qualityPolicy: leadershipHook.qualityPolicy,
+    managementReviews: leadershipHook.managementReviews,
+    saveQualityPolicy: leadershipHook.saveQualityPolicy,
+    createManagementReview: leadershipHook.createManagementReview,
+    updateManagementReview: leadershipHook.updateManagementReview,
+    getManagementReviewById: leadershipHook.getManagementReviewById,
+    generateReviewCode: leadershipHook.generateReviewCode,
   };
 
   return (

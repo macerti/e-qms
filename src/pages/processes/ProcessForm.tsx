@@ -35,13 +35,14 @@ const PROCESS_TYPES: { value: ProcessType; label: string; description: string; i
 export default function ProcessForm() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { createProcess, updateProcess, getProcessById, getDocumentsByProcess } = useManagementSystem();
+  const { createProcess, updateProcess, getProcessById, getDocumentsByProcess, generateProcessCode } = useManagementSystem();
   
   const existingProcess = id ? getProcessById(id) : undefined;
   const isEditing = !!existingProcess;
   const linkedDocuments = existingProcess ? getDocumentsByProcess(existingProcess.id) : [];
 
   const [formData, setFormData] = useState({
+    code: existingProcess?.code || generateProcessCode(),
     name: existingProcess?.name || "",
     type: existingProcess?.type || "operational" as ProcessType,
     purpose: existingProcess?.purpose || "",
@@ -84,6 +85,7 @@ export default function ProcessForm() {
 
     if (isEditing && existingProcess) {
       updateProcess(existingProcess.id, {
+        code: formData.code.trim(),
         name: formData.name.trim(),
         type: formData.type,
         purpose: formData.purpose.trim(),
@@ -97,6 +99,7 @@ export default function ProcessForm() {
       toast.success("Process updated successfully");
     } else {
       createProcess({
+        code: formData.code.trim(),
         name: formData.name.trim(),
         type: formData.type,
         purpose: formData.purpose.trim(),
@@ -216,6 +219,21 @@ export default function ProcessForm() {
       />
 
       <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6">
+        {/* Process Code */}
+        <div className="form-field">
+          <Label htmlFor="code">Reference Code *</Label>
+          <Input
+            id="code"
+            value={formData.code}
+            onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
+            placeholder="e.g., PRO-001"
+            className="font-mono"
+          />
+          <p className="form-helper">
+            Unique identifier for this process. Auto-generated but editable.
+          </p>
+        </div>
+
         {/* Process Name */}
         <div className="form-field">
           <Label htmlFor="name">Process Name *</Label>

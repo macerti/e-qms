@@ -1,6 +1,10 @@
 import { useState, useCallback } from "react";
 import { Action, ActionStatus } from "@/types/management-system";
 
+type CreateActionData = Omit<Action, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate"> & { 
+  code?: string;
+};
+
 export function useActions() {
   const [actions, setActions] = useState<Action[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -10,11 +14,11 @@ export function useActions() {
     return `ACT-${count.toString().padStart(3, "0")}`;
   }, [actions.length]);
 
-  const createAction = useCallback((data: Omit<Action, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate">) => {
+  const createAction = useCallback((data: CreateActionData) => {
     const now = new Date().toISOString();
     const newAction: Action = {
       id: crypto.randomUUID(),
-      code: generateCode(),
+      code: data.code || generateCode(),
       createdAt: now,
       updatedAt: now,
       version: 1,
@@ -55,6 +59,10 @@ export function useActions() {
     return actions.filter((action) => action.sourceType === sourceType);
   }, [actions]);
 
+  const getActionsBySourceId = useCallback((sourceId: string) => {
+    return actions.filter((action) => action.sourceId === sourceId);
+  }, [actions]);
+
   const getOverdueActions = useCallback(() => {
     const now = new Date();
     return actions.filter(
@@ -68,11 +76,13 @@ export function useActions() {
   return {
     actions,
     isLoading,
+    generateCode,
     createAction,
     updateAction,
     getActionsByProcess,
     getActionsByStatus,
     getActionsBySource,
+    getActionsBySourceId,
     getOverdueActions,
   };
 }
