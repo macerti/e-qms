@@ -1,5 +1,9 @@
 import { useState, useCallback } from "react";
-import { Document, DocumentType } from "@/types/management-system";
+import { Document } from "@/types/management-system";
+
+type CreateDocumentData = Omit<Document, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate"> & { 
+  code?: string;
+};
 
 export function useDocuments() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -10,11 +14,11 @@ export function useDocuments() {
     return `DOC-${count.toString().padStart(3, "0")}`;
   }, [documents.length]);
 
-  const createDocument = useCallback((data: Omit<Document, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate">) => {
+  const createDocument = useCallback((data: CreateDocumentData) => {
     const now = new Date().toISOString();
     const newDocument: Document = {
       id: crypto.randomUUID(),
-      code: generateCode(),
+      code: data.code || generateCode(),
       createdAt: now,
       updatedAt: now,
       version: 1,
@@ -62,6 +66,7 @@ export function useDocuments() {
   return {
     documents,
     isLoading,
+    generateCode,
     createDocument,
     updateDocument,
     archiveDocument,

@@ -1,19 +1,27 @@
 import { useState, useCallback } from "react";
 import { ContextIssue, IssueType, SwotQuadrant, IssueOrigin } from "@/types/management-system";
 
+type CreateIssueData = {
+  code?: string;
+  type: IssueType;
+  quadrant: SwotQuadrant;
+  description: string;
+  origin: IssueOrigin;
+  processId: string;
+  severity?: number;
+  probability?: number;
+};
+
 export function useContextIssues() {
   const [issues, setIssues] = useState<ContextIssue[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const createIssue = useCallback((data: {
-    type: IssueType;
-    quadrant: SwotQuadrant;
-    description: string;
-    origin: IssueOrigin;
-    processId: string;
-    severity?: number;
-    probability?: number;
-  }) => {
+  const generateCode = useCallback(() => {
+    const count = issues.length + 1;
+    return `ISS-${count.toString().padStart(3, "0")}`;
+  }, [issues.length]);
+
+  const createIssue = useCallback((data: CreateIssueData) => {
     const now = new Date().toISOString();
     
     // Calculate criticality if severity and probability provided
@@ -23,17 +31,24 @@ export function useContextIssues() {
     
     const newIssue: ContextIssue = {
       id: crypto.randomUUID(),
+      code: data.code || generateCode(),
       createdAt: now,
       updatedAt: now,
       version: 1,
       revisionDate: now,
       criticality,
-      ...data,
+      type: data.type,
+      quadrant: data.quadrant,
+      description: data.description,
+      origin: data.origin,
+      processId: data.processId,
+      severity: data.severity,
+      probability: data.probability,
     };
     
     setIssues((prev) => [...prev, newIssue]);
     return newIssue;
-  }, []);
+  }, [generateCode]);
 
   const updateIssue = useCallback((id: string, data: Partial<ContextIssue>, revisionNote?: string) => {
     const now = new Date().toISOString();
@@ -85,6 +100,7 @@ export function useContextIssues() {
   return {
     issues,
     isLoading,
+    generateCode,
     createIssue,
     updateIssue,
     deleteIssue,
