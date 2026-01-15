@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AlertTriangle, TrendingUp, ArrowRight, Filter } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
+import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
@@ -46,7 +48,7 @@ export default function IssueList() {
 
       {/* Process Filter */}
       {processes.length > 0 && (
-        <div className="section-header border-b">
+        <AdaptiveContainer padding="default" className="py-3 border-b border-border">
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
             <FilterChip
               selected={selectedProcess === "all"}
@@ -64,10 +66,10 @@ export default function IssueList() {
               </FilterChip>
             ))}
           </div>
-        </div>
+        </AdaptiveContainer>
       )}
 
-      <div className="px-4 py-4 space-y-4">
+      <AdaptiveContainer className="py-4 space-y-4">
         {/* View Toggle */}
         {filteredIssues.length > 0 && (
           <div className="flex gap-2">
@@ -96,7 +98,7 @@ export default function IssueList() {
             helperText="Issues can be risks (threats, weaknesses) or opportunities (strengths, external opportunities)."
           />
         ) : viewMode === "list" ? (
-          <div className="space-y-3">
+          <AdaptiveGrid cols="1-2" gap="md">
             {filteredIssues.map((issue) => {
               const config = quadrantConfig[issue.quadrant];
               return (
@@ -141,11 +143,11 @@ export default function IssueList() {
                 </button>
               );
             })}
-          </div>
+          </AdaptiveGrid>
         ) : (
           <SwotMatrix issues={filteredIssues} />
         )}
-      </div>
+      </AdaptiveContainer>
 
       <Fab 
         onClick={() => navigate(`/issues/new${selectedProcess !== "all" ? `?process=${selectedProcess}` : ""}`)} 
@@ -207,7 +209,7 @@ function SwotMatrix({ issues }: { issues: ReturnType<typeof useManagementSystem>
   const quadrants: SwotQuadrant[] = ["strength", "weakness", "opportunity", "threat"];
   
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <AdaptiveGrid cols="1-2" gap="sm">
       {quadrants.map((quadrant) => {
         const config = quadrantConfig[quadrant];
         const quadrantIssues = issues.filter(i => i.quadrant === quadrant);
@@ -243,6 +245,6 @@ function SwotMatrix({ issues }: { issues: ReturnType<typeof useManagementSystem>
           </div>
         );
       })}
-    </div>
+    </AdaptiveGrid>
   );
 }

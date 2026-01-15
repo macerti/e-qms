@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckSquare, ArrowRight, Clock, AlertCircle } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
+import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -52,9 +54,9 @@ export default function ActionList() {
       />
 
       {/* Filters */}
-      <div className="section-header border-b flex-col items-start gap-2">
+      <AdaptiveContainer padding="default" className="py-3 space-y-2 border-b border-border">
         {/* Status Filter */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar w-full">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
           <FilterChip selected={statusFilter === "all"} onClick={() => setStatusFilter("all")}>
             All
           </FilterChip>
@@ -71,7 +73,7 @@ export default function ActionList() {
         
         {/* Process Filter */}
         {processes.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto no-scrollbar w-full">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
             <FilterChip
               selected={selectedProcess === "all"}
               onClick={() => setSelectedProcess("all")}
@@ -91,9 +93,9 @@ export default function ActionList() {
             ))}
           </div>
         )}
-      </div>
+      </AdaptiveContainer>
 
-      <div className="px-4 py-4 space-y-3">
+      <AdaptiveContainer className="py-4">
         {filteredActions.length === 0 ? (
           <EmptyState
             icon={CheckSquare}
@@ -104,54 +106,56 @@ export default function ActionList() {
             helperText="Each action links to its source and the responsible process."
           />
         ) : (
-          filteredActions.map((action) => {
-            const overdue = isOverdue(action.deadline, action.status);
-            
-            return (
-              <button
-                key={action.id}
-                onClick={() => navigate(`/actions/${action.id}`)}
-                className="action-card w-full text-left"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-mono text-xs text-action font-medium">
-                        {action.code}
-                      </span>
-                      <StatusBadge status={action.status} />
-                      {overdue && (
-                        <span className="flex items-center gap-1 text-xs text-destructive font-medium">
-                          <AlertCircle className="w-3 h-3" />
-                          Overdue
+          <AdaptiveGrid cols="1-2" gap="md">
+            {filteredActions.map((action) => {
+              const overdue = isOverdue(action.deadline, action.status);
+              
+              return (
+                <button
+                  key={action.id}
+                  onClick={() => navigate(`/actions/${action.id}`)}
+                  className="action-card w-full text-left"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-mono text-xs text-action font-medium">
+                          {action.code}
                         </span>
-                      )}
+                        <StatusBadge status={action.status} />
+                        {overdue && (
+                          <span className="flex items-center gap-1 text-xs text-destructive font-medium">
+                            <AlertCircle className="w-3 h-3" />
+                            Overdue
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="font-semibold truncate">{action.title}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                        {action.description}
+                      </p>
                     </div>
-                    <h3 className="font-semibold truncate">{action.title}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                      {action.description}
-                    </p>
+                    <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
                   </div>
-                  <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
-                </div>
-                
-                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {format(new Date(action.deadline), "dd MMM yyyy")}
-                  </span>
-                  <span className="bg-muted px-2 py-0.5 rounded">
-                    {sourceLabels[action.sourceType]}
-                  </span>
-                  <span className="truncate">
-                    {getProcessName(action.processId)}
-                  </span>
-                </div>
-              </button>
-            );
-          })
+                  
+                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      {format(new Date(action.deadline), "dd MMM yyyy")}
+                    </span>
+                    <span className="bg-muted px-2 py-0.5 rounded">
+                      {sourceLabels[action.sourceType]}
+                    </span>
+                    <span className="truncate">
+                      {getProcessName(action.processId)}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </AdaptiveGrid>
         )}
-      </div>
+      </AdaptiveContainer>
 
       <Fab onClick={() => navigate("/actions/new")} label="Create action" />
     </div>

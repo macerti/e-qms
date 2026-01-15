@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ModuleCard } from "@/components/ui/module-card";
+import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
+import { AdaptiveGrid, AdaptiveTwoColumn } from "@/components/layout/AdaptiveGrid";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 
 const modules = [
@@ -87,81 +89,100 @@ export default function Dashboard() {
         subtitle="ISO 9001 Quality Management"
       />
       
-      <div className="px-4 py-6 space-y-6">
-        {/* Quick Stats */}
-        <section>
-          <div className="grid grid-cols-2 gap-3">
-            <QuickStat 
-              label="Active Processes" 
-              value={activeProcesses} 
-              icon={Workflow}
-              color="text-process"
-            />
-            <QuickStat 
-              label="Open Actions" 
-              value={openActions}
-              icon={CheckSquare}
-              color="text-action"
-              alert={overdueActions > 0 ? `${overdueActions} overdue` : undefined}
-            />
-            <QuickStat 
-              label="Identified Risks" 
-              value={risksCount}
-              icon={Shield}
-              color="text-risk"
-            />
-            <QuickStat 
-              label="Total Issues" 
-              value={issues.length}
-              icon={AlertTriangle}
-              color="text-warning"
-            />
-          </div>
-        </section>
+      <AdaptiveContainer className="py-6 space-y-6">
+        {/* Main content with optional sidebar on desktop */}
+        <AdaptiveTwoColumn>
+          {/* Main content */}
+          <div className="space-y-6">
+            {/* Quick Stats - 2x2 grid on mobile, 4 cols on tablet+ */}
+            <section>
+              <AdaptiveGrid cols="2-3-4" gap="md">
+                <QuickStat 
+                  label="Active Processes" 
+                  value={activeProcesses} 
+                  icon={Workflow}
+                  color="text-process"
+                />
+                <QuickStat 
+                  label="Open Actions" 
+                  value={openActions}
+                  icon={CheckSquare}
+                  color="text-action"
+                  alert={overdueActions > 0 ? `${overdueActions} overdue` : undefined}
+                />
+                <QuickStat 
+                  label="Identified Risks" 
+                  value={risksCount}
+                  icon={Shield}
+                  color="text-risk"
+                />
+                <QuickStat 
+                  label="Total Issues" 
+                  value={issues.length}
+                  icon={AlertTriangle}
+                  color="text-warning"
+                />
+              </AdaptiveGrid>
+            </section>
 
-        {/* Modules Grid */}
-        <section>
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-            Modules
-          </h2>
-          <div className="space-y-3">
-            {modules.map((module) => (
-              <ModuleCard
-                key={module.id}
-                title={module.title}
-                description={module.description}
-                icon={module.icon}
-                path={module.path}
-                isActive={module.isActive}
-                plannedMessage={module.plannedMessage}
-                accentColor={module.accentColor}
-                count={
-                  module.id === "processes" ? processes.length :
-                  module.id === "issues" ? issues.length :
-                  module.id === "actions" ? actions.length :
-                  undefined
-                }
-              />
-            ))}
+            {/* Modules Grid - reflows from 1 to 2 columns */}
+            <section>
+              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+                Modules
+              </h2>
+              <AdaptiveGrid cols="1-2" gap="md">
+                {modules.map((module) => (
+                  <ModuleCard
+                    key={module.id}
+                    title={module.title}
+                    description={module.description}
+                    icon={module.icon}
+                    path={module.path}
+                    isActive={module.isActive}
+                    plannedMessage={module.plannedMessage}
+                    accentColor={module.accentColor}
+                    count={
+                      module.id === "processes" ? processes.length :
+                      module.id === "issues" ? issues.length :
+                      module.id === "actions" ? actions.length :
+                      undefined
+                    }
+                  />
+                ))}
+              </AdaptiveGrid>
+            </section>
           </div>
-        </section>
 
-        {/* Standard Info */}
-        <section className="mobile-card bg-primary text-primary-foreground">
-          <div className="flex items-start gap-3">
-            <FileText className="w-5 h-5 mt-0.5 shrink-0 opacity-80" />
-            <div>
-              <h3 className="font-semibold">ISO 9001:2015</h3>
-              <p className="text-sm opacity-80 mt-1">
-                Quality management systems — Requirements
-              </p>
-              <p className="text-xs opacity-60 mt-2 font-mono">
-                Active standard for this system
-              </p>
+          {/* Sidebar - visible on desktop, stacked on mobile */}
+          <aside className="space-y-4">
+            {/* Standard Info */}
+            <div className="mobile-card bg-primary text-primary-foreground">
+              <div className="flex items-start gap-3">
+                <FileText className="w-5 h-5 mt-0.5 shrink-0 opacity-80" />
+                <div>
+                  <h3 className="font-semibold">ISO 9001:2015</h3>
+                  <p className="text-sm opacity-80 mt-1">
+                    Quality management systems — Requirements
+                  </p>
+                  <p className="text-xs opacity-60 mt-2 font-mono">
+                    Active standard for this system
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
-      </div>
+            
+            {/* Quick links or recent activity could go here */}
+            <div className="mobile-card hidden lg:block">
+              <h3 className="font-semibold text-sm mb-2">Quick Links</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Create new process</li>
+                <li>• Add action item</li>
+                <li>• Document procedures</li>
+              </ul>
+            </div>
+          </aside>
+        </AdaptiveTwoColumn>
+      </AdaptiveContainer>
     </div>
   );
 }
