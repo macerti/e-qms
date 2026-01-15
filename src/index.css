@@ -104,6 +104,11 @@
     /* Mobile navigation */
     --nav-height: 4.5rem;
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    
+    /* Adaptive layout */
+    --content-max-width: 960px;
+    --wide-max-width: 1200px;
+    --sidebar-width: 256px;
   }
 
   .dark {
@@ -161,7 +166,15 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "ss01", "ss02", "cv01";
+    /* Mobile: bottom nav padding. Desktop: no bottom padding (handled by lg:pb-0) */
     padding-bottom: calc(var(--nav-height) + var(--safe-area-bottom));
+  }
+  
+  /* Remove body padding on desktop - nav is on side */
+  @media (min-width: 1024px) {
+    body {
+      padding-bottom: 0;
+    }
   }
 
   /* Typography hierarchy */
@@ -275,9 +288,15 @@
 }
 
 @layer utilities {
-  /* Safe area padding */
+  /* Safe area padding - mobile only */
   .pb-safe {
     padding-bottom: calc(var(--nav-height) + var(--safe-area-bottom) + 1rem);
+  }
+  
+  @media (min-width: 1024px) {
+    .pb-safe {
+      padding-bottom: 1rem;
+    }
   }
 
   /* Touch scroll */
@@ -299,5 +318,14 @@
   .no-select {
     -webkit-user-select: none;
     user-select: none;
+  }
+  
+  /* Adaptive content container */
+  .content-container {
+    @apply w-full max-w-[960px] mx-auto px-4 lg:px-6;
+  }
+  
+  .wide-container {
+    @apply w-full max-w-[1200px] mx-auto px-4 lg:px-6;
   }
 }

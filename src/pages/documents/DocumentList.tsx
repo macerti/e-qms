@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText, ArrowRight, FileCheck, ClipboardList, BookOpen, ScrollText } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
+import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -45,9 +47,9 @@ export default function DocumentList() {
       />
 
       {documents.length > 0 && (
-        <div className="section-header border-b-0 space-y-3">
+        <AdaptiveContainer padding="default" className="py-3 space-y-3 border-b border-border">
           {/* Status Filter */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
             <FilterButton 
               active={filter === "all"} 
               onClick={() => setFilter("all")}
@@ -69,7 +71,7 @@ export default function DocumentList() {
           </div>
           
           {/* Type Filter */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap overflow-x-auto no-scrollbar">
             <FilterButton 
               active={typeFilter === "all"} 
               onClick={() => setTypeFilter("all")}
@@ -102,10 +104,10 @@ export default function DocumentList() {
               Instr
             </FilterButton>
           </div>
-        </div>
+        </AdaptiveContainer>
       )}
 
-      <div className="px-4 py-4 space-y-3">
+      <AdaptiveContainer className="py-4">
         {filteredDocuments.length === 0 ? (
           <EmptyState
             icon={FileText}
@@ -116,57 +118,59 @@ export default function DocumentList() {
             helperText="Each document links to processes and references specific ISO 9001 clauses."
           />
         ) : (
-          filteredDocuments.map((document) => {
-            const typeConfig = DOCUMENT_TYPE_CONFIG[document.type];
-            const TypeIcon = typeConfig.icon;
-            const processNames = getProcessNames(document.processIds);
-            
-            return (
-              <button
-                key={document.id}
-                onClick={() => navigate(`/documents/${document.id}`)}
-                className="process-card w-full text-left"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-mono text-xs text-primary font-medium">
-                        {document.code}
-                      </span>
-                      <StatusBadge status={document.status} />
-                      <div className={cn(
-                        "flex items-center gap-1 px-1.5 py-0.5 rounded text-xs",
-                        typeConfig.bgColor,
-                        typeConfig.color
-                      )}>
-                        <TypeIcon className="w-3 h-3" />
-                        <span className="font-medium">{typeConfig.label}</span>
+          <AdaptiveGrid cols="1-2" gap="md">
+            {filteredDocuments.map((document) => {
+              const typeConfig = DOCUMENT_TYPE_CONFIG[document.type];
+              const TypeIcon = typeConfig.icon;
+              const processNames = getProcessNames(document.processIds);
+              
+              return (
+                <button
+                  key={document.id}
+                  onClick={() => navigate(`/documents/${document.id}`)}
+                  className="process-card w-full text-left"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="font-mono text-xs text-primary font-medium">
+                          {document.code}
+                        </span>
+                        <StatusBadge status={document.status} />
+                        <div className={cn(
+                          "flex items-center gap-1 px-1.5 py-0.5 rounded text-xs",
+                          typeConfig.bgColor,
+                          typeConfig.color
+                        )}>
+                          <TypeIcon className="w-3 h-3" />
+                          <span className="font-medium">{typeConfig.label}</span>
+                        </div>
                       </div>
+                      <h3 className="font-semibold truncate">{document.title}</h3>
+                      {document.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                          {document.description}
+                        </p>
+                      )}
+                      {processNames && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Processes: {processNames}
+                        </p>
+                      )}
                     </div>
-                    <h3 className="font-semibold truncate">{document.title}</h3>
-                    {document.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                        {document.description}
-                      </p>
-                    )}
-                    {processNames && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Processes: {processNames}
-                      </p>
-                    )}
+                    <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
                   </div>
-                  <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
-                </div>
-                
-                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
-                  <StatChip label="Processes" value={document.processIds.length} />
-                  <StatChip label="ISO Clauses" value={document.isoClauseReferences.length} />
-                </div>
-              </button>
-            );
-          })
+                  
+                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
+                    <StatChip label="Processes" value={document.processIds.length} />
+                    <StatChip label="ISO Clauses" value={document.isoClauseReferences.length} />
+                  </div>
+                </button>
+              );
+            })}
+          </AdaptiveGrid>
         )}
-      </div>
+      </AdaptiveContainer>
 
       <Fab onClick={() => navigate("/documents/new")} label="Create document" />
     </div>
@@ -188,7 +192,7 @@ function FilterButton({
     <button
       onClick={onClick}
       className={cn(
-        "px-3 py-1.5 text-sm font-medium rounded-full transition-colors flex items-center",
+        "px-3 py-1.5 text-sm font-medium rounded-full transition-colors flex items-center whitespace-nowrap",
         active 
           ? variant === "primary" 
             ? "bg-primary text-primary-foreground" 

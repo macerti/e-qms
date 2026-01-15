@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Workflow, ArrowRight, Settings, Cog, Wrench, Scale } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
+import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -36,9 +38,9 @@ export default function ProcessList() {
       />
 
       {processes.length > 0 && (
-        <div className="section-header border-b-0 space-y-3">
+        <AdaptiveContainer padding="default" className="py-3 space-y-3 border-b border-border">
           {/* Status Filter */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
             <FilterButton 
               active={filter === "all"} 
               onClick={() => setFilter("all")}
@@ -60,7 +62,7 @@ export default function ProcessList() {
           </div>
           
           {/* Type Filter */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
             <FilterButton 
               active={typeFilter === "all"} 
               onClick={() => setTypeFilter("all")}
@@ -93,10 +95,10 @@ export default function ProcessList() {
               Supp
             </FilterButton>
           </div>
-        </div>
+        </AdaptiveContainer>
       )}
 
-      <div className="px-4 py-4 space-y-3">
+      <AdaptiveContainer className="py-4">
         {filteredProcesses.length === 0 ? (
           <EmptyState
             icon={Workflow}
@@ -107,63 +109,65 @@ export default function ProcessList() {
             helperText="Each process will have inputs, outputs, a pilot, and linked indicators, risks, and actions."
           />
         ) : (
-          filteredProcesses.map((process) => {
-            const typeConfig = PROCESS_TYPE_CONFIG[process.type];
-            const TypeIcon = typeConfig.icon;
-            const regulationsCount = process.regulations?.length || 0;
-            
-            return (
-              <button
-                key={process.id}
-                onClick={() => navigate(`/processes/${process.id}`)}
-                className="process-card w-full text-left"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-mono text-xs text-process font-medium">
-                        {process.code}
-                      </span>
-                      <StatusBadge status={process.status} />
-                      <div className={cn(
-                        "flex items-center gap-1 px-1.5 py-0.5 rounded text-xs",
-                        typeConfig.bgColor,
-                        typeConfig.color
-                      )}>
-                        <TypeIcon className="w-3 h-3" />
-                        <span className="font-medium">{typeConfig.label}</span>
+          <AdaptiveGrid cols="1-2" gap="md">
+            {filteredProcesses.map((process) => {
+              const typeConfig = PROCESS_TYPE_CONFIG[process.type];
+              const TypeIcon = typeConfig.icon;
+              const regulationsCount = process.regulations?.length || 0;
+              
+              return (
+                <button
+                  key={process.id}
+                  onClick={() => navigate(`/processes/${process.id}`)}
+                  className="process-card w-full text-left"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="font-mono text-xs text-process font-medium">
+                          {process.code}
+                        </span>
+                        <StatusBadge status={process.status} />
+                        <div className={cn(
+                          "flex items-center gap-1 px-1.5 py-0.5 rounded text-xs",
+                          typeConfig.bgColor,
+                          typeConfig.color
+                        )}>
+                          <TypeIcon className="w-3 h-3" />
+                          <span className="font-medium">{typeConfig.label}</span>
+                        </div>
                       </div>
-                    </div>
-                    <h3 className="font-semibold truncate">{process.name}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                      {process.purpose}
-                    </p>
-                    {process.pilotName && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Pilot: {process.pilotName}
+                      <h3 className="font-semibold truncate">{process.name}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                        {process.purpose}
                       </p>
+                      {process.pilotName && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Pilot: {process.pilotName}
+                        </p>
+                      )}
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
+                  </div>
+                  
+                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
+                    <StatChip label="Activities" value={process.activities?.length || 0} />
+                    <StatChip label="Risks" value={process.riskIds.length} />
+                    <StatChip label="Actions" value={process.actionIds.length} />
+                    {regulationsCount > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        <Scale className="w-3.5 h-3.5 text-amber-600" />
+                        <span className="font-mono text-sm font-medium">{regulationsCount}</span>
+                        <span className="text-xs text-muted-foreground">Regs</span>
+                      </div>
                     )}
                   </div>
-                  <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
-                </div>
-                
-                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
-                  <StatChip label="Activities" value={process.activities?.length || 0} />
-                  <StatChip label="Risks" value={process.riskIds.length} />
-                  <StatChip label="Actions" value={process.actionIds.length} />
-                  {regulationsCount > 0 && (
-                    <div className="flex items-center gap-1.5">
-                      <Scale className="w-3.5 h-3.5 text-amber-600" />
-                      <span className="font-mono text-sm font-medium">{regulationsCount}</span>
-                      <span className="text-xs text-muted-foreground">Regs</span>
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })
+                </button>
+              );
+            })}
+          </AdaptiveGrid>
         )}
-      </div>
+      </AdaptiveContainer>
 
       <Fab onClick={() => navigate("/processes/new")} label="Create process" />
     </div>
@@ -185,7 +189,7 @@ function FilterButton({
     <button
       onClick={onClick}
       className={cn(
-        "px-3 py-1.5 text-sm font-medium rounded-full transition-colors flex items-center",
+        "px-3 py-1.5 text-sm font-medium rounded-full transition-colors flex items-center whitespace-nowrap",
         active 
           ? variant === "primary" 
             ? "bg-primary text-primary-foreground" 
