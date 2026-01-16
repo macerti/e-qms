@@ -87,6 +87,9 @@ export interface Process extends BaseEntity, Versionable {
   documentIds: string[]; // Utilized documentation
 }
 
+// Risk Priority (calculated from criticity)
+export type RiskPriority = '01' | '02' | '03';
+
 // Context Issue (Risk or Opportunity from SWOT analysis)
 export interface ContextIssue extends BaseEntity, Versionable {
   code: string; // e.g., "ISS-001"
@@ -95,11 +98,12 @@ export interface ContextIssue extends BaseEntity, Versionable {
   description: string;
   origin: IssueOrigin;
   processId: string;
-  // Risk evaluation (applies to risks)
-  severity?: number; // 1-5
-  probability?: number; // 1-5
-  criticality?: number; // Calculated: severity * probability
-  priorityRank?: number;
+  // Risk evaluation (applies to Weakness and Threat only)
+  // Uses 3×3 scale: Severity (1-3), Probability (1-3)
+  severity?: number; // 1-3 (Minor, Significant, Major)
+  probability?: number; // 1-3 (Unlikely, Possible, Likely)
+  criticity?: number; // Calculated: severity × probability (1-9 range)
+  priority?: RiskPriority; // Derived from criticity: 1-3=03, 4-6=02, 7-9=01
   // Post-action evaluation
   residualRisk?: number;
   effectivenessRating?: number;

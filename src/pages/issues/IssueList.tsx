@@ -126,17 +126,27 @@ export default function IssueList() {
                       </p>
                     </div>
                     
-                    {issue.criticality !== undefined && (
+                    {issue.criticity !== undefined && (
                       <div className="text-right shrink-0">
-                        <span className="text-xs text-muted-foreground">Criticality</span>
+                        <span className="text-xs text-muted-foreground">Criticity</span>
                         <p className={cn(
                           "font-mono text-lg font-bold",
-                          issue.criticality >= 15 ? "text-risk" :
-                          issue.criticality >= 8 ? "text-warning" :
+                          issue.criticity >= 7 ? "text-risk" :
+                          issue.criticity >= 4 ? "text-warning" :
                           "text-success"
                         )}>
-                          {issue.criticality}
+                          {issue.criticity}
                         </p>
+                        {issue.priority && (
+                          <span className={cn(
+                            "text-[10px] font-bold px-1.5 py-0.5 rounded",
+                            issue.priority === '01' && "bg-risk/20 text-risk",
+                            issue.priority === '02' && "bg-warning/20 text-warning",
+                            issue.priority === '03' && "bg-success/20 text-success"
+                          )}>
+                            P{issue.priority}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { ContextIssue, IssueType, SwotQuadrant, IssueOrigin } from "@/types/management-system";
+import { ContextIssue, IssueType, SwotQuadrant, IssueOrigin, RiskPriority } from "@/types/management-system";
 
 type CreateIssueData = {
   code?: string;
@@ -8,9 +8,16 @@ type CreateIssueData = {
   description: string;
   origin: IssueOrigin;
   processId: string;
-  severity?: number;
-  probability?: number;
+  severity?: number; // 1-3 scale
+  probability?: number; // 1-3 scale
 };
+
+// Calculate priority from criticity (3×3 matrix)
+function getPriorityFromCriticity(criticity: number): RiskPriority {
+  if (criticity <= 3) return '03'; // Low priority (optional action)
+  if (criticity <= 6) return '02'; // Medium priority (required action)
+  return '01'; // High priority (mandatory/urgent action)
+}
 
 export function useContextIssues() {
   const [issues, setIssues] = useState<ContextIssue[]>([]);
@@ -24,10 +31,11 @@ export function useContextIssues() {
   const createIssue = useCallback((data: CreateIssueData) => {
     const now = new Date().toISOString();
     
-    // Calculate criticality if severity and probability provided
-    const criticality = data.severity && data.probability 
+    // Calculate criticity and priority if severity and probability provided (for risks only)
+    const criticity = data.severity && data.probability 
       ? data.severity * data.probability 
       : undefined;
+    const priority = criticity ? getPriorityFromCriticity(criticity) : undefined;
     
     const newIssue: ContextIssue = {
       id: crypto.randomUUID(),
@@ -36,7 +44,8 @@ export function useContextIssues() {
       updatedAt: now,
       version: 1,
       revisionDate: now,
-      criticality,
+      criticity,
+      priority,
       type: data.type,
       quadrant: data.quadrant,
       description: data.description,
@@ -56,7 +65,7 @@ export function useContextIssues() {
       prev.map((issue) => {
         if (issue.id !== id) return issue;
         
-        const updated = {
+        const updated: ContextIssue = {
           ...issue,
           ...data,
           updatedAt: now,
@@ -65,11 +74,13 @@ export function useContextIssues() {
           revisionNote: revisionNote || data.revisionNote,
         };
         
-        // Recalculate criticality if severity or probability changed
+        // Recalculate criticity and priority if severity or probability changed
         if (data.severity !== undefined || data.probability !== undefined) {
           const severity = data.severity ?? issue.severity;
           const probability = data.probability ?? issue.probability;
-          updated.criticality = severity && probability ? severity * probability : undefined;
+          const criticity = severity && probability ? severity * probability : undefined;
+          updated.criticity = criticity;
+          updated.priority = criticity ? getPriorityFromCriticity(criticity) : undefined;
         }
         
         return updated;
@@ -93,8 +104,8 @@ export function useContextIssues() {
 
   const getRisksByPriority = useCallback(() => {
     return issues
-      .filter((issue) => issue.type === "risk" && issue.criticality !== undefined)
-      .sort((a, b) => (b.criticality || 0) - (a.criticality || 0));
+      .filter((issue) => issue.type === "risk" && issue.criticity !== undefined)
+      .sort((a, b) => (b.criticity || 0) - (a.criticity || 0));
   }, [issues]);
 
   return {

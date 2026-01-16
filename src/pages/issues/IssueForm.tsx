@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { 
   Select,
   SelectContent,
@@ -11,11 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { IssueType, SwotQuadrant, IssueOrigin } from "@/types/management-system";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { RiskEvaluation, getPriorityFromCriticity } from "@/components/risk/RiskEvaluation";
+import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
 
 const quadrantOptions: { value: SwotQuadrant; label: string; type: IssueType; description: string }[] = [
   { value: "strength", label: "Strength", type: "opportunity", description: "Internal positive factor" },
@@ -30,19 +32,22 @@ export default function IssueForm() {
   const { createIssue, processes } = useManagementSystem();
   
   const preselectedProcess = searchParams.get("process");
+  const { generateIssueCode } = useManagementSystem();
 
   const [formData, setFormData] = useState({
+    code: generateIssueCode(),
     processId: preselectedProcess || "",
     quadrant: "" as SwotQuadrant | "",
     description: "",
     origin: "internal" as IssueOrigin,
-    severity: 3,
-    probability: 3,
+    severity: 2, // Default to middle value (1-3 scale)
+    probability: 2, // Default to middle value (1-3 scale)
   });
 
   const selectedQuadrant = quadrantOptions.find(q => q.value === formData.quadrant);
   const isRisk = selectedQuadrant?.type === "risk";
-  const criticality = isRisk ? formData.severity * formData.probability : undefined;
+  const criticity = isRisk ? formData.severity * formData.probability : undefined;
+  const priorityInfo = criticity ? getPriorityFromCriticity(criticity) : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +66,7 @@ export default function IssueForm() {
     }
 
     createIssue({
+      code: formData.code,
       processId: formData.processId,
       quadrant: formData.quadrant as SwotQuadrant,
       type: selectedQuadrant!.type,
@@ -84,29 +90,45 @@ export default function IssueForm() {
         showBack
       />
 
-      <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6">
-        {/* Process Selection */}
-        <div className="form-field">
-          <Label>Process *</Label>
-          <Select
-            value={formData.processId}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, processId: value }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a process" />
-            </SelectTrigger>
-            <SelectContent>
-              {activeProcesses.map((process) => (
-                <SelectItem key={process.id} value={process.id}>
-                  {process.code} — {process.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="form-helper">
-            This issue will be linked to the selected process.
-          </p>
-        </div>
+      <AdaptiveContainer>
+        <form onSubmit={handleSubmit} className="py-6 space-y-6">
+          {/* Code Field */}
+          <div className="form-field">
+            <Label htmlFor="code">Reference Code</Label>
+            <Input
+              id="code"
+              value={formData.code}
+              onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
+              placeholder="ISS-001"
+              className="font-mono"
+            />
+            <p className="form-helper">
+              Auto-generated reference. You can customize it.
+            </p>
+          </div>
+
+          {/* Process Selection */}
+          <div className="form-field">
+            <Label>Process *</Label>
+            <Select
+              value={formData.processId}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, processId: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a process" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeProcesses.map((process) => (
+                  <SelectItem key={process.id} value={process.id}>
+                    {process.code} — {process.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="form-helper">
+              This issue will be linked to the selected process.
+            </p>
+          </div>
 
         {/* Quadrant Selection */}
         <div className="form-field">
@@ -171,76 +193,24 @@ export default function IssueForm() {
           </p>
         </div>
 
-        {/* Risk Evaluation (only for risks) */}
-        {isRisk && (
-          <div className="space-y-6 p-4 bg-risk/5 rounded-xl border border-risk/20">
-            <h3 className="font-medium text-sm flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-risk" />
-              Risk Evaluation
-            </h3>
+          {/* Risk Evaluation (only for Weakness and Threat) */}
+          {isRisk && (
+            <RiskEvaluation
+              severity={formData.severity}
+              probability={formData.probability}
+              onSeverityChange={(value) => setFormData(prev => ({ ...prev, severity: value }))}
+              onProbabilityChange={(value) => setFormData(prev => ({ ...prev, probability: value }))}
+            />
+          )}
 
-            {/* Severity */}
-            <div className="form-field">
-              <div className="flex justify-between items-center mb-3">
-                <Label>Severity</Label>
-                <span className="font-mono text-lg font-bold">{formData.severity}</span>
-              </div>
-              <Slider
-                value={[formData.severity]}
-                onValueChange={([value]) => setFormData(prev => ({ ...prev, severity: value }))}
-                min={1}
-                max={5}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>Minor</span>
-                <span>Catastrophic</span>
-              </div>
-            </div>
-
-            {/* Probability */}
-            <div className="form-field">
-              <div className="flex justify-between items-center mb-3">
-                <Label>Probability</Label>
-                <span className="font-mono text-lg font-bold">{formData.probability}</span>
-              </div>
-              <Slider
-                value={[formData.probability]}
-                onValueChange={([value]) => setFormData(prev => ({ ...prev, probability: value }))}
-                min={1}
-                max={5}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>Rare</span>
-                <span>Almost certain</span>
-              </div>
-            </div>
-
-            {/* Criticality Result */}
-            <div className="flex items-center justify-between p-3 bg-background rounded-lg">
-              <span className="text-sm font-medium">Criticality Score</span>
-              <span className={cn(
-                "font-mono text-2xl font-bold",
-                criticality! >= 15 ? "text-risk" :
-                criticality! >= 8 ? "text-warning" :
-                "text-success"
-              )}>
-                {criticality}
-              </span>
-            </div>
+          {/* Submit */}
+          <div className="pt-4">
+            <Button type="submit" className="w-full">
+              Add {selectedQuadrant?.label || "Issue"}
+            </Button>
           </div>
-        )}
-
-        {/* Submit */}
-        <div className="pt-4">
-          <Button type="submit" className="w-full">
-            Add {selectedQuadrant?.label || "Issue"}
-          </Button>
-        </div>
-      </form>
+        </form>
+      </AdaptiveContainer>
     </div>
   );
 }
