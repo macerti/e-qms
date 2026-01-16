@@ -24,19 +24,30 @@ interface ManagementSystemContextType {
   createIssue: ReturnType<typeof useContextIssues>["createIssue"];
   updateIssue: ReturnType<typeof useContextIssues>["updateIssue"];
   deleteIssue: ReturnType<typeof useContextIssues>["deleteIssue"];
+  addRiskVersion: ReturnType<typeof useContextIssues>["addRiskVersion"];
+  getLatestRiskVersion: ReturnType<typeof useContextIssues>["getLatestRiskVersion"];
+  getRiskHistory: ReturnType<typeof useContextIssues>["getRiskHistory"];
   getIssuesByProcess: ReturnType<typeof useContextIssues>["getIssuesByProcess"];
   getIssuesByQuadrant: ReturnType<typeof useContextIssues>["getIssuesByQuadrant"];
   getRisksByPriority: ReturnType<typeof useContextIssues>["getRisksByPriority"];
+  getIssueById: ReturnType<typeof useContextIssues>["getIssueById"];
   generateIssueCode: ReturnType<typeof useContextIssues>["generateCode"];
   
   // Actions
   actions: ReturnType<typeof useActions>["actions"];
   createAction: ReturnType<typeof useActions>["createAction"];
   updateAction: ReturnType<typeof useActions>["updateAction"];
+  completeAction: ReturnType<typeof useActions>["completeAction"];
+  evaluateActionEfficiency: ReturnType<typeof useActions>["evaluateActionEfficiency"];
   getActionsByProcess: ReturnType<typeof useActions>["getActionsByProcess"];
   getActionsByStatus: ReturnType<typeof useActions>["getActionsByStatus"];
   getActionsBySourceId: ReturnType<typeof useActions>["getActionsBySourceId"];
+  getImplementedControls: ReturnType<typeof useActions>["getImplementedControls"];
+  hasActionsForIssue: ReturnType<typeof useActions>["hasActionsForIssue"];
+  getActionsPendingEvaluation: ReturnType<typeof useActions>["getActionsPendingEvaluation"];
   getOverdueActions: ReturnType<typeof useActions>["getOverdueActions"];
+  getActionById: ReturnType<typeof useActions>["getActionById"];
+  canEvaluateResidualRisk: ReturnType<typeof useActions>["canEvaluateResidualRisk"];
   generateActionCode: ReturnType<typeof useActions>["generateCode"];
 
   // Documents
@@ -85,19 +96,30 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     createIssue: issuesHook.createIssue,
     updateIssue: issuesHook.updateIssue,
     deleteIssue: issuesHook.deleteIssue,
+    addRiskVersion: issuesHook.addRiskVersion,
+    getLatestRiskVersion: issuesHook.getLatestRiskVersion,
+    getRiskHistory: issuesHook.getRiskHistory,
     getIssuesByProcess: issuesHook.getIssuesByProcess,
     getIssuesByQuadrant: issuesHook.getIssuesByQuadrant,
     getRisksByPriority: issuesHook.getRisksByPriority,
+    getIssueById: issuesHook.getIssueById,
     generateIssueCode: issuesHook.generateCode,
     
     // Actions
     actions: actionsHook.actions,
     createAction: actionsHook.createAction,
     updateAction: actionsHook.updateAction,
+    completeAction: actionsHook.completeAction,
+    evaluateActionEfficiency: actionsHook.evaluateActionEfficiency,
     getActionsByProcess: actionsHook.getActionsByProcess,
     getActionsByStatus: actionsHook.getActionsByStatus,
     getActionsBySourceId: actionsHook.getActionsBySourceId,
+    getImplementedControls: actionsHook.getImplementedControls,
+    hasActionsForIssue: actionsHook.hasActionsForIssue,
+    getActionsPendingEvaluation: actionsHook.getActionsPendingEvaluation,
     getOverdueActions: actionsHook.getOverdueActions,
+    getActionById: actionsHook.getActionById,
+    canEvaluateResidualRisk: actionsHook.canEvaluateResidualRisk,
     generateActionCode: actionsHook.generateCode,
 
     // Documents

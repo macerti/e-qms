@@ -78,7 +78,7 @@ export default function Dashboard() {
   const { processes, issues, actions, getOverdueActions } = useManagementSystem();
   
   const activeProcesses = processes.filter(p => p.status === "active").length;
-  const openActions = actions.filter(a => a.status !== "completed" && a.status !== "cancelled").length;
+  const openActions = actions.filter(a => a.status !== "evaluated" && a.status !== "cancelled").length;
   const overdueActions = getOverdueActions().length;
   const risksCount = issues.filter(i => i.type === "risk").length;
 

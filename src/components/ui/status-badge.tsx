@@ -14,10 +14,11 @@ const statusConfig: Record<StatusType, { label: string; className: string }> = {
   active: { label: "Active", className: "bg-success/15 text-success" },
   archived: { label: "Archived", className: "bg-muted text-muted-foreground" },
   
-  // Action statuses
+  // Action statuses (new flow)
   planned: { label: "Planned", className: "bg-info/15 text-info" },
   in_progress: { label: "In Progress", className: "bg-warning/15 text-warning" },
-  completed: { label: "Completed", className: "bg-success/15 text-success" },
+  completed_pending_evaluation: { label: "Pending Evaluation", className: "bg-action/15 text-action" },
+  evaluated: { label: "Evaluated", className: "bg-success/15 text-success" },
   cancelled: { label: "Cancelled", className: "bg-muted text-muted-foreground" },
   
   // Risk levels

@@ -1,5 +1,13 @@
 import { useState, useCallback } from "react";
-import { ContextIssue, IssueType, SwotQuadrant, IssueOrigin, RiskPriority } from "@/types/management-system";
+import { 
+  ContextIssue, 
+  IssueType, 
+  SwotQuadrant, 
+  IssueOrigin, 
+  RiskPriority, 
+  RiskVersion,
+  RiskTrigger 
+} from "@/types/management-system";
 
 type CreateIssueData = {
   code?: string;
@@ -13,7 +21,7 @@ type CreateIssueData = {
 };
 
 // Calculate priority from criticity (3×3 matrix)
-function getPriorityFromCriticity(criticity: number): RiskPriority {
+export function getPriorityFromCriticity(criticity: number): RiskPriority {
   if (criticity <= 3) return '03'; // Low priority (optional action)
   if (criticity <= 6) return '02'; // Medium priority (required action)
   return '01'; // High priority (mandatory/urgent action)
@@ -28,14 +36,50 @@ export function useContextIssues() {
     return `ISS-${count.toString().padStart(3, "0")}`;
   }, [issues.length]);
 
+  // Create initial risk version for negative issues
+  const createRiskVersion = (
+    severity: number, 
+    probability: number, 
+    description: string,
+    trigger: RiskTrigger = 'initial',
+    versionNumber: number = 1,
+    evaluatorName?: string,
+    notes?: string
+  ): RiskVersion => {
+    const criticity = severity * probability;
+    return {
+      id: crypto.randomUUID(),
+      versionNumber,
+      date: new Date().toISOString(),
+      trigger,
+      description,
+      severity,
+      probability,
+      criticity,
+      priority: getPriorityFromCriticity(criticity),
+      evaluatorName,
+      notes,
+    };
+  };
+
   const createIssue = useCallback((data: CreateIssueData) => {
     const now = new Date().toISOString();
     
-    // Calculate criticity and priority if severity and probability provided (for risks only)
-    const criticity = data.severity && data.probability 
-      ? data.severity * data.probability 
-      : undefined;
-    const priority = criticity ? getPriorityFromCriticity(criticity) : undefined;
+    // Create risk versions array if this is a negative issue (risk)
+    const isRisk = data.quadrant === 'weakness' || data.quadrant === 'threat';
+    const riskVersions: RiskVersion[] = [];
+    
+    if (isRisk && data.severity && data.probability) {
+      riskVersions.push(createRiskVersion(
+        data.severity,
+        data.probability,
+        data.description,
+        'initial'
+      ));
+    }
+    
+    // Get latest risk version values for convenience
+    const latestVersion = riskVersions[riskVersions.length - 1];
     
     const newIssue: ContextIssue = {
       id: crypto.randomUUID(),
@@ -44,15 +88,17 @@ export function useContextIssues() {
       updatedAt: now,
       version: 1,
       revisionDate: now,
-      criticity,
-      priority,
       type: data.type,
       quadrant: data.quadrant,
       description: data.description,
       origin: data.origin,
       processId: data.processId,
-      severity: data.severity,
-      probability: data.probability,
+      riskVersions,
+      // Derived from latest risk version for convenience
+      severity: latestVersion?.severity,
+      probability: latestVersion?.probability,
+      criticity: latestVersion?.criticity,
+      priority: latestVersion?.priority,
     };
     
     setIssues((prev) => [...prev, newIssue]);
@@ -74,19 +120,71 @@ export function useContextIssues() {
           revisionNote: revisionNote || data.revisionNote,
         };
         
-        // Recalculate criticity and priority if severity or probability changed
-        if (data.severity !== undefined || data.probability !== undefined) {
-          const severity = data.severity ?? issue.severity;
-          const probability = data.probability ?? issue.probability;
-          const criticity = severity && probability ? severity * probability : undefined;
-          updated.criticity = criticity;
-          updated.priority = criticity ? getPriorityFromCriticity(criticity) : undefined;
-        }
-        
         return updated;
       })
     );
   }, []);
+
+  // Add a new risk version (for residual risk evaluation)
+  const addRiskVersion = useCallback((
+    issueId: string,
+    data: {
+      severity: number;
+      probability: number;
+      description: string;
+      trigger: RiskTrigger;
+      evaluatorName?: string;
+      notes?: string;
+    }
+  ) => {
+    setIssues((prev) =>
+      prev.map((issue) => {
+        if (issue.id !== issueId) return issue;
+        
+        const newVersionNumber = issue.riskVersions.length + 1;
+        const newVersion = createRiskVersion(
+          data.severity,
+          data.probability,
+          data.description,
+          data.trigger,
+          newVersionNumber,
+          data.evaluatorName,
+          data.notes
+        );
+        
+        const now = new Date().toISOString();
+        
+        return {
+          ...issue,
+          riskVersions: [...issue.riskVersions, newVersion],
+          // Update description to latest
+          description: data.description,
+          // Update derived fields from latest version
+          severity: newVersion.severity,
+          probability: newVersion.probability,
+          criticity: newVersion.criticity,
+          priority: newVersion.priority,
+          updatedAt: now,
+          version: issue.version + 1,
+          revisionDate: now,
+          revisionNote: `Residual risk evaluation v${newVersionNumber}`,
+        };
+      })
+    );
+  }, []);
+
+  // Get latest risk version for an issue
+  const getLatestRiskVersion = useCallback((issueId: string): RiskVersion | undefined => {
+    const issue = issues.find(i => i.id === issueId);
+    if (!issue || issue.riskVersions.length === 0) return undefined;
+    return issue.riskVersions[issue.riskVersions.length - 1];
+  }, [issues]);
+
+  // Get all risk versions for an issue
+  const getRiskHistory = useCallback((issueId: string): RiskVersion[] => {
+    const issue = issues.find(i => i.id === issueId);
+    return issue?.riskVersions || [];
+  }, [issues]);
 
   const deleteIssue = useCallback((id: string) => {
     setIssues((prev) => prev.filter((issue) => issue.id !== id));
@@ -108,6 +206,10 @@ export function useContextIssues() {
       .sort((a, b) => (b.criticity || 0) - (a.criticity || 0));
   }, [issues]);
 
+  const getIssueById = useCallback((id: string) => {
+    return issues.find((issue) => issue.id === id);
+  }, [issues]);
+
   return {
     issues,
     isLoading,
@@ -115,8 +217,12 @@ export function useContextIssues() {
     createIssue,
     updateIssue,
     deleteIssue,
+    addRiskVersion,
+    getLatestRiskVersion,
+    getRiskHistory,
     getIssuesByProcess,
     getIssuesByQuadrant,
     getRisksByPriority,
+    getIssueById,
   };
 }

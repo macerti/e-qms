@@ -42,7 +42,7 @@ export default function ActionList() {
   };
 
   const isOverdue = (deadline: string, status: ActionStatus) => {
-    if (status === "completed" || status === "cancelled") return false;
+    if (status === "evaluated" || status === "completed_pending_evaluation" || status === "cancelled") return false;
     return isPast(new Date(deadline)) && !isToday(new Date(deadline));
   };
 
@@ -66,8 +66,11 @@ export default function ActionList() {
           <FilterChip selected={statusFilter === "in_progress"} onClick={() => setStatusFilter("in_progress")}>
             In Progress
           </FilterChip>
-          <FilterChip selected={statusFilter === "completed"} onClick={() => setStatusFilter("completed")}>
-            Completed
+          <FilterChip selected={statusFilter === "completed_pending_evaluation"} onClick={() => setStatusFilter("completed_pending_evaluation")}>
+            Pending Eval
+          </FilterChip>
+          <FilterChip selected={statusFilter === "evaluated"} onClick={() => setStatusFilter("evaluated")}>
+            Evaluated
           </FilterChip>
         </div>
         

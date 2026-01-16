@@ -5,11 +5,14 @@ export type ManagementStandard = 'ISO_9001' | 'ISO_14001' | 'ISO_45001' | 'ISO_2
 
 export type ProcessStatus = 'draft' | 'active' | 'archived';
 export type ProcessType = 'management' | 'operational' | 'support';
-export type ActionStatus = 'planned' | 'in_progress' | 'completed' | 'cancelled';
+// Action status flow: planned → in_progress → completed_pending_evaluation → evaluated (or cancelled at any point)
+export type ActionStatus = 'planned' | 'in_progress' | 'completed_pending_evaluation' | 'evaluated' | 'cancelled';
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 export type IssueType = 'risk' | 'opportunity';
 export type IssueOrigin = 'internal' | 'external';
 export type SwotQuadrant = 'strength' | 'weakness' | 'opportunity' | 'threat';
+export type RiskTrigger = 'initial' | 'post_action_review';
+export type EfficiencyResult = 'effective' | 'ineffective';
 
 // Process Activity
 export interface ProcessActivity {
@@ -90,39 +93,74 @@ export interface Process extends BaseEntity, Versionable {
 // Risk Priority (calculated from criticity)
 export type RiskPriority = '01' | '02' | '03';
 
+// Risk Version - append-only history for risk evaluations
+export interface RiskVersion {
+  id: string;
+  versionNumber: number;
+  date: string;
+  trigger: RiskTrigger; // 'initial' or 'post_action_review'
+  description: string; // Current description at time of evaluation
+  severity: number; // 1-3
+  probability: number; // 1-3
+  criticity: number; // severity × probability (1-9)
+  priority: RiskPriority; // Derived from criticity
+  evaluatorName?: string;
+  notes?: string;
+}
+
 // Context Issue (Risk or Opportunity from SWOT analysis)
+// Issues are persistent contextual objects - they evolve, never reset
 export interface ContextIssue extends BaseEntity, Versionable {
   code: string; // e.g., "ISS-001"
   type: IssueType;
   quadrant: SwotQuadrant;
-  description: string;
+  description: string; // Current description (can evolve with residual risk)
   origin: IssueOrigin;
   processId: string;
-  // Risk evaluation (applies to Weakness and Threat only)
-  // Uses 3×3 scale: Severity (1-3), Probability (1-3)
-  severity?: number; // 1-3 (Minor, Significant, Major)
-  probability?: number; // 1-3 (Unlikely, Possible, Likely)
+  
+  // Risk evaluation - append-only versioned history (applies to Weakness and Threat only)
+  // The latest version defines the current state
+  riskVersions: RiskVersion[];
+  
+  // Legacy fields for backwards compatibility - derived from latest risk version
+  severity?: number; // 1-3 (from latest risk version)
+  probability?: number; // 1-3 (from latest risk version)
   criticity?: number; // Calculated: severity × probability (1-9 range)
   priority?: RiskPriority; // Derived from criticity: 1-3=03, 4-6=02, 7-9=01
-  // Post-action evaluation
-  residualRisk?: number;
-  effectivenessRating?: number;
 }
 
-// Action (Corrective/Improvement)
+// Efficiency Evaluation for an Action
+export interface EfficiencyEvaluation {
+  id: string;
+  date: string;
+  result: EfficiencyResult; // 'effective' or 'ineffective'
+  evidence?: string; // File path, link, or description
+  evidenceType?: 'file' | 'link' | 'note';
+  evaluatorName?: string;
+  notes?: string;
+}
+
+// Action (Corrective/Improvement) - Universal improvement object
+// All actions share the same structure regardless of origin
 export interface Action extends BaseEntity, Versionable {
   code: string; // e.g., "ACT-001"
   title: string;
   description: string;
   sourceType: 'risk' | 'opportunity' | 'internal_audit' | 'external_audit' | 'management_review';
-  sourceId: string;
+  sourceId: string; // Links to Issue ID when source is risk/opportunity
   processId: string;
   deadline: string;
   responsibleId?: string;
   responsibleName?: string;
   status: ActionStatus;
   impact?: string;
-  effectivenessAssessment?: string;
+  
+  // Completion tracking
+  completedDate?: string;
+  
+  // Efficiency evaluation - only available after status = completed_pending_evaluation
+  // One efficiency evaluation per action
+  efficiencyEvaluation?: EfficiencyEvaluation;
 }
 
 // KPI/Indicator
@@ -223,4 +261,13 @@ export interface ModuleConfig {
   path: string;
   isActive: boolean;
   plannedFeatureMessage?: string;
+}
+
+// Helper type for implemented controls display
+export interface ImplementedControl {
+  actionId: string;
+  actionCode: string;
+  actionTitle: string;
+  completedDate: string;
+  efficiencyResult?: EfficiencyResult;
 }
