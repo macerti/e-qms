@@ -13,8 +13,10 @@ import ProcessForm from "./pages/processes/ProcessForm";
 import ProcessDetail from "./pages/processes/ProcessDetail";
 import IssueList from "./pages/issues/IssueList";
 import IssueForm from "./pages/issues/IssueForm";
+import IssueDetail from "./pages/issues/IssueDetail";
 import ActionList from "./pages/actions/ActionList";
 import ActionForm from "./pages/actions/ActionForm";
+import ActionDetail from "./pages/actions/ActionDetail";
 import DocumentList from "./pages/documents/DocumentList";
 import DocumentForm from "./pages/documents/DocumentForm";
 import DocumentDetail from "./pages/documents/DocumentDetail";
@@ -43,10 +45,14 @@ const App = () => (
               {/* Issues (Context Analysis) */}
               <Route path="/issues" element={<IssueList />} />
               <Route path="/issues/new" element={<IssueForm />} />
+              <Route path="/issues/:id" element={<IssueDetail />} />
+              <Route path="/issues/:id/edit" element={<IssueForm />} />
               
               {/* Actions */}
               <Route path="/actions" element={<ActionList />} />
               <Route path="/actions/new" element={<ActionForm />} />
+              <Route path="/actions/:id" element={<ActionDetail />} />
+              <Route path="/actions/:id/edit" element={<ActionForm />} />
 
               {/* Documents */}
               <Route path="/documents" element={<DocumentList />} />
