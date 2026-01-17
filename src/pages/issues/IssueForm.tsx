@@ -13,33 +13,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
-import { IssueType, SwotQuadrant, IssueOrigin } from "@/types/management-system";
+import { IssueType, SwotQuadrant, ContextNature } from "@/types/management-system";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { RiskEvaluation, getPriorityFromCriticity } from "@/components/risk/RiskEvaluation";
 import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
 
-const quadrantOptions: { value: SwotQuadrant; label: string; type: IssueType; description: string }[] = [
-  { value: "strength", label: "Strength", type: "opportunity", description: "Internal positive factor" },
-  { value: "weakness", label: "Weakness", type: "risk", description: "Internal negative factor" },
-  { value: "opportunity", label: "Opportunity", type: "opportunity", description: "External positive factor" },
-  { value: "threat", label: "Threat", type: "risk", description: "External negative factor" },
+const quadrantOptions: { value: SwotQuadrant; label: string; type: IssueType; description: string; defaultNature: ContextNature }[] = [
+  { value: "strength", label: "Strength", type: "opportunity", description: "Internal positive factor", defaultNature: "internal" },
+  { value: "weakness", label: "Weakness", type: "risk", description: "Internal negative factor", defaultNature: "internal" },
+  { value: "opportunity", label: "Opportunity", type: "opportunity", description: "External positive factor", defaultNature: "external" },
+  { value: "threat", label: "Threat", type: "risk", description: "External negative factor", defaultNature: "external" },
 ];
 
 export default function IssueForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { createIssue, processes } = useManagementSystem();
+  const { createIssue, processes, generateIssueCode } = useManagementSystem();
   
   const preselectedProcess = searchParams.get("process");
-  const { generateIssueCode } = useManagementSystem();
 
   const [formData, setFormData] = useState({
-    code: generateIssueCode(),
+    code: "",
     processId: preselectedProcess || "",
     quadrant: "" as SwotQuadrant | "",
     description: "",
-    origin: "internal" as IssueOrigin,
+    contextNature: "internal" as ContextNature,
     severity: 2, // Default to middle value (1-3 scale)
     probability: 2, // Default to middle value (1-3 scale)
   });
@@ -48,6 +47,18 @@ export default function IssueForm() {
   const isRisk = selectedQuadrant?.type === "risk";
   const criticity = isRisk ? formData.severity * formData.probability : undefined;
   const priorityInfo = criticity ? getPriorityFromCriticity(criticity) : undefined;
+
+  // Generate code when quadrant is selected
+  const handleQuadrantChange = (quadrant: SwotQuadrant) => {
+    const option = quadrantOptions.find(q => q.value === quadrant);
+    const issueType = option?.type || "risk";
+    setFormData(prev => ({ 
+      ...prev, 
+      quadrant,
+      contextNature: option?.defaultNature || "internal",
+      code: generateIssueCode(issueType),
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +82,7 @@ export default function IssueForm() {
       quadrant: formData.quadrant as SwotQuadrant,
       type: selectedQuadrant!.type,
       description: formData.description.trim(),
-      origin: formData.origin,
+      contextNature: formData.contextNature,
       severity: isRisk ? formData.severity : undefined,
       probability: isRisk ? formData.probability : undefined,
     });
@@ -92,20 +103,52 @@ export default function IssueForm() {
 
       <AdaptiveContainer>
         <form onSubmit={handleSubmit} className="py-6 space-y-6">
-          {/* Code Field */}
+          {/* Quadrant Selection - First to generate code */}
           <div className="form-field">
-            <Label htmlFor="code">Reference Code</Label>
-            <Input
-              id="code"
-              value={formData.code}
-              onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
-              placeholder="ISS-001"
-              className="font-mono"
-            />
-            <p className="form-helper">
-              Auto-generated reference. You can customize it.
-            </p>
+            <Label>Type *</Label>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {quadrantOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => handleQuadrantChange(option.value)}
+                  className={cn(
+                    "p-3 rounded-lg border text-left transition-all",
+                    formData.quadrant === option.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <span className={cn(
+                    "text-sm font-medium",
+                    option.type === "risk" ? "text-risk" : "text-opportunity"
+                  )}>
+                    {option.label}
+                  </span>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {option.description}
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
+
+          {/* Code Field - Only shown after quadrant selected */}
+          {formData.quadrant && (
+            <div className="form-field">
+              <Label htmlFor="code">Reference Code</Label>
+              <Input
+                id="code"
+                value={formData.code}
+                onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
+                placeholder="RISK/25/001"
+                className="font-mono"
+              />
+              <p className="form-helper">
+                Auto-generated. Format: {isRisk ? "RISK" : "OPP"}/YY/XXX. You can customize it.
+              </p>
+            </div>
+          )}
 
           {/* Process Selection */}
           <div className="form-field">
@@ -130,68 +173,64 @@ export default function IssueForm() {
             </p>
           </div>
 
-        {/* Quadrant Selection */}
-        <div className="form-field">
-          <Label>Type *</Label>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {quadrantOptions.map((option) => (
+          {/* Context Nature (Internal / External) */}
+          <div className="form-field">
+            <Label>Context Nature</Label>
+            <div className="flex gap-2 mt-2">
               <button
-                key={option.value}
                 type="button"
-                onClick={() => {
-                  setFormData(prev => ({ 
-                    ...prev, 
-                    quadrant: option.value,
-                    origin: option.value === "strength" || option.value === "weakness" 
-                      ? "internal" 
-                      : "external"
-                  }));
-                }}
+                onClick={() => setFormData(prev => ({ ...prev, contextNature: "internal" }))}
                 className={cn(
-                  "p-3 rounded-lg border text-left transition-all",
-                  formData.quadrant === option.value
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
+                  "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-colors",
+                  formData.contextNature === "internal" 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
                 )}
               >
-                <span className={cn(
-                  "text-sm font-medium",
-                  option.type === "risk" ? "text-risk" : "text-opportunity"
-                )}>
-                  {option.label}
-                </span>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {option.description}
-                </p>
+                Internal
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, contextNature: "external" }))}
+                className={cn(
+                  "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-colors",
+                  formData.contextNature === "external" 
+                    ? "bg-primary text-primary-foreground" 
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                )}
+              >
+                External
+              </button>
+            </div>
+            <p className="form-helper">
+              Is this factor from within the organization or the external environment?
+            </p>
           </div>
-        </div>
 
-        {/* Description */}
-        <div className="form-field">
-          <Label htmlFor="description">Description *</Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            placeholder={
-              formData.quadrant === "strength" 
-                ? "e.g., Experienced quality team with deep process knowledge" 
-                : formData.quadrant === "weakness"
-                ? "e.g., Limited automation in inspection processes"
-                : formData.quadrant === "opportunity"
-                ? "e.g., New market segment with demand for certified products"
-                : formData.quadrant === "threat"
-                ? "e.g., Increasing regulatory requirements in target markets"
-                : "Describe the factor or situation"
-            }
-            rows={4}
-          />
-          <p className="form-helper">
-            Be specific about the factor and its potential impact.
-          </p>
-        </div>
+          {/* Description */}
+          <div className="form-field">
+            <Label htmlFor="description">Description *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder={
+                formData.quadrant === "strength" 
+                  ? "e.g., Experienced quality team with deep process knowledge" 
+                  : formData.quadrant === "weakness"
+                  ? "e.g., Limited automation in inspection processes"
+                  : formData.quadrant === "opportunity"
+                  ? "e.g., New market segment with demand for certified products"
+                  : formData.quadrant === "threat"
+                  ? "e.g., Increasing regulatory requirements in target markets"
+                  : "Describe the factor or situation"
+              }
+              rows={4}
+            />
+            <p className="form-helper">
+              Be specific about the factor and its potential impact.
+            </p>
+          </div>
 
           {/* Risk Evaluation (only for Weakness and Threat) */}
           {isRisk && (

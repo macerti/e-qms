@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
-import { Action, ActionStatus, EfficiencyEvaluation, EfficiencyResult } from "@/types/management-system";
+import { Action, ActionStatus, ActionOrigin, EfficiencyEvaluation, EfficiencyResult, ActionStatusChange } from "@/types/management-system";
 
-type CreateActionData = Omit<Action, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate" | "efficiencyEvaluation" | "completedDate"> & { 
+type CreateActionData = Omit<Action, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate" | "efficiencyEvaluation" | "completedDate" | "statusHistory"> & { 
   code?: string;
 };
 
@@ -16,6 +16,13 @@ export function useActions() {
 
   const createAction = useCallback((data: CreateActionData) => {
     const now = new Date().toISOString();
+    const initialStatusChange: ActionStatusChange = {
+      id: crypto.randomUUID(),
+      date: now,
+      fromStatus: null,
+      toStatus: data.status,
+      notes: 'Action created',
+    };
     const newAction: Action = {
       id: crypto.randomUUID(),
       code: data.code || generateCode(),
@@ -23,6 +30,7 @@ export function useActions() {
       updatedAt: now,
       version: 1,
       revisionDate: now,
+      statusHistory: [initialStatusChange],
       ...data,
     };
     setActions((prev) => [...prev, newAction]);
@@ -35,9 +43,23 @@ export function useActions() {
       prev.map((action) => {
         if (action.id !== id) return action;
         
+        // Track status change if status is being updated
+        let statusHistory = action.statusHistory;
+        if (data.status && data.status !== action.status) {
+          const statusChange: ActionStatusChange = {
+            id: crypto.randomUUID(),
+            date: now,
+            fromStatus: action.status,
+            toStatus: data.status,
+            notes: revisionNote,
+          };
+          statusHistory = [...statusHistory, statusChange];
+        }
+        
         const updated = {
           ...action,
           ...data,
+          statusHistory,
           updatedAt: now,
           version: action.version + 1,
           revisionDate: now,
@@ -109,19 +131,19 @@ export function useActions() {
     return actions.filter((action) => action.status === status);
   }, [actions]);
 
-  const getActionsBySource = useCallback((sourceType: Action["sourceType"]) => {
-    return actions.filter((action) => action.sourceType === sourceType);
+  const getActionsByOrigin = useCallback((origin: ActionOrigin) => {
+    return actions.filter((action) => action.origin === origin);
   }, [actions]);
 
-  const getActionsBySourceId = useCallback((sourceId: string) => {
-    return actions.filter((action) => action.sourceId === sourceId);
+  const getActionsByIssue = useCallback((issueId: string) => {
+    return actions.filter((action) => action.linkedIssueIds.includes(issueId));
   }, [actions]);
 
   // Get implemented controls for an issue (completed actions linked to it)
   const getImplementedControls = useCallback((issueId: string) => {
     return actions
       .filter((action) => 
-        action.sourceId === issueId && 
+        action.linkedIssueIds.includes(issueId) && 
         (action.status === 'completed_pending_evaluation' || action.status === 'evaluated')
       )
       .sort((a, b) => {
@@ -141,7 +163,7 @@ export function useActions() {
 
   // Check if an issue has any actions (regardless of status)
   const hasActionsForIssue = useCallback((issueId: string) => {
-    return actions.some((action) => action.sourceId === issueId);
+    return actions.some((action) => action.linkedIssueIds.includes(issueId));
   }, [actions]);
 
   // Get actions pending evaluation
@@ -167,7 +189,7 @@ export function useActions() {
   // Check if residual risk can be evaluated (at least one evaluated action exists)
   const canEvaluateResidualRisk = useCallback((issueId: string) => {
     return actions.some(
-      (action) => action.sourceId === issueId && action.status === 'evaluated'
+      (action) => action.linkedIssueIds.includes(issueId) && action.status === 'evaluated'
     );
   }, [actions]);
 
@@ -181,8 +203,8 @@ export function useActions() {
     evaluateActionEfficiency,
     getActionsByProcess,
     getActionsByStatus,
-    getActionsBySource,
-    getActionsBySourceId,
+    getActionsByOrigin,
+    getActionsByIssue,
     getImplementedControls,
     hasActionsForIssue,
     getActionsPendingEvaluation,

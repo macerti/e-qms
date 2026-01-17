@@ -12,12 +12,13 @@ import { cn } from "@/lib/utils";
 import { ActionStatus } from "@/types/management-system";
 import { format, isPast, isToday } from "date-fns";
 
-const sourceLabels: Record<string, string> = {
-  risk: "Risk",
-  opportunity: "Opportunity", 
+const originLabels: Record<string, string> = {
+  issue: "Issue",
   internal_audit: "Internal Audit",
   external_audit: "External Audit",
   management_review: "Management Review",
+  objective_not_met: "Objective Not Met",
+  other: "Other",
 };
 
 export default function ActionList() {
@@ -147,7 +148,7 @@ export default function ActionList() {
                       {format(new Date(action.deadline), "dd MMM yyyy")}
                     </span>
                     <span className="bg-muted px-2 py-0.5 rounded">
-                      {sourceLabels[action.sourceType]}
+                      {originLabels[action.origin]}
                     </span>
                     <span className="truncate">
                       {getProcessName(action.processId)}

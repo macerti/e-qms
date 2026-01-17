@@ -9,10 +9,19 @@ export type ProcessType = 'management' | 'operational' | 'support';
 export type ActionStatus = 'planned' | 'in_progress' | 'completed_pending_evaluation' | 'evaluated' | 'cancelled';
 export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 export type IssueType = 'risk' | 'opportunity';
-export type IssueOrigin = 'internal' | 'external';
+export type ContextNature = 'internal' | 'external';
 export type SwotQuadrant = 'strength' | 'weakness' | 'opportunity' | 'threat';
 export type RiskTrigger = 'initial' | 'post_action_review';
 export type EfficiencyResult = 'effective' | 'ineffective';
+
+// Action origin - where the action comes from
+export type ActionOrigin = 
+  | 'issue'           // From a risk or opportunity Issue
+  | 'internal_audit'  // From internal audit finding
+  | 'external_audit'  // From external/certification audit
+  | 'management_review' // Decision from management review
+  | 'objective_not_met' // Objective target not achieved
+  | 'other';           // Other source
 
 // Process Activity
 export interface ProcessActivity {
@@ -111,11 +120,11 @@ export interface RiskVersion {
 // Context Issue (Risk or Opportunity from SWOT analysis)
 // Issues are persistent contextual objects - they evolve, never reset
 export interface ContextIssue extends BaseEntity, Versionable {
-  code: string; // e.g., "ISS-001"
+  code: string; // Format: RISK/YY/XXX or OPP/YY/XXX (editable by user)
   type: IssueType;
   quadrant: SwotQuadrant;
   description: string; // Current description (can evolve with residual risk)
-  origin: IssueOrigin;
+  contextNature: ContextNature; // Internal or External (explicit, not derived from SWOT)
   processId: string;
   
   // Risk evaluation - append-only versioned history (applies to Weakness and Threat only)
@@ -146,21 +155,33 @@ export interface Action extends BaseEntity, Versionable {
   code: string; // e.g., "ACT-001"
   title: string;
   description: string;
-  sourceType: 'risk' | 'opportunity' | 'internal_audit' | 'external_audit' | 'management_review';
-  sourceId: string; // Links to Issue ID when source is risk/opportunity
+  origin: ActionOrigin; // Where this action comes from
+  linkedIssueIds: string[]; // Issue IDs this action addresses (can be multiple or empty)
   processId: string;
   deadline: string;
   responsibleId?: string;
   responsibleName?: string;
   status: ActionStatus;
-  impact?: string;
+  
+  // Status history - append-only for audit trail
+  statusHistory: ActionStatusChange[];
   
   // Completion tracking
   completedDate?: string;
   
   // Efficiency evaluation - only available after status = completed_pending_evaluation
-  // One efficiency evaluation per action
+  // One efficiency evaluation per action (immutable once saved)
   efficiencyEvaluation?: EfficiencyEvaluation;
+}
+
+// Status change record for action history
+export interface ActionStatusChange {
+  id: string;
+  date: string;
+  fromStatus: ActionStatus | null; // null for initial status
+  toStatus: ActionStatus;
+  changedBy?: string;
+  notes?: string;
 }
 
 // KPI/Indicator

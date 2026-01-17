@@ -41,7 +41,7 @@ interface ManagementSystemContextType {
   evaluateActionEfficiency: ReturnType<typeof useActions>["evaluateActionEfficiency"];
   getActionsByProcess: ReturnType<typeof useActions>["getActionsByProcess"];
   getActionsByStatus: ReturnType<typeof useActions>["getActionsByStatus"];
-  getActionsBySourceId: ReturnType<typeof useActions>["getActionsBySourceId"];
+  getActionsByIssue: ReturnType<typeof useActions>["getActionsByIssue"];
   getImplementedControls: ReturnType<typeof useActions>["getImplementedControls"];
   hasActionsForIssue: ReturnType<typeof useActions>["hasActionsForIssue"];
   getActionsPendingEvaluation: ReturnType<typeof useActions>["getActionsPendingEvaluation"];
@@ -113,7 +113,7 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     evaluateActionEfficiency: actionsHook.evaluateActionEfficiency,
     getActionsByProcess: actionsHook.getActionsByProcess,
     getActionsByStatus: actionsHook.getActionsByStatus,
-    getActionsBySourceId: actionsHook.getActionsBySourceId,
+    getActionsByIssue: actionsHook.getActionsByIssue,
     getImplementedControls: actionsHook.getImplementedControls,
     hasActionsForIssue: actionsHook.hasActionsForIssue,
     getActionsPendingEvaluation: actionsHook.getActionsPendingEvaluation,

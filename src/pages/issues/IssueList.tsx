@@ -117,7 +117,7 @@ export default function IssueList() {
                           {config.label}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {issue.origin === "internal" ? "Internal" : "External"}
+                          {issue.contextNature === "internal" ? "Internal" : "External"}
                         </span>
                       </div>
                       <p className="text-sm line-clamp-2">{issue.description}</p>

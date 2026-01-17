@@ -3,7 +3,7 @@ import {
   ContextIssue, 
   IssueType, 
   SwotQuadrant, 
-  IssueOrigin, 
+  ContextNature, 
   RiskPriority, 
   RiskVersion,
   RiskTrigger 
@@ -14,7 +14,7 @@ type CreateIssueData = {
   type: IssueType;
   quadrant: SwotQuadrant;
   description: string;
-  origin: IssueOrigin;
+  contextNature: ContextNature;
   processId: string;
   severity?: number; // 1-3 scale
   probability?: number; // 1-3 scale
@@ -31,10 +31,14 @@ export function useContextIssues() {
   const [issues, setIssues] = useState<ContextIssue[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const generateCode = useCallback(() => {
-    const count = issues.length + 1;
-    return `ISS-${count.toString().padStart(3, "0")}`;
-  }, [issues.length]);
+  // Generate code with format RISK/YY/XXX or OPP/YY/XXX based on issue type
+  const generateCode = useCallback((issueType: IssueType) => {
+    const year = new Date().getFullYear().toString().slice(-2);
+    const prefix = issueType === 'risk' ? 'RISK' : 'OPP';
+    const typeIssues = issues.filter(i => i.type === issueType);
+    const count = typeIssues.length + 1;
+    return `${prefix}/${year}/${count.toString().padStart(3, "0")}`;
+  }, [issues]);
 
   // Create initial risk version for negative issues
   const createRiskVersion = (
@@ -83,7 +87,7 @@ export function useContextIssues() {
     
     const newIssue: ContextIssue = {
       id: crypto.randomUUID(),
-      code: data.code || generateCode(),
+      code: data.code || generateCode(data.type),
       createdAt: now,
       updatedAt: now,
       version: 1,
@@ -91,7 +95,7 @@ export function useContextIssues() {
       type: data.type,
       quadrant: data.quadrant,
       description: data.description,
-      origin: data.origin,
+      contextNature: data.contextNature,
       processId: data.processId,
       riskVersions,
       // Derived from latest risk version for convenience
