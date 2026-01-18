@@ -400,15 +400,15 @@ export default function IssueDetail() {
 
       {/* Residual Risk Evaluation Dialog */}
       <Dialog open={showResidualDialog} onOpenChange={setShowResidualDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Evaluate Residual Risk</DialogTitle>
             <DialogDescription>
               Re-assess the risk level after implementing control actions. This creates a new risk version (v{riskHistory.length + 1}).
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-4 overflow-y-auto flex-1">
             {/* Severity Scale */}
             <div className="space-y-3">
               <Label>Severity: {residualSeverity} - {severityDefinitions[residualSeverity - 1]?.label}</Label>
@@ -505,7 +505,7 @@ export default function IssueDetail() {
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0 pt-4 border-t">
             <Button variant="outline" onClick={() => setShowResidualDialog(false)}>Cancel</Button>
             <Button onClick={handleSaveResidualRisk} disabled={!residualDescription.trim()}>
               Save Risk Version v{riskHistory.length + 1}
