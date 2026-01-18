@@ -18,6 +18,7 @@ import { ActionOrigin, ActionStatus } from "@/types/management-system";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, addDays } from "date-fns";
+import { CheckCircle } from "lucide-react";
 
 const originOptions: { value: ActionOrigin; label: string; description: string }[] = [
   { value: "issue", label: "Issue (Risk/Opportunity)", description: "Action from a risk or opportunity" },
@@ -31,18 +32,23 @@ const originOptions: { value: ActionOrigin; label: string; description: string }
 export default function ActionForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { createAction, processes, issues, generateActionCode } = useManagementSystem();
+  const { createAction, processes, issues, generateActionCode, getIssueById } = useManagementSystem();
   
   const preselectedProcess = searchParams.get("process");
   const preselectedOrigin = searchParams.get("origin") as ActionOrigin | null;
   const preselectedIssueId = searchParams.get("issueId");
+  
+  // If issueId is provided, get the issue to auto-populate process and origin
+  const preselectedIssue = preselectedIssueId ? getIssueById(preselectedIssueId) : null;
 
   const [formData, setFormData] = useState({
     code: generateActionCode(),
-    processId: preselectedProcess || "",
+    // Use issue's process if coming from an issue, otherwise use provided process
+    processId: preselectedIssue?.processId || preselectedProcess || "",
     title: "",
     description: "",
-    origin: preselectedOrigin || "" as ActionOrigin | "",
+    // Auto-set origin to "issue" when coming from an issue
+    origin: (preselectedIssue ? "issue" : preselectedOrigin || "") as ActionOrigin | "",
     linkedIssueIds: preselectedIssueId ? [preselectedIssueId] : [] as string[],
     deadline: format(addDays(new Date(), 30), "yyyy-MM-dd"),
     responsibleName: "",
@@ -66,6 +72,11 @@ export default function ActionForm() {
     }
     if (!formData.origin) {
       toast.error("Please select an origin");
+      return;
+    }
+    // Require at least one issue link when origin is "issue"
+    if (formData.origin === "issue" && formData.linkedIssueIds.length === 0) {
+      toast.error("Please link at least one issue when origin is 'Issue'");
       return;
     }
     if (!formData.deadline) {
@@ -178,33 +189,49 @@ export default function ActionForm() {
             </div>
           </div>
 
-          {/* Link to Issues (optional) */}
-          {formData.origin === "issue" && formData.processId && availableIssues.length > 0 && (
+          {/* Link to Issues - Show when origin is "issue" OR when an issue was preselected */}
+          {(formData.origin === "issue" || preselectedIssueId) && formData.processId && (
             <div className="form-field">
-              <Label>Link to Issue(s)</Label>
+              <Label>Link to Issue(s) *</Label>
               <p className="form-helper mb-2">
                 Select one or more issues this action addresses.
               </p>
-              <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-2">
-                {availableIssues.map((issue) => (
-                  <button
-                    key={issue.id}
-                    type="button"
-                    onClick={() => toggleIssueLink(issue.id)}
-                    className={cn(
-                      "w-full p-2 rounded-lg border text-left text-sm transition-all",
-                      formData.linkedIssueIds.includes(issue.id)
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <span className="font-mono text-xs text-muted-foreground">
-                      {issue.code}
-                    </span>
-                    <p className="line-clamp-1">{issue.description}</p>
-                  </button>
-                ))}
-              </div>
+              {availableIssues.length > 0 ? (
+                <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-2">
+                  {availableIssues.map((issue) => (
+                    <button
+                      key={issue.id}
+                      type="button"
+                      onClick={() => toggleIssueLink(issue.id)}
+                      className={cn(
+                        "w-full p-2 rounded-lg border text-left text-sm transition-all",
+                        formData.linkedIssueIds.includes(issue.id)
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {issue.code}
+                        </span>
+                        {formData.linkedIssueIds.includes(issue.id) && (
+                          <CheckCircle className="w-4 h-4 text-primary" />
+                        )}
+                      </div>
+                      <p className="line-clamp-1 mt-1">{issue.description}</p>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-2">
+                  No issues available for this process.
+                </p>
+              )}
+              {formData.linkedIssueIds.length > 0 && (
+                <p className="text-xs text-success mt-2">
+                  {formData.linkedIssueIds.length} issue(s) selected
+                </p>
+              )}
             </div>
           )}
 
