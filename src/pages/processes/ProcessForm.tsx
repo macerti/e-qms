@@ -10,6 +10,8 @@ import { ProcessStatus, ProcessType, ProcessActivity, ApplicableRegulation } fro
 import { Plus, X, GripVertical, Settings, Cog, Wrench, Scale, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ObjectivesSection } from "@/components/process/ObjectivesSection";
+import { KPISection } from "@/components/process/KPISection";
 
 const PROCESS_TYPES: { value: ProcessType; label: string; description: string; icon: React.ElementType }[] = [
   { 
@@ -512,6 +514,16 @@ export default function ProcessForm() {
             Identify applicable legal, regulatory, and statutory requirements. Define how compliance is ensured.
           </p>
         </div>
+
+        {/* Objectives Section - Only show for editing (need process ID) */}
+        {isEditing && existingProcess && (
+          <ObjectivesSection processId={existingProcess.id} isEditing={isEditing} />
+        )}
+
+        {/* KPI Section - Only show for editing (need process ID and objectives) */}
+        {isEditing && existingProcess && (
+          <KPISection processId={existingProcess.id} isEditing={isEditing} />
+        )}
 
         {/* Utilized Documentation (Read-only display) */}
         <div className="form-field">

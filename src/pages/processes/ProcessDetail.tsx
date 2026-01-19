@@ -11,7 +11,8 @@ import {
   Wrench,
   ListOrdered,
   Scale,
-  FileText
+  FileText,
+  Target
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -31,7 +32,7 @@ const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.Elem
 export default function ProcessDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getProcessById, archiveProcess, getIssuesByProcess, getActionsByProcess, getDocumentsByProcess } = useManagementSystem();
+  const { getProcessById, archiveProcess, getIssuesByProcess, getActionsByProcess, getDocumentsByProcess, getObjectivesByProcess, getKPIsByProcess, getCurrentKPIValue } = useManagementSystem();
   
   const process = id ? getProcessById(id) : undefined;
 
@@ -46,6 +47,8 @@ export default function ProcessDetail() {
   const issues = getIssuesByProcess(process.id);
   const actions = getActionsByProcess(process.id);
   const documents = getDocumentsByProcess(process.id);
+  const objectives = getObjectivesByProcess(process.id);
+  const kpis = getKPIsByProcess(process.id);
   const risks = issues.filter(i => i.type === "risk");
   const opportunities = issues.filter(i => i.type === "opportunity");
 
@@ -221,6 +224,60 @@ export default function ProcessDetail() {
             </ul>
           )}
         </section>
+
+        {/* Objectives */}
+        {objectives.length > 0 && (
+          <section className="mobile-card">
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="w-4 h-4 text-kpi" />
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                Objectives
+              </h3>
+            </div>
+            <div className="space-y-2">
+              {objectives.map((obj) => (
+                <div key={obj.id} className="p-2 bg-muted/30 rounded-lg">
+                  <p className="font-medium text-sm">{obj.name}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    obj.status === 'active' ? 'bg-kpi/10 text-kpi' 
+                    : obj.status === 'achieved' ? 'bg-success/10 text-success'
+                    : 'bg-muted text-muted-foreground'
+                  }`}>{obj.status}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* KPIs */}
+        {kpis.length > 0 && (
+          <section className="mobile-card">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="w-4 h-4 text-kpi" />
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                Key Performance Indicators
+              </h3>
+            </div>
+            <div className="space-y-2">
+              {kpis.filter(k => k.status === 'active').map((kpi) => {
+                const currentValue = getCurrentKPIValue(kpi);
+                return (
+                  <div key={kpi.id} className="p-2 bg-muted/30 rounded-lg">
+                    <p className="font-medium text-sm">{kpi.name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="font-mono text-xs">{kpi.formula}</span>
+                      <span className={cn("text-sm font-medium", 
+                        currentValue && currentValue.value >= kpi.target ? "text-success" : "text-muted-foreground"
+                      )}>
+                        {currentValue ? currentValue.value : "—"}{kpi.unit && ` ${kpi.unit}`} / {kpi.target}{kpi.unit && ` ${kpi.unit}`}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Pilot */}
         {process.pilotName && (

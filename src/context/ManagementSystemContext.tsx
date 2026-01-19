@@ -4,6 +4,8 @@ import { useContextIssues } from "@/hooks/useContextIssues";
 import { useActions } from "@/hooks/useActions";
 import { useDocuments } from "@/hooks/useDocuments";
 import { useLeadershipElements } from "@/hooks/useLeadershipElements";
+import { useObjectives } from "@/hooks/useObjectives";
+import { useKPIs } from "@/hooks/useKPIs";
 import { ManagementStandard } from "@/types/management-system";
 
 interface ManagementSystemContextType {
@@ -68,6 +70,26 @@ interface ManagementSystemContextType {
   updateManagementReview: ReturnType<typeof useLeadershipElements>["updateManagementReview"];
   getManagementReviewById: ReturnType<typeof useLeadershipElements>["getManagementReviewById"];
   generateReviewCode: ReturnType<typeof useLeadershipElements>["generateReviewCode"];
+
+  // Objectives
+  objectives: ReturnType<typeof useObjectives>["objectives"];
+  createObjective: ReturnType<typeof useObjectives>["createObjective"];
+  updateObjective: ReturnType<typeof useObjectives>["updateObjective"];
+  getObjectiveById: ReturnType<typeof useObjectives>["getObjectiveById"];
+  getObjectivesByProcess: ReturnType<typeof useObjectives>["getObjectivesByProcess"];
+  getActiveObjectivesByProcess: ReturnType<typeof useObjectives>["getActiveObjectivesByProcess"];
+
+  // KPIs
+  kpis: ReturnType<typeof useKPIs>["kpis"];
+  createKPI: ReturnType<typeof useKPIs>["createKPI"];
+  archiveKPI: ReturnType<typeof useKPIs>["archiveKPI"];
+  addKPIValue: ReturnType<typeof useKPIs>["addKPIValue"];
+  getKPIById: ReturnType<typeof useKPIs>["getKPIById"];
+  getKPIsByProcess: ReturnType<typeof useKPIs>["getKPIsByProcess"];
+  getActiveKPIsByProcess: ReturnType<typeof useKPIs>["getActiveKPIsByProcess"];
+  getKPIsByObjective: ReturnType<typeof useKPIs>["getKPIsByObjective"];
+  getCurrentKPIValue: ReturnType<typeof useKPIs>["getCurrentValue"];
+  getKPIValueHistory: ReturnType<typeof useKPIs>["getValueHistory"];
 }
 
 const ManagementSystemContext = createContext<ManagementSystemContextType | null>(null);
@@ -78,6 +100,8 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
   const actionsHook = useActions();
   const documentsHook = useDocuments();
   const leadershipHook = useLeadershipElements();
+  const objectivesHook = useObjectives();
+  const kpisHook = useKPIs();
 
   const value: ManagementSystemContextType = {
     currentStandard: "ISO_9001",
@@ -140,6 +164,26 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     updateManagementReview: leadershipHook.updateManagementReview,
     getManagementReviewById: leadershipHook.getManagementReviewById,
     generateReviewCode: leadershipHook.generateReviewCode,
+
+    // Objectives
+    objectives: objectivesHook.objectives,
+    createObjective: objectivesHook.createObjective,
+    updateObjective: objectivesHook.updateObjective,
+    getObjectiveById: objectivesHook.getObjectiveById,
+    getObjectivesByProcess: objectivesHook.getObjectivesByProcess,
+    getActiveObjectivesByProcess: objectivesHook.getActiveObjectivesByProcess,
+
+    // KPIs
+    kpis: kpisHook.kpis,
+    createKPI: kpisHook.createKPI,
+    archiveKPI: kpisHook.archiveKPI,
+    addKPIValue: kpisHook.addKPIValue,
+    getKPIById: kpisHook.getKPIById,
+    getKPIsByProcess: kpisHook.getKPIsByProcess,
+    getActiveKPIsByProcess: kpisHook.getActiveKPIsByProcess,
+    getKPIsByObjective: kpisHook.getKPIsByObjective,
+    getCurrentKPIValue: kpisHook.getCurrentValue,
+    getKPIValueHistory: kpisHook.getValueHistory,
   };
 
   return (
