@@ -37,11 +37,14 @@ const PROCESS_TYPES: { value: ProcessType; label: string; description: string; i
 export default function ProcessForm() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { createProcess, updateProcess, getProcessById, getDocumentsByProcess, generateProcessCode } = useManagementSystem();
+  const { createProcess, updateProcess, getProcessById, getDocumentsByProcess, generateProcessCode, createObjective, createKPI } = useManagementSystem();
   
   const existingProcess = id ? getProcessById(id) : undefined;
   const isEditing = !!existingProcess;
   const linkedDocuments = existingProcess ? getDocumentsByProcess(existingProcess.id) : [];
+
+  // Generate a temporary ID for new processes to allow objectives/KPIs during creation
+  const [tempProcessId] = useState(() => existingProcess?.id || crypto.randomUUID());
 
   const [formData, setFormData] = useState({
     code: existingProcess?.code || generateProcessCode(),
@@ -515,15 +518,11 @@ export default function ProcessForm() {
           </p>
         </div>
 
-        {/* Objectives Section - Only show for editing (need process ID) */}
-        {isEditing && existingProcess && (
-          <ObjectivesSection processId={existingProcess.id} isEditing={isEditing} />
-        )}
+        {/* Objectives Section - Available for both new and existing processes */}
+        <ObjectivesSection processId={existingProcess?.id || tempProcessId} isEditing={true} />
 
-        {/* KPI Section - Only show for editing (need process ID and objectives) */}
-        {isEditing && existingProcess && (
-          <KPISection processId={existingProcess.id} isEditing={isEditing} />
-        )}
+        {/* KPI Section - Available for both new and existing processes */}
+        <KPISection processId={existingProcess?.id || tempProcessId} isEditing={true} />
 
         {/* Utilized Documentation (Read-only display) */}
         <div className="form-field">

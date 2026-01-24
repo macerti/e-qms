@@ -4,7 +4,8 @@ import {
   Workflow, 
   AlertTriangle, 
   CheckSquare, 
-  FileText 
+  FileText,
+  FileCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,7 @@ const navItems: NavItem[] = [
   { path: "/issues", label: "Issues", icon: AlertTriangle },
   { path: "/actions", label: "Actions", icon: CheckSquare },
   { path: "/documents", label: "Documents", icon: FileText },
+  { path: "/compliance", label: "Compliance", icon: FileCheck },
 ];
 
 export function SideNav() {

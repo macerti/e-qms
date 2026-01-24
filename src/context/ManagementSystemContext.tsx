@@ -79,6 +79,7 @@ interface ManagementSystemContextType {
   getObjectiveById: ReturnType<typeof useObjectives>["getObjectiveById"];
   getObjectivesByProcess: ReturnType<typeof useObjectives>["getObjectivesByProcess"];
   getActiveObjectivesByProcess: ReturnType<typeof useObjectives>["getActiveObjectivesByProcess"];
+  getAllObjectives: ReturnType<typeof useObjectives>["getActiveObjectives"];
 
   // KPIs
   kpis: ReturnType<typeof useKPIs>["kpis"];
@@ -91,19 +92,34 @@ interface ManagementSystemContextType {
   getKPIsByObjective: ReturnType<typeof useKPIs>["getKPIsByObjective"];
   getCurrentKPIValue: ReturnType<typeof useKPIs>["getCurrentValue"];
   getKPIValueHistory: ReturnType<typeof useKPIs>["getValueHistory"];
+  getAllKPIs: () => ReturnType<typeof useKPIs>["kpis"];
 
   // Function Instances
   functionInstances: ReturnType<typeof useFunctionInstances>["functionInstances"];
   getFunctionInstancesByProcess: ReturnType<typeof useFunctionInstances>["getInstancesByProcess"];
   getFunctionInstanceById: ReturnType<typeof useFunctionInstances>["getInstanceById"];
+  getFunctionInstanceByFunctionId: ReturnType<typeof useFunctionInstances>["getInstanceByFunctionId"];
   createFunctionInstance: ReturnType<typeof useFunctionInstances>["createInstance"];
   updateFunctionInstanceData: ReturnType<typeof useFunctionInstances>["updateInstanceData"];
   updateFunctionInstanceStatus: ReturnType<typeof useFunctionInstances>["updateInstanceStatus"];
   addFunctionEvidence: ReturnType<typeof useFunctionInstances>["addEvidence"];
+  removeFunctionEvidence: ReturnType<typeof useFunctionInstances>["removeEvidence"];
   linkActionToFunction: ReturnType<typeof useFunctionInstances>["linkAction"];
+  unlinkActionFromFunction: ReturnType<typeof useFunctionInstances>["unlinkAction"];
+  linkObjectiveToFunction: ReturnType<typeof useFunctionInstances>["linkObjective"];
+  unlinkObjectiveFromFunction: ReturnType<typeof useFunctionInstances>["unlinkObjective"];
+  linkKPIToFunction: ReturnType<typeof useFunctionInstances>["linkKPI"];
+  unlinkKPIFromFunction: ReturnType<typeof useFunctionInstances>["unlinkKPI"];
+  updatePolicyAxes: ReturnType<typeof useFunctionInstances>["updatePolicyAxes"];
   getApplicableFunctions: ReturnType<typeof useFunctionInstances>["getApplicableFunctions"];
   getUniqueFunctionsStatus: ReturnType<typeof useFunctionInstances>["getUniqueFunctionsStatus"];
   syncFunctionsForProcess: ReturnType<typeof useFunctionInstances>["syncFunctionsForProcess"];
+  calculateComplianceMetrics: ReturnType<typeof useFunctionInstances>["calculateComplianceMetrics"];
+  getComplianceByCategory: ReturnType<typeof useFunctionInstances>["getComplianceByCategory"];
+  getComplianceByClause: ReturnType<typeof useFunctionInstances>["getComplianceByClause"];
+  getComplianceByProcess: ReturnType<typeof useFunctionInstances>["getComplianceByProcess"];
+  getAllFunctionInstances: ReturnType<typeof useFunctionInstances>["getAllInstances"];
+  getPolicyManagementInstance: ReturnType<typeof useFunctionInstances>["getPolicyManagementInstance"];
 }
 
 const ManagementSystemContext = createContext<ManagementSystemContextType | null>(null);
@@ -194,6 +210,7 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     getObjectiveById: objectivesHook.getObjectiveById,
     getObjectivesByProcess: objectivesHook.getObjectivesByProcess,
     getActiveObjectivesByProcess: objectivesHook.getActiveObjectivesByProcess,
+    getAllObjectives: objectivesHook.getActiveObjectives,
 
     // KPIs
     kpis: kpisHook.kpis,
@@ -206,19 +223,34 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     getKPIsByObjective: kpisHook.getKPIsByObjective,
     getCurrentKPIValue: kpisHook.getCurrentValue,
     getKPIValueHistory: kpisHook.getValueHistory,
+    getAllKPIs: () => kpisHook.kpis,
 
     // Function Instances
     functionInstances: functionInstancesHook.functionInstances,
     getFunctionInstancesByProcess: functionInstancesHook.getInstancesByProcess,
     getFunctionInstanceById: functionInstancesHook.getInstanceById,
+    getFunctionInstanceByFunctionId: functionInstancesHook.getInstanceByFunctionId,
     createFunctionInstance: functionInstancesHook.createInstance,
     updateFunctionInstanceData: functionInstancesHook.updateInstanceData,
     updateFunctionInstanceStatus: functionInstancesHook.updateInstanceStatus,
     addFunctionEvidence: functionInstancesHook.addEvidence,
+    removeFunctionEvidence: functionInstancesHook.removeEvidence,
     linkActionToFunction: functionInstancesHook.linkAction,
+    unlinkActionFromFunction: functionInstancesHook.unlinkAction,
+    linkObjectiveToFunction: functionInstancesHook.linkObjective,
+    unlinkObjectiveFromFunction: functionInstancesHook.unlinkObjective,
+    linkKPIToFunction: functionInstancesHook.linkKPI,
+    unlinkKPIFromFunction: functionInstancesHook.unlinkKPI,
+    updatePolicyAxes: functionInstancesHook.updatePolicyAxes,
     getApplicableFunctions: functionInstancesHook.getApplicableFunctions,
     getUniqueFunctionsStatus: functionInstancesHook.getUniqueFunctionsStatus,
     syncFunctionsForProcess: functionInstancesHook.syncFunctionsForProcess,
+    calculateComplianceMetrics: functionInstancesHook.calculateComplianceMetrics,
+    getComplianceByCategory: functionInstancesHook.getComplianceByCategory,
+    getComplianceByClause: functionInstancesHook.getComplianceByClause,
+    getComplianceByProcess: functionInstancesHook.getComplianceByProcess,
+    getAllFunctionInstances: functionInstancesHook.getAllInstances,
+    getPolicyManagementInstance: functionInstancesHook.getPolicyManagementInstance,
   };
 
   return (

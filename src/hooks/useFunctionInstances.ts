@@ -1,7 +1,26 @@
 import { useState, useCallback, useEffect } from "react";
-import { FunctionInstance, FunctionHistoryEntry, FunctionEvidence, FunctionInstanceStatus } from "@/types/functions";
+import { 
+  FunctionInstance, 
+  FunctionHistoryEntry, 
+  FunctionEvidence, 
+  FunctionInstanceStatus,
+  ComplianceMetrics,
+  CategoryCompliance,
+  ClauseCompliance,
+  PolicyAxis,
+} from "@/types/functions";
 import { Process, ProcessType } from "@/types/management-system";
 import { ISO_9001_FUNCTIONS, getFunctionById, getFunctionsForProcessType } from "@/data/iso9001-functions";
+
+// Category labels for display
+const CATEGORY_LABELS: Record<string, string> = {
+  context: "Context of the Organization",
+  leadership: "Leadership",
+  support: "Support",
+  operation: "Operation",
+  performance: "Performance Evaluation",
+  improvement: "Improvement",
+};
 
 // Hook for managing Function Instances with automatic assignment logic
 export function useFunctionInstances() {
@@ -77,11 +96,13 @@ export function useFunctionInstances() {
       id: crypto.randomUUID(),
       functionId,
       processId,
-      status: 'pending',
+      status: 'not_implemented',
       createdAt: now,
       updatedAt: now,
       data: initialData || {},
       linkedActionIds: [],
+      linkedObjectiveIds: [],
+      linkedKPIIds: [],
       evidence: [],
       history: [historyEntry],
     };
@@ -178,6 +199,36 @@ export function useFunctionInstances() {
     }));
   }, []);
 
+  // Remove evidence from instance
+  const removeEvidence = useCallback((
+    instanceId: string,
+    evidenceId: string,
+    changedBy?: string
+  ): void => {
+    const now = new Date().toISOString();
+    setFunctionInstances(prev => prev.map(fi => {
+      if (fi.id !== instanceId) return fi;
+
+      const evidence = fi.evidence.find(e => e.id === evidenceId);
+      if (!evidence) return fi;
+
+      const historyEntry: FunctionHistoryEntry = {
+        id: crypto.randomUUID(),
+        date: now,
+        action: 'evidence_removed',
+        description: `Evidence removed: ${evidence.title}`,
+        changedBy,
+      };
+
+      return {
+        ...fi,
+        evidence: fi.evidence.filter(e => e.id !== evidenceId),
+        updatedAt: now,
+        history: [...fi.history, historyEntry],
+      };
+    }));
+  }, []);
+
   // Link action to instance
   const linkAction = useCallback((
     instanceId: string,
@@ -200,6 +251,173 @@ export function useFunctionInstances() {
       return {
         ...fi,
         linkedActionIds: [...fi.linkedActionIds, actionId],
+        updatedAt: now,
+        history: [...fi.history, historyEntry],
+      };
+    }));
+  }, []);
+
+  // Unlink action from instance
+  const unlinkAction = useCallback((
+    instanceId: string,
+    actionId: string,
+    changedBy?: string
+  ): void => {
+    const now = new Date().toISOString();
+    setFunctionInstances(prev => prev.map(fi => {
+      if (fi.id !== instanceId) return fi;
+      if (!fi.linkedActionIds.includes(actionId)) return fi;
+
+      const historyEntry: FunctionHistoryEntry = {
+        id: crypto.randomUUID(),
+        date: now,
+        action: 'action_unlinked',
+        description: `Action ${actionId} unlinked`,
+        changedBy,
+      };
+
+      return {
+        ...fi,
+        linkedActionIds: fi.linkedActionIds.filter(id => id !== actionId),
+        updatedAt: now,
+        history: [...fi.history, historyEntry],
+      };
+    }));
+  }, []);
+
+  // Link objective to instance
+  const linkObjective = useCallback((
+    instanceId: string,
+    objectiveId: string,
+    changedBy?: string
+  ): void => {
+    const now = new Date().toISOString();
+    setFunctionInstances(prev => prev.map(fi => {
+      if (fi.id !== instanceId) return fi;
+      if (fi.linkedObjectiveIds.includes(objectiveId)) return fi;
+
+      const historyEntry: FunctionHistoryEntry = {
+        id: crypto.randomUUID(),
+        date: now,
+        action: 'objective_linked',
+        description: `Objective linked`,
+        changedBy,
+      };
+
+      return {
+        ...fi,
+        linkedObjectiveIds: [...fi.linkedObjectiveIds, objectiveId],
+        updatedAt: now,
+        history: [...fi.history, historyEntry],
+      };
+    }));
+  }, []);
+
+  // Unlink objective from instance
+  const unlinkObjective = useCallback((
+    instanceId: string,
+    objectiveId: string,
+    changedBy?: string
+  ): void => {
+    const now = new Date().toISOString();
+    setFunctionInstances(prev => prev.map(fi => {
+      if (fi.id !== instanceId) return fi;
+      if (!fi.linkedObjectiveIds.includes(objectiveId)) return fi;
+
+      const historyEntry: FunctionHistoryEntry = {
+        id: crypto.randomUUID(),
+        date: now,
+        action: 'objective_unlinked',
+        description: `Objective unlinked`,
+        changedBy,
+      };
+
+      return {
+        ...fi,
+        linkedObjectiveIds: fi.linkedObjectiveIds.filter(id => id !== objectiveId),
+        updatedAt: now,
+        history: [...fi.history, historyEntry],
+      };
+    }));
+  }, []);
+
+  // Link KPI to instance
+  const linkKPI = useCallback((
+    instanceId: string,
+    kpiId: string,
+    changedBy?: string
+  ): void => {
+    const now = new Date().toISOString();
+    setFunctionInstances(prev => prev.map(fi => {
+      if (fi.id !== instanceId) return fi;
+      if (fi.linkedKPIIds.includes(kpiId)) return fi;
+
+      const historyEntry: FunctionHistoryEntry = {
+        id: crypto.randomUUID(),
+        date: now,
+        action: 'kpi_linked',
+        description: `KPI linked`,
+        changedBy,
+      };
+
+      return {
+        ...fi,
+        linkedKPIIds: [...fi.linkedKPIIds, kpiId],
+        updatedAt: now,
+        history: [...fi.history, historyEntry],
+      };
+    }));
+  }, []);
+
+  // Unlink KPI from instance
+  const unlinkKPI = useCallback((
+    instanceId: string,
+    kpiId: string,
+    changedBy?: string
+  ): void => {
+    const now = new Date().toISOString();
+    setFunctionInstances(prev => prev.map(fi => {
+      if (fi.id !== instanceId) return fi;
+      if (!fi.linkedKPIIds.includes(kpiId)) return fi;
+
+      const historyEntry: FunctionHistoryEntry = {
+        id: crypto.randomUUID(),
+        date: now,
+        action: 'kpi_unlinked',
+        description: `KPI unlinked`,
+        changedBy,
+      };
+
+      return {
+        ...fi,
+        linkedKPIIds: fi.linkedKPIIds.filter(id => id !== kpiId),
+        updatedAt: now,
+        history: [...fi.history, historyEntry],
+      };
+    }));
+  }, []);
+
+  // Update policy axes for Policy Management function
+  const updatePolicyAxes = useCallback((
+    instanceId: string,
+    axes: PolicyAxis[],
+    changedBy?: string
+  ): void => {
+    const now = new Date().toISOString();
+    setFunctionInstances(prev => prev.map(fi => {
+      if (fi.id !== instanceId) return fi;
+
+      const historyEntry: FunctionHistoryEntry = {
+        id: crypto.randomUUID(),
+        date: now,
+        action: 'policy_updated',
+        description: `Policy axes updated`,
+        changedBy,
+      };
+
+      return {
+        ...fi,
+        data: { ...fi.data, policyAxes: axes },
         updatedAt: now,
         history: [...fi.history, historyEntry],
       };
@@ -285,6 +503,195 @@ export function useFunctionInstances() {
       });
   }, [getInstanceByFunctionId]);
 
+  // Calculate compliance metrics
+  const calculateComplianceMetrics = useCallback((): ComplianceMetrics => {
+    const total = functionInstances.length;
+    if (total === 0) {
+      return {
+        totalFunctions: 0,
+        implementedCount: 0,
+        partiallyImplementedCount: 0,
+        notImplementedCount: 0,
+        nonconformityCount: 0,
+        improvementOpportunityCount: 0,
+        compliancePercentage: 0,
+      };
+    }
+
+    const implemented = functionInstances.filter(fi => fi.status === 'implemented').length;
+    const partial = functionInstances.filter(fi => fi.status === 'partially_implemented').length;
+    const notImplemented = functionInstances.filter(fi => fi.status === 'not_implemented').length;
+    const nonconformity = functionInstances.filter(fi => fi.status === 'nonconformity').length;
+    const improvement = functionInstances.filter(fi => fi.status === 'improvement_opportunity').length;
+
+    // Compliance = (implemented + 0.5*partial) / total * 100
+    const compliancePercentage = Math.round(((implemented + 0.5 * partial) / total) * 100);
+
+    return {
+      totalFunctions: total,
+      implementedCount: implemented,
+      partiallyImplementedCount: partial,
+      notImplementedCount: notImplemented,
+      nonconformityCount: nonconformity,
+      improvementOpportunityCount: improvement,
+      compliancePercentage,
+    };
+  }, [functionInstances]);
+
+  // Calculate compliance by category
+  const getComplianceByCategory = useCallback((): CategoryCompliance[] => {
+    const categories = ['context', 'leadership', 'support', 'operation', 'performance', 'improvement'] as const;
+    
+    return categories.map(category => {
+      const categoryInstances = functionInstances.filter(fi => {
+        const fn = getFunctionById(fi.functionId);
+        return fn?.category === category;
+      });
+
+      const total = categoryInstances.length;
+      if (total === 0) {
+        return {
+          category,
+          categoryLabel: CATEGORY_LABELS[category],
+          metrics: {
+            totalFunctions: 0,
+            implementedCount: 0,
+            partiallyImplementedCount: 0,
+            notImplementedCount: 0,
+            nonconformityCount: 0,
+            improvementOpportunityCount: 0,
+            compliancePercentage: 0,
+          },
+        };
+      }
+
+      const implemented = categoryInstances.filter(fi => fi.status === 'implemented').length;
+      const partial = categoryInstances.filter(fi => fi.status === 'partially_implemented').length;
+      const notImplemented = categoryInstances.filter(fi => fi.status === 'not_implemented').length;
+      const nonconformity = categoryInstances.filter(fi => fi.status === 'nonconformity').length;
+      const improvement = categoryInstances.filter(fi => fi.status === 'improvement_opportunity').length;
+      const compliancePercentage = Math.round(((implemented + 0.5 * partial) / total) * 100);
+
+      return {
+        category,
+        categoryLabel: CATEGORY_LABELS[category],
+        metrics: {
+          totalFunctions: total,
+          implementedCount: implemented,
+          partiallyImplementedCount: partial,
+          notImplementedCount: notImplemented,
+          nonconformityCount: nonconformity,
+          improvementOpportunityCount: improvement,
+          compliancePercentage,
+        },
+      };
+    });
+  }, [functionInstances]);
+
+  // Calculate compliance by clause
+  const getComplianceByClause = useCallback((): ClauseCompliance[] => {
+    const clauses = ['4', '5', '6', '7', '8', '9', '10'];
+    const clauseLabels: Record<string, string> = {
+      '4': 'Context of the Organization',
+      '5': 'Leadership',
+      '6': 'Planning',
+      '7': 'Support',
+      '8': 'Operation',
+      '9': 'Performance Evaluation',
+      '10': 'Improvement',
+    };
+
+    return clauses.map(clause => {
+      const clauseInstances = functionInstances.filter(fi => {
+        const fn = getFunctionById(fi.functionId);
+        return fn?.clauseReferences.some(ref => ref.startsWith(clause));
+      });
+
+      const total = clauseInstances.length;
+      if (total === 0) {
+        return {
+          clause,
+          clauseLabel: clauseLabels[clause],
+          metrics: {
+            totalFunctions: 0,
+            implementedCount: 0,
+            partiallyImplementedCount: 0,
+            notImplementedCount: 0,
+            nonconformityCount: 0,
+            improvementOpportunityCount: 0,
+            compliancePercentage: 0,
+          },
+        };
+      }
+
+      const implemented = clauseInstances.filter(fi => fi.status === 'implemented').length;
+      const partial = clauseInstances.filter(fi => fi.status === 'partially_implemented').length;
+      const notImplemented = clauseInstances.filter(fi => fi.status === 'not_implemented').length;
+      const nonconformity = clauseInstances.filter(fi => fi.status === 'nonconformity').length;
+      const improvement = clauseInstances.filter(fi => fi.status === 'improvement_opportunity').length;
+      const compliancePercentage = Math.round(((implemented + 0.5 * partial) / total) * 100);
+
+      return {
+        clause,
+        clauseLabel: clauseLabels[clause],
+        metrics: {
+          totalFunctions: total,
+          implementedCount: implemented,
+          partiallyImplementedCount: partial,
+          notImplementedCount: notImplemented,
+          nonconformityCount: nonconformity,
+          improvementOpportunityCount: improvement,
+          compliancePercentage,
+        },
+      };
+    });
+  }, [functionInstances]);
+
+  // Get compliance by process
+  const getComplianceByProcess = useCallback((processId: string): ComplianceMetrics => {
+    const processInstances = functionInstances.filter(fi => fi.processId === processId);
+    const total = processInstances.length;
+    
+    if (total === 0) {
+      return {
+        totalFunctions: 0,
+        implementedCount: 0,
+        partiallyImplementedCount: 0,
+        notImplementedCount: 0,
+        nonconformityCount: 0,
+        improvementOpportunityCount: 0,
+        compliancePercentage: 0,
+      };
+    }
+
+    const implemented = processInstances.filter(fi => fi.status === 'implemented').length;
+    const partial = processInstances.filter(fi => fi.status === 'partially_implemented').length;
+    const notImplemented = processInstances.filter(fi => fi.status === 'not_implemented').length;
+    const nonconformity = processInstances.filter(fi => fi.status === 'nonconformity').length;
+    const improvement = processInstances.filter(fi => fi.status === 'improvement_opportunity').length;
+    const compliancePercentage = Math.round(((implemented + 0.5 * partial) / total) * 100);
+
+    return {
+      totalFunctions: total,
+      implementedCount: implemented,
+      partiallyImplementedCount: partial,
+      notImplementedCount: notImplemented,
+      nonconformityCount: nonconformity,
+      improvementOpportunityCount: improvement,
+      compliancePercentage,
+    };
+  }, [functionInstances]);
+
+  // Get all instances
+  const getAllInstances = useCallback((): FunctionInstance[] => {
+    return functionInstances;
+  }, [functionInstances]);
+
+  // Get Policy Management instance
+  const getPolicyManagementInstance = useCallback((): FunctionInstance | undefined => {
+    return functionInstances.find(fi => fi.functionId === 'fn-5.2-policy');
+  }, [functionInstances]);
+
   return {
     functionInstances,
     getInstancesByProcess,
@@ -296,9 +703,22 @@ export function useFunctionInstances() {
     updateInstanceData,
     updateInstanceStatus,
     addEvidence,
+    removeEvidence,
     linkAction,
+    unlinkAction,
+    linkObjective,
+    unlinkObjective,
+    linkKPI,
+    unlinkKPI,
+    updatePolicyAxes,
     syncFunctionsForProcess,
     getApplicableFunctions,
     getUniqueFunctionsStatus,
+    calculateComplianceMetrics,
+    getComplianceByCategory,
+    getComplianceByClause,
+    getComplianceByProcess,
+    getAllInstances,
+    getPolicyManagementInstance,
   };
 }
