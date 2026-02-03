@@ -118,6 +118,18 @@ export function useProcesses() {
           updatedActivities = ensureGovernanceActivity(p.id, updatedActivities);
         }
         
+        // Build revision history entry
+        const newRevisionEntry = {
+          id: crypto.randomUUID(),
+          version: p.version + 1,
+          date: now,
+          note: revisionNote || data.revisionNote || "Updated",
+        };
+        
+        // Append to existing history
+        const existingHistory = p.revisionHistory || [];
+        const updatedHistory = [...existingHistory, newRevisionEntry];
+        
         return {
           ...p,
           ...data,
@@ -126,6 +138,7 @@ export function useProcesses() {
           version: p.version + 1,
           revisionDate: now,
           revisionNote: revisionNote || data.revisionNote,
+          revisionHistory: updatedHistory,
         };
       })
     );
