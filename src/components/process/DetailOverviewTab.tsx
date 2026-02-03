@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowDownToLine, 
@@ -8,11 +9,21 @@ import {
   Settings,
   Cog,
   Wrench,
+  Pencil,
+  Check,
+  X,
+  Plus,
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
 import { Process, ProcessType, Document } from "@/types/management-system";
 import { cn } from "@/lib/utils";
+import { RevisionHistory } from "./RevisionHistory";
+import { useManagementSystem } from "@/context/ManagementSystemContext";
+import { toast } from "sonner";
 
 const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.ElementType; color: string }> = {
   management: { label: "Management", icon: Settings, color: "text-purple-600" },
@@ -27,8 +38,63 @@ interface DetailOverviewTabProps {
 
 export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps) {
   const navigate = useNavigate();
+  const { updateProcess } = useManagementSystem();
   const typeConfig = PROCESS_TYPE_CONFIG[process.type];
   const TypeIcon = typeConfig.icon;
+
+  // Inline editing states
+  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [editPurpose, setEditPurpose] = useState(process.purpose);
+  const [editPilot, setEditPilot] = useState(process.pilotName || "");
+  const [editInputs, setEditInputs] = useState<string[]>(process.inputs);
+  const [editOutputs, setEditOutputs] = useState<string[]>(process.outputs);
+
+  const handleSavePurpose = () => {
+    const trimmed = editPurpose.trim();
+    if (!trimmed) {
+      toast.error("Purpose is required");
+      return;
+    }
+    updateProcess(process.id, { purpose: trimmed }, "Updated purpose");
+    toast.success("Purpose updated");
+    setEditingSection(null);
+  };
+
+  const handleSavePilot = () => {
+    updateProcess(process.id, { pilotName: editPilot.trim() || undefined }, "Updated process pilot");
+    toast.success("Pilot updated");
+    setEditingSection(null);
+  };
+
+  const handleSaveInputs = () => {
+    const cleaned = editInputs.filter(i => i.trim());
+    if (cleaned.length === 0) {
+      toast.error("At least one input is required");
+      return;
+    }
+    updateProcess(process.id, { inputs: cleaned }, "Updated inputs");
+    toast.success("Inputs updated");
+    setEditingSection(null);
+  };
+
+  const handleSaveOutputs = () => {
+    const cleaned = editOutputs.filter(o => o.trim());
+    if (cleaned.length === 0) {
+      toast.error("At least one output is required");
+      return;
+    }
+    updateProcess(process.id, { outputs: cleaned }, "Updated outputs");
+    toast.success("Outputs updated");
+    setEditingSection(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditPurpose(process.purpose);
+    setEditPilot(process.pilotName || "");
+    setEditInputs(process.inputs);
+    setEditOutputs(process.outputs);
+    setEditingSection(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -44,25 +110,129 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
         </span>
       </div>
 
-      {/* Purpose */}
+      {/* Purpose - Inline Editable */}
       <section className="mobile-card">
-        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">
-          Purpose
-        </h3>
-        <p className="font-serif text-foreground leading-relaxed">
-          {process.purpose}
-        </p>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            Purpose
+          </h3>
+          {editingSection !== "purpose" && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setEditPurpose(process.purpose);
+                setEditingSection("purpose");
+              }}
+              className="h-7 text-xs gap-1"
+            >
+              <Pencil className="w-3 h-3" />
+              Edit
+            </Button>
+          )}
+        </div>
+        
+        {editingSection === "purpose" ? (
+          <div className="space-y-3">
+            <Textarea
+              value={editPurpose}
+              onChange={(e) => setEditPurpose(e.target.value)}
+              rows={3}
+              className="text-sm"
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleSavePurpose} className="gap-1">
+                <Check className="w-3 h-3" />
+                Save
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="font-serif text-foreground leading-relaxed">
+            {process.purpose}
+          </p>
+        )}
       </section>
 
-      {/* Inputs & Outputs */}
-      <div className="grid grid-cols-1 gap-4">
-        <section className="mobile-card">
-          <div className="flex items-center gap-2 mb-3">
+      {/* Inputs - Inline Editable */}
+      <section className="mobile-card">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
             <ArrowDownToLine className="w-4 h-4 text-process" />
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
               Inputs
             </h3>
           </div>
+          {editingSection !== "inputs" && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setEditInputs([...process.inputs]);
+                setEditingSection("inputs");
+              }}
+              className="h-7 text-xs gap-1"
+            >
+              <Pencil className="w-3 h-3" />
+              Edit
+            </Button>
+          )}
+        </div>
+        
+        {editingSection === "inputs" ? (
+          <div className="space-y-3">
+            {editInputs.map((input, index) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  value={input}
+                  onChange={(e) => {
+                    const newInputs = [...editInputs];
+                    newInputs[index] = e.target.value;
+                    setEditInputs(newInputs);
+                  }}
+                  placeholder="Input..."
+                  className="flex-1"
+                />
+                {editInputs.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setEditInputs(editInputs.filter((_, i) => i !== index))}
+                    className="shrink-0 h-9 w-9"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setEditInputs([...editInputs, ""])}
+              className="w-full"
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Add Input
+            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleSaveInputs} className="gap-1">
+                <Check className="w-3 h-3" />
+                Save
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
           <ul className="space-y-2">
             {process.inputs.map((input, index) => (
               <li key={index} className="flex items-start gap-2">
@@ -71,15 +241,83 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
               </li>
             ))}
           </ul>
-        </section>
+        )}
+      </section>
 
-        <section className="mobile-card">
-          <div className="flex items-center gap-2 mb-3">
+      {/* Outputs - Inline Editable */}
+      <section className="mobile-card">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
             <ArrowUpFromLine className="w-4 h-4 text-success" />
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
               Outputs
             </h3>
           </div>
+          {editingSection !== "outputs" && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setEditOutputs([...process.outputs]);
+                setEditingSection("outputs");
+              }}
+              className="h-7 text-xs gap-1"
+            >
+              <Pencil className="w-3 h-3" />
+              Edit
+            </Button>
+          )}
+        </div>
+        
+        {editingSection === "outputs" ? (
+          <div className="space-y-3">
+            {editOutputs.map((output, index) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  value={output}
+                  onChange={(e) => {
+                    const newOutputs = [...editOutputs];
+                    newOutputs[index] = e.target.value;
+                    setEditOutputs(newOutputs);
+                  }}
+                  placeholder="Output..."
+                  className="flex-1"
+                />
+                {editOutputs.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setEditOutputs(editOutputs.filter((_, i) => i !== index))}
+                    className="shrink-0 h-9 w-9"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setEditOutputs([...editOutputs, ""])}
+              className="w-full"
+            >
+              <Plus className="w-3 h-3 mr-1" />
+              Add Output
+            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleSaveOutputs} className="gap-1">
+                <Check className="w-3 h-3" />
+                Save
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
           <ul className="space-y-2">
             {process.outputs.map((output, index) => (
               <li key={index} className="flex items-start gap-2">
@@ -88,8 +326,8 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
               </li>
             ))}
           </ul>
-        </section>
-      </div>
+        )}
+      </section>
 
       {/* Applicable Regulations */}
       {process.regulations && process.regulations.length > 0 && (
@@ -150,9 +388,9 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
         )}
       </section>
 
-      {/* Pilot */}
-      {process.pilotName && (
-        <section className="mobile-card">
+      {/* Pilot - Inline Editable */}
+      <section className="mobile-card">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
               <User className="w-5 h-5 text-muted-foreground" />
@@ -161,11 +399,56 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
               <p className="text-xs text-muted-foreground uppercase tracking-wider">
                 Process Pilot
               </p>
-              <p className="font-medium">{process.pilotName}</p>
+              {editingSection === "pilot" ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    value={editPilot}
+                    onChange={(e) => setEditPilot(e.target.value)}
+                    placeholder="Pilot name..."
+                    className="h-8 w-48"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSavePilot();
+                      if (e.key === "Escape") handleCancelEdit();
+                    }}
+                  />
+                  <Button size="sm" variant="ghost" onClick={handleSavePilot} className="h-7 w-7 p-0">
+                    <Check className="w-3 h-3" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="h-7 w-7 p-0">
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <p className="font-medium">{process.pilotName || <span className="text-muted-foreground italic">Not assigned</span>}</p>
+              )}
             </div>
           </div>
-        </section>
-      )}
+          {editingSection !== "pilot" && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setEditPilot(process.pilotName || "");
+                setEditingSection("pilot");
+              }}
+              className="h-7 text-xs gap-1"
+            >
+              <Pencil className="w-3 h-3" />
+              Edit
+            </Button>
+          )}
+        </div>
+      </section>
+
+      {/* Revision History */}
+      <RevisionHistory
+        currentVersion={process.version}
+        currentDate={process.revisionDate}
+        currentNote={process.revisionNote}
+        history={process.revisionHistory}
+      />
     </div>
   );
 }

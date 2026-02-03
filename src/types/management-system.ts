@@ -62,11 +62,21 @@ export interface Document extends BaseEntity, Versionable {
   status: 'draft' | 'active' | 'archived';
 }
 
+// Revision history entry for audit trail
+export interface RevisionEntry {
+  id: string;
+  version: number;
+  date: string;
+  userName?: string;
+  note: string;
+}
+
 // Versioning interface - all major entities must implement this
 export interface Versionable {
   version: number;
   revisionDate: string;
   revisionNote?: string;
+  revisionHistory?: RevisionEntry[]; // Append-only revision history
 }
 
 // Base entity with audit trail

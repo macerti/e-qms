@@ -62,7 +62,6 @@ export default function ProcessDetail() {
           revisionDate: process.revisionDate,
         }}
         actions={[
-          { label: "Edit Process", onClick: () => navigate(`/processes/${process.id}/edit`) },
           { label: "Archive Process", onClick: handleArchive, variant: "destructive" },
         ]}
       />
