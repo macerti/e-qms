@@ -6,6 +6,7 @@ import { useDocuments } from "@/hooks/useDocuments";
 import { useLeadershipElements } from "@/hooks/useLeadershipElements";
 import { useObjectives } from "@/hooks/useObjectives";
 import { useKPIs } from "@/hooks/useKPIs";
+import { useRequirements } from "@/hooks/useRequirements";
 import { ManagementStandard } from "@/types/management-system";
 
 interface ManagementSystemContextType {
@@ -90,6 +91,14 @@ interface ManagementSystemContextType {
   getKPIsByObjective: ReturnType<typeof useKPIs>["getKPIsByObjective"];
   getCurrentKPIValue: ReturnType<typeof useKPIs>["getCurrentValue"];
   getKPIValueHistory: ReturnType<typeof useKPIs>["getValueHistory"];
+
+  // Requirements
+  allRequirements: ReturnType<typeof useRequirements>["allRequirements"];
+  getGovernanceActivityId: ReturnType<typeof useRequirements>["getGovernanceActivityId"];
+  isGovernanceActivity: ReturnType<typeof useRequirements>["isGovernanceActivity"];
+  getRequirementsForActivity: ReturnType<typeof useRequirements>["getRequirementsForActivity"];
+  getRequirementsOverview: ReturnType<typeof useRequirements>["getRequirementsOverview"];
+  inferFulfillment: ReturnType<typeof useRequirements>["inferFulfillment"];
 }
 
 const ManagementSystemContext = createContext<ManagementSystemContextType | null>(null);
@@ -102,6 +111,11 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
   const leadershipHook = useLeadershipElements();
   const objectivesHook = useObjectives();
   const kpisHook = useKPIs();
+  const requirementsHook = useRequirements({
+    processes: processesHook.processes,
+    issues: issuesHook.issues,
+    actions: actionsHook.actions,
+  });
 
   const value: ManagementSystemContextType = {
     currentStandard: "ISO_9001",
@@ -184,6 +198,14 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     getKPIsByObjective: kpisHook.getKPIsByObjective,
     getCurrentKPIValue: kpisHook.getCurrentValue,
     getKPIValueHistory: kpisHook.getValueHistory,
+
+    // Requirements
+    allRequirements: requirementsHook.allRequirements,
+    getGovernanceActivityId: requirementsHook.getGovernanceActivityId,
+    isGovernanceActivity: requirementsHook.isGovernanceActivity,
+    getRequirementsForActivity: requirementsHook.getRequirementsForActivity,
+    getRequirementsOverview: requirementsHook.getRequirementsOverview,
+    inferFulfillment: requirementsHook.inferFulfillment,
   };
 
   return (

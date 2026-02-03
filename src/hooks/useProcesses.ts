@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
-import { Process, ProcessStatus } from "@/types/management-system";
-import { DEFAULT_PROCESSES } from "@/data/default-processes";
+import { Process, ProcessStatus, ProcessActivity } from "@/types/management-system";
+import { DEFAULT_PROCESSES, createGovernanceActivity } from "@/data/default-processes";
+import { GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/types/requirements";
 
 // Local state management for processes
 // In production, this would connect to Lovable Cloud / Supabase
@@ -11,6 +12,22 @@ type CreateProcessData = Omit<Process, "id" | "createdAt" | "updatedAt" | "code"
   regulations?: Process["regulations"];
 };
 
+// Ensures a process has the governance activity
+function ensureGovernanceActivity(processId: string, activities: ProcessActivity[]): ProcessActivity[] {
+  const hasGovernance = activities.some(a => a.id.startsWith(GOVERNANCE_ACTIVITY_ID_PREFIX));
+  if (hasGovernance) {
+    // Re-sequence to ensure governance is first
+    return activities
+      .map(a => a.id.startsWith(GOVERNANCE_ACTIVITY_ID_PREFIX) ? { ...a, sequence: 0 } : a)
+      .sort((a, b) => a.sequence - b.sequence);
+  }
+  
+  // Add governance activity at the start
+  const governanceActivity = createGovernanceActivity(processId);
+  const resequencedActivities = activities.map(a => ({ ...a, sequence: a.sequence + 1 }));
+  return [governanceActivity, ...resequencedActivities];
+}
+
 export function useProcesses() {
   const [processes, setProcesses] = useState<Process[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,30 +37,36 @@ export function useProcesses() {
   useEffect(() => {
     if (!initialized && processes.length === 0) {
       const now = new Date().toISOString();
-      const defaultProcesses: Process[] = DEFAULT_PROCESSES.map((p) => ({
-        id: crypto.randomUUID(),
-        code: p.code,
-        name: p.name,
-        type: p.type,
-        purpose: p.purpose,
-        inputs: p.inputs,
-        outputs: p.outputs,
-        activities: p.activities,
-        regulations: [],
-        pilotName: p.pilotName,
-        status: "active" as ProcessStatus,
-        standard: "ISO_9001",
-        createdAt: now,
-        updatedAt: now,
-        version: 1,
-        revisionDate: now,
-        indicatorIds: [],
-        riskIds: [],
-        opportunityIds: [],
-        actionIds: [],
-        auditIds: [],
-        documentIds: [],
-      }));
+      const defaultProcesses: Process[] = DEFAULT_PROCESSES.map((p) => {
+        const processId = crypto.randomUUID();
+        // Ensure governance activity exists
+        const activitiesWithGovernance = ensureGovernanceActivity(processId, p.activities);
+        
+        return {
+          id: processId,
+          code: p.code,
+          name: p.name,
+          type: p.type,
+          purpose: p.purpose,
+          inputs: p.inputs,
+          outputs: p.outputs,
+          activities: activitiesWithGovernance,
+          regulations: [],
+          pilotName: p.pilotName,
+          status: "active" as ProcessStatus,
+          standard: "ISO_9001",
+          createdAt: now,
+          updatedAt: now,
+          version: 1,
+          revisionDate: now,
+          indicatorIds: [],
+          riskIds: [],
+          opportunityIds: [],
+          actionIds: [],
+          auditIds: [],
+          documentIds: [],
+        };
+      });
       setProcesses(defaultProcesses);
       setInitialized(true);
     }
@@ -56,8 +79,14 @@ export function useProcesses() {
 
   const createProcess = useCallback((data: CreateProcessData) => {
     const now = new Date().toISOString();
+    const processId = crypto.randomUUID();
+    const inputActivities = data.activities || [];
+    
+    // Ensure governance activity exists
+    const activitiesWithGovernance = ensureGovernanceActivity(processId, inputActivities);
+    
     const newProcess: Process = {
-      id: crypto.randomUUID(),
+      id: processId,
       code: data.code || generateCode(),
       createdAt: now,
       updatedAt: now,
@@ -69,7 +98,7 @@ export function useProcesses() {
       actionIds: [],
       auditIds: [],
       documentIds: [],
-      activities: data.activities || [],
+      activities: activitiesWithGovernance,
       regulations: data.regulations || [],
       ...data,
     };
@@ -80,18 +109,25 @@ export function useProcesses() {
   const updateProcess = useCallback((id: string, data: Partial<Process>, revisionNote?: string) => {
     const now = new Date().toISOString();
     setProcesses((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              ...data,
-              updatedAt: now,
-              version: p.version + 1,
-              revisionDate: now,
-              revisionNote: revisionNote || data.revisionNote,
-            }
-          : p
-      )
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        
+        // If activities are being updated, ensure governance activity is preserved
+        let updatedActivities = data.activities;
+        if (updatedActivities) {
+          updatedActivities = ensureGovernanceActivity(p.id, updatedActivities);
+        }
+        
+        return {
+          ...p,
+          ...data,
+          ...(updatedActivities && { activities: updatedActivities }),
+          updatedAt: now,
+          version: p.version + 1,
+          revisionDate: now,
+          revisionNote: revisionNote || data.revisionNote,
+        };
+      })
     );
   }, []);
 

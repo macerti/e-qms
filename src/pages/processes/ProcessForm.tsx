@@ -134,6 +134,7 @@ export default function ProcessForm() {
             <ActivitiesTab 
               activities={formData.activities}
               setFormData={setFormData}
+              processId={existingProcess?.id}
             />
           </ProcessTabContent>
 

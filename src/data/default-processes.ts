@@ -1,4 +1,5 @@
-import { Process, ProcessType } from "@/types/management-system";
+import { Process, ProcessType, ProcessActivity } from "@/types/management-system";
+import { GOVERNANCE_ACTIVITY_NAME, GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/types/requirements";
 
 export interface DefaultProcessData {
   code: string;
@@ -7,8 +8,19 @@ export interface DefaultProcessData {
   purpose: string;
   inputs: string[];
   outputs: string[];
-  activities: { id: string; name: string; description?: string; sequence: number }[];
+  activities: ProcessActivity[];
   pilotName?: string;
+}
+
+// Creates the system governance activity for a process
+export function createGovernanceActivity(processId: string): ProcessActivity {
+  return {
+    id: `${GOVERNANCE_ACTIVITY_ID_PREFIX}${processId}`,
+    name: GOVERNANCE_ACTIVITY_NAME,
+    description: "System activity hosting generic ISO 9001 requirements applicable to all processes. This activity cannot be deleted.",
+    sequence: 0, // Always first
+    isSystemActivity: true,
+  };
 }
 
 export const DEFAULT_PROCESSES: DefaultProcessData[] = [

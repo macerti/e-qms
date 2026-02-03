@@ -76,7 +76,7 @@ export default function ProcessDetail() {
           </ProcessTabContent>
           
           <ProcessTabContent value="activities">
-            <DetailActivitiesTab activities={process.activities || []} />
+            <DetailActivitiesTab activities={process.activities || []} processId={process.id} />
           </ProcessTabContent>
           
           <ProcessTabContent value="kpis">

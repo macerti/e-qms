@@ -29,6 +29,7 @@ export interface ProcessActivity {
   name: string;
   description?: string;
   sequence: number;
+  isSystemActivity?: boolean; // true for governance activity (cannot be deleted)
 }
 
 // Applicable Regulation (per process)
