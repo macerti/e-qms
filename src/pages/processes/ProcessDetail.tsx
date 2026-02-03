@@ -3,6 +3,9 @@ import {
   AlertTriangle,
   CheckSquare,
   FileText,
+  Archive,
+  GitBranch,
+  Merge,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -51,6 +54,14 @@ export default function ProcessDetail() {
     navigate("/processes");
   };
 
+  const handleSplit = () => {
+    toast.info("Split process feature coming soon");
+  };
+
+  const handleMerge = () => {
+    toast.info("Merge process feature coming soon");
+  };
+
   return (
     <div className="min-h-screen">
       <PageHeader 
@@ -62,7 +73,9 @@ export default function ProcessDetail() {
           revisionDate: process.revisionDate,
         }}
         actions={[
-          { label: "Archive Process", onClick: handleArchive, variant: "destructive" },
+          { label: "Split", onClick: handleSplit, variant: "outline", icon: <GitBranch className="w-4 h-4" /> },
+          { label: "Merge", onClick: handleMerge, variant: "outline", icon: <Merge className="w-4 h-4" /> },
+          { label: "Archive", onClick: handleArchive, variant: "destructive", icon: <Archive className="w-4 h-4" /> },
         ]}
       />
 

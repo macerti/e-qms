@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { ListOrdered, Plus } from "lucide-react";
+import { ListOrdered, Plus, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { ProcessActivity } from "@/types/management-system";
-import { ActivityDetailCard } from "./ActivityDetailCard";
+import { ActivityDetailPanel } from "./ActivityDetailPanel";
 import { RequirementsOverview } from "./RequirementsOverview";
 import { GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/types/requirements";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { ShieldCheck, Lock, Pencil, Check } from "lucide-react";
 
 interface DetailActivitiesTabProps {
   activities: ProcessActivity[];
@@ -16,10 +19,12 @@ interface DetailActivitiesTabProps {
 }
 
 export function DetailActivitiesTab({ activities, processId }: DetailActivitiesTabProps) {
-  const { updateProcess, getProcessById } = useManagementSystem();
+  const { updateProcess, getProcessById, getRequirementsForActivity, inferFulfillment } = useManagementSystem();
   const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [newActivityName, setNewActivityName] = useState("");
   const [newActivityDescription, setNewActivityDescription] = useState("");
+  const [selectedActivity, setSelectedActivity] = useState<ProcessActivity | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   
   // Separate governance activity from user activities
   const governanceActivity = activities.find(a => a.id.startsWith(GOVERNANCE_ACTIVITY_ID_PREFIX));
@@ -85,18 +90,61 @@ export function DetailActivitiesTab({ activities, processId }: DetailActivitiesT
     setIsAddingActivity(false);
   };
 
+  const handleActivityClick = (activity: ProcessActivity, index: number) => {
+    setSelectedActivity(activity);
+    setSelectedIndex(index);
+  };
+
+  // Count satisfied requirements for an activity
+  const getRequirementStats = (activityId: string) => {
+    const reqs = getRequirementsForActivity(processId, activityId);
+    const satisfied = reqs.filter(r => inferFulfillment(r, processId).state === "satisfied").length;
+    return { total: reqs.length, satisfied };
+  };
+
   return (
     <div className="space-y-6">
       {/* Governance Activity Section */}
       {governanceActivity && (
         <section>
-          <ActivityDetailCard
-            activity={governanceActivity}
-            index={-1}
-            processId={processId}
-            onUpdate={handleUpdateActivity}
-            isEditable={false}
-          />
+          <button
+            type="button"
+            onClick={() => handleActivityClick(governanceActivity, -1)}
+            className="w-full text-left p-4 bg-primary/5 rounded-lg border border-primary/20 hover:bg-primary/10 transition-colors"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex items-center gap-2 text-primary shrink-0 pt-0.5">
+                <ShieldCheck className="w-4 h-4" />
+                <span className="font-mono text-xs w-6">0.</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="font-medium">{governanceActivity.name}</span>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                    <Lock className="w-2.5 h-2.5 mr-1" />
+                    System
+                  </Badge>
+                </div>
+                {governanceActivity.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {governanceActivity.description}
+                  </p>
+                )}
+                
+                {/* Requirements count */}
+                {(() => {
+                  const stats = getRequirementStats(governanceActivity.id);
+                  return stats.total > 0 ? (
+                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span>{stats.satisfied}/{stats.total} requirements satisfied</span>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+            </div>
+          </button>
         </section>
       )}
 
@@ -140,17 +188,51 @@ export function DetailActivitiesTab({ activities, processId }: DetailActivitiesT
             </Button>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {userActivities.sort((a, b) => a.sequence - b.sequence).map((activity, index) => (
-              <ActivityDetailCard
+              <button
                 key={activity.id}
-                activity={activity}
-                index={index}
-                processId={processId}
-                onUpdate={handleUpdateActivity}
-                onDelete={handleDeleteActivity}
-                isEditable
-              />
+                type="button"
+                onClick={() => handleActivityClick(activity, index)}
+                className={cn(
+                  "w-full text-left p-4 bg-muted/50 rounded-lg border border-border",
+                  "hover:bg-muted/70 transition-colors"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="font-mono text-xs text-muted-foreground w-6 pt-0.5">
+                    {index + 1}.
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium">{activity.name}</p>
+                    {activity.description && (
+                      <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
+                        {activity.description}
+                      </p>
+                    )}
+                    
+                    {/* Requirements count for user activity */}
+                    {(() => {
+                      const stats = getRequirementStats(activity.id);
+                      return stats.total > 0 ? (
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                          <ShieldCheck className="w-3 h-3" />
+                          <span>{stats.satisfied}/{stats.total} requirements</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                          <ShieldCheck className="w-3 h-3 opacity-50" />
+                          <span className="italic">No requirements</span>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                </div>
+              </button>
             ))}
             
             {/* Add new activity inline form */}
@@ -186,7 +268,9 @@ export function DetailActivitiesTab({ activities, processId }: DetailActivitiesT
                       type="button"
                       size="sm"
                       onClick={handleAddActivity}
+                      className="gap-1"
                     >
+                      <Check className="w-3 h-3" />
                       Add Activity
                     </Button>
                     <Button
@@ -207,6 +291,19 @@ export function DetailActivitiesTab({ activities, processId }: DetailActivitiesT
 
       {/* Requirements Overview */}
       <RequirementsOverview processId={processId} />
+
+      {/* Activity Detail Panel */}
+      <ActivityDetailPanel
+        activity={selectedActivity}
+        processId={processId}
+        index={selectedIndex}
+        open={selectedActivity !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedActivity(null);
+        }}
+        onUpdate={handleUpdateActivity}
+        onDelete={handleDeleteActivity}
+      />
     </div>
   );
 }

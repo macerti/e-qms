@@ -15,7 +15,8 @@ interface PageHeaderProps {
   actions?: {
     label: string;
     onClick: () => void;
-    variant?: "default" | "destructive";
+    variant?: "default" | "destructive" | "outline";
+    icon?: React.ReactNode;
   }[];
   versionInfo?: {
     version: number;
@@ -75,6 +76,7 @@ export function PageHeader({
                   onClick={action.onClick}
                   className={action.variant === "destructive" ? "text-destructive" : ""}
                 >
+                  {action.icon && <span className="mr-2">{action.icon}</span>}
                   {action.label}
                 </DropdownMenuItem>
               ))}

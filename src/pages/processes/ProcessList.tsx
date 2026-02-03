@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { cn } from "@/lib/utils";
 import { ProcessType } from "@/types/management-system";
+import { CreateProcessDialog } from "@/components/process/CreateProcessDialog";
 
 const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.ElementType; color: string; bgColor: string }> = {
   management: { label: "Mgmt", icon: Settings, color: "text-purple-600", bgColor: "bg-purple-100" },
@@ -22,6 +23,7 @@ export default function ProcessList() {
   const { processes } = useManagementSystem();
   const [filter, setFilter] = useState<"all" | "active" | "draft">("all");
   const [typeFilter, setTypeFilter] = useState<"all" | ProcessType>("all");
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const filteredProcesses = processes.filter((p) => {
     if (p.status === "archived") return false;
@@ -105,7 +107,7 @@ export default function ProcessList() {
             title="No processes defined"
             description="Processes are the backbone of your management system. Start by defining your key organizational processes."
             actionLabel="Create First Process"
-            onAction={() => navigate("/processes/new")}
+            onAction={() => setShowCreateDialog(true)}
             helperText="Each process will have inputs, outputs, a pilot, and linked indicators, risks, and actions."
           />
         ) : (
@@ -169,7 +171,12 @@ export default function ProcessList() {
         )}
       </AdaptiveContainer>
 
-      <Fab onClick={() => navigate("/processes/new")} label="Create process" />
+      <Fab onClick={() => setShowCreateDialog(true)} label="Create process" />
+      
+      <CreateProcessDialog 
+        open={showCreateDialog} 
+        onOpenChange={setShowCreateDialog} 
+      />
     </div>
   );
 }

@@ -38,7 +38,6 @@ const App = () => (
               
               {/* Processes */}
               <Route path="/processes" element={<ProcessList />} />
-              <Route path="/processes/new" element={<ProcessForm />} />
               <Route path="/processes/:id" element={<ProcessDetail />} />
               <Route path="/processes/:id/edit" element={<ProcessForm />} />
               

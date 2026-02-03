@@ -120,15 +120,14 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => {
                 setEditPurpose(process.purpose);
                 setEditingSection("purpose");
               }}
-              className="h-7 text-xs gap-1"
+              className="h-7 w-7"
             >
-              <Pencil className="w-3 h-3" />
-              Edit
+              <Pencil className="w-3.5 h-3.5" />
             </Button>
           )}
         </div>
@@ -172,15 +171,14 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => {
                 setEditInputs([...process.inputs]);
                 setEditingSection("inputs");
               }}
-              className="h-7 text-xs gap-1"
+              className="h-7 w-7"
             >
-              <Pencil className="w-3 h-3" />
-              Edit
+              <Pencil className="w-3.5 h-3.5" />
             </Button>
           )}
         </div>
@@ -257,15 +255,14 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => {
                 setEditOutputs([...process.outputs]);
                 setEditingSection("outputs");
               }}
-              className="h-7 text-xs gap-1"
+              className="h-7 w-7"
             >
-              <Pencil className="w-3 h-3" />
-              Edit
+              <Pencil className="w-3.5 h-3.5" />
             </Button>
           )}
         </div>
@@ -428,15 +425,14 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => {
                 setEditPilot(process.pilotName || "");
                 setEditingSection("pilot");
               }}
-              className="h-7 text-xs gap-1"
+              className="h-7 w-7"
             >
-              <Pencil className="w-3 h-3" />
-              Edit
+              <Pencil className="w-3.5 h-3.5" />
             </Button>
           )}
         </div>

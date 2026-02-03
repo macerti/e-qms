@@ -89,16 +89,20 @@ interface ProcessTabContentProps {
   className?: string;
 }
 
-export function ProcessTabContent({ value, children, className }: ProcessTabContentProps) {
-  return (
-    <TabsContent 
-      value={value}
-      className={cn(
-        "mt-4 animate-in fade-in-50 duration-150",
-        className
-      )}
-    >
-      {children}
-    </TabsContent>
-  );
-}
+export const ProcessTabContent = React.forwardRef<HTMLDivElement, ProcessTabContentProps>(
+  ({ value, children, className }, ref) => {
+    return (
+      <TabsContent 
+        ref={ref}
+        value={value}
+        className={cn(
+          "mt-4 animate-in fade-in-50 duration-150",
+          className
+        )}
+      >
+        {children}
+      </TabsContent>
+    );
+  }
+);
+ProcessTabContent.displayName = "ProcessTabContent";
