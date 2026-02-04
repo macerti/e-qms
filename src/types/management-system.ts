@@ -30,6 +30,7 @@ export interface ProcessActivity {
   description?: string;
   sequence: number;
   isSystemActivity?: boolean; // true for governance activity (cannot be deleted)
+  allocatedRequirementIds?: string[]; // Requirement IDs allocated to this activity
 }
 
 // Applicable Regulation (per process)
