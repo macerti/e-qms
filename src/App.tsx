@@ -9,7 +9,6 @@ import { AppLayout } from "@/components/layout/AppLayout";
 // Pages
 import Dashboard from "./pages/Dashboard";
 import ProcessList from "./pages/processes/ProcessList";
-import ProcessForm from "./pages/processes/ProcessForm";
 import ProcessDetail from "./pages/processes/ProcessDetail";
 import IssueList from "./pages/issues/IssueList";
 import IssueForm from "./pages/issues/IssueForm";
@@ -20,7 +19,6 @@ import ActionDetail from "./pages/actions/ActionDetail";
 import DocumentList from "./pages/documents/DocumentList";
 import DocumentForm from "./pages/documents/DocumentForm";
 import DocumentDetail from "./pages/documents/DocumentDetail";
-import KPIDashboard from "./pages/KPIDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,7 +37,6 @@ const App = () => (
               {/* Processes */}
               <Route path="/processes" element={<ProcessList />} />
               <Route path="/processes/:id" element={<ProcessDetail />} />
-              <Route path="/processes/:id/edit" element={<ProcessForm />} />
               
               {/* Issues (Context Analysis) */}
               <Route path="/issues" element={<IssueList />} />
@@ -58,9 +55,6 @@ const App = () => (
               <Route path="/documents/new" element={<DocumentForm />} />
               <Route path="/documents/:id" element={<DocumentDetail />} />
               <Route path="/documents/:id/edit" element={<DocumentForm />} />
-              
-              {/* KPI Dashboard (Planned) */}
-              <Route path="/kpi" element={<KPIDashboard />} />
             </Route>
             
             {/* 404 */}
