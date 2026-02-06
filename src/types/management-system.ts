@@ -80,9 +80,11 @@ export interface Versionable {
   revisionHistory?: RevisionEntry[]; // Append-only revision history
 }
 
-// Base entity with audit trail
+// Base entity with audit trail and multi-tenant scoping
 export interface BaseEntity {
   id: string;
+  tenantId?: string;        // Multi-tenant scoping
+  organizationId?: string;  // Multi-organization scoping
   createdAt: string;
   updatedAt: string;
   createdBy?: string;

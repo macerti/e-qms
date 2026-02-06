@@ -1,20 +1,17 @@
- import { 
-   Workflow, 
-   AlertTriangle, 
-   CheckSquare, 
-   BarChart3,
-   FileCheck,
-   Target,
-   FileText
- } from "lucide-react";
- import { ComplianceCard } from "@/components/dashboard/ComplianceCard";
- import { ProcessHealthCard } from "@/components/dashboard/ProcessHealthCard";
- import { RiskActionCard } from "@/components/dashboard/RiskActionCard";
- import { ISO9001_REQUIREMENTS, getUniqueRequirements } from "@/data/iso9001-requirements";
+import { 
+  Workflow, 
+  AlertTriangle, 
+  CheckSquare, 
+  FileText
+} from "lucide-react";
+import { ComplianceCard } from "@/components/dashboard/ComplianceCard";
+import { ProcessHealthCard } from "@/components/dashboard/ProcessHealthCard";
+import { RiskActionCard } from "@/components/dashboard/RiskActionCard";
+import { ISO9001_REQUIREMENTS, getUniqueRequirements } from "@/data/iso9001-requirements";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ModuleCard } from "@/components/ui/module-card";
 import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
-import { AdaptiveGrid, AdaptiveTwoColumn } from "@/components/layout/AdaptiveGrid";
+import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 
 const modules = [
@@ -45,64 +42,33 @@ const modules = [
     isActive: true,
     accentColor: "bg-action",
   },
-  {
-    id: "kpi",
-    title: "Dashboard & KPIs",
-    description: "Policy axes, objectives, and performance indicators monitoring.",
-    icon: BarChart3,
-    path: "/kpi",
-    isActive: false,
-    plannedMessage: "Module under development",
-    accentColor: "bg-kpi",
-  },
-  {
-    id: "leadership",
-    title: "Leadership",
-    description: "Quality policy definition, management review records and decisions.",
-    icon: Target,
-    path: "/leadership",
-    isActive: false,
-    plannedMessage: "Available in a future release",
-    accentColor: "bg-primary",
-  },
-  {
-    id: "audits",
-    title: "Internal Audits",
-    description: "Audit planning, execution, findings and nonconformity management.",
-    icon: FileCheck,
-    path: "/audits",
-    isActive: false,
-    plannedMessage: "Planned feature",
-    accentColor: "bg-audit",
-  },
 ];
 
 export default function Dashboard() {
-   const { processes, issues, actions, getOverdueActions, allRequirements } = useManagementSystem();
+  const { processes, issues, actions, getOverdueActions, allRequirements } = useManagementSystem();
+
+  const overdueActions = getOverdueActions();
+
+  // Calculate compliance coverage
+  const totalRequirements = ISO9001_REQUIREMENTS.length;
   
- 
-   const overdueActions = getOverdueActions();
- 
-   // Calculate compliance coverage
-   const totalRequirements = ISO9001_REQUIREMENTS.length;
-   
-   // Count all allocated requirements across all processes
-   const allocatedRequirementIds = new Set<string>();
-   processes.forEach(process => {
-     process.activities.forEach(activity => {
-       if (activity.allocatedRequirementIds) {
-         activity.allocatedRequirementIds.forEach(id => allocatedRequirementIds.add(id));
-       }
-     });
-   });
-   // Generic requirements are always considered allocated
-   allRequirements.filter(r => r.type === "generic").forEach(r => allocatedRequirementIds.add(r.id));
-   
-   const allocatedCount = allocatedRequirementIds.size;
- 
-   // Get unallocated unique requirements
-   const uniqueReqs = getUniqueRequirements();
-   const unallocatedUniqueCount = uniqueReqs.filter(r => !allocatedRequirementIds.has(r.id)).length;
+  // Count all allocated requirements across all processes
+  const allocatedRequirementIds = new Set<string>();
+  processes.forEach(process => {
+    process.activities.forEach(activity => {
+      if (activity.allocatedRequirementIds) {
+        activity.allocatedRequirementIds.forEach(id => allocatedRequirementIds.add(id));
+      }
+    });
+  });
+  // Generic requirements are always considered allocated
+  allRequirements.filter(r => r.type === "generic").forEach(r => allocatedRequirementIds.add(r.id));
+  
+  const allocatedCount = allocatedRequirementIds.size;
+
+  // Get unallocated unique requirements
+  const uniqueReqs = getUniqueRequirements();
+  const unallocatedUniqueCount = uniqueReqs.filter(r => !allocatedRequirementIds.has(r.id)).length;
 
   return (
     <div className="min-h-screen">
@@ -111,73 +77,71 @@ export default function Dashboard() {
         subtitle="ISO 9001 Quality Management"
       />
       
-       <AdaptiveContainer className="py-6 space-y-6 max-w-[var(--wide-max-width)]">
-         {/* Signal Cards - Compliance, Process Health, Risks */}
-         <section>
-           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-             System Signals
-           </h2>
-           <AdaptiveGrid cols="1-2-3" gap="md">
-             <ComplianceCard
-               totalRequirements={totalRequirements}
-               allocatedCount={allocatedCount}
-               unallocatedUniqueCount={unallocatedUniqueCount}
-             />
-             <ProcessHealthCard processes={processes} />
-             <RiskActionCard 
-               issues={issues} 
-               actions={actions}
-               overdueActions={overdueActions}
-             />
-           </AdaptiveGrid>
-         </section>
- 
-         {/* Modules Grid - reflows from 1 to 2 columns */}
-         <section>
-           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-             Modules
-           </h2>
-           <AdaptiveGrid cols="1-2" gap="md">
-             {modules.map((module) => (
-               <ModuleCard
-                 key={module.id}
-                 title={module.title}
-                 description={module.description}
-                 icon={module.icon}
-                 path={module.path}
-                 isActive={module.isActive}
-                 plannedMessage={module.plannedMessage}
-                 accentColor={module.accentColor}
-                 count={
-                   module.id === "processes" ? processes.length :
-                   module.id === "issues" ? issues.length :
-                   module.id === "actions" ? actions.length :
-                   undefined
-                 }
-               />
-             ))}
-           </AdaptiveGrid>
-         </section>
- 
-         {/* Standard Info - now at bottom */}
-         <section className="max-w-md">
-           <div className="mobile-card bg-primary text-primary-foreground">
-             <div className="flex items-start gap-3">
-               <FileText className="w-5 h-5 mt-0.5 shrink-0 opacity-80" />
-               <div>
-                 <h3 className="font-semibold">ISO 9001:2015</h3>
-                 <p className="text-sm opacity-80 mt-1">
-                   Quality management systems — Requirements
-                 </p>
-                 <p className="text-xs opacity-60 mt-2 font-mono">
-                   Active standard for this system
-                 </p>
-               </div>
-             </div>
-           </div>
-         </section>
-       </AdaptiveContainer>
+      <AdaptiveContainer className="py-6 space-y-6 max-w-[var(--wide-max-width)]">
+        {/* Signal Cards */}
+        <section>
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+            System Signals
+          </h2>
+          <AdaptiveGrid cols="1-2-3" gap="md">
+            <ComplianceCard
+              totalRequirements={totalRequirements}
+              allocatedCount={allocatedCount}
+              unallocatedUniqueCount={unallocatedUniqueCount}
+            />
+            <ProcessHealthCard processes={processes} />
+            <RiskActionCard 
+              issues={issues} 
+              actions={actions}
+              overdueActions={overdueActions}
+            />
+          </AdaptiveGrid>
+        </section>
+
+        {/* Modules Grid */}
+        <section>
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+            Modules
+          </h2>
+          <AdaptiveGrid cols="1-2" gap="md">
+            {modules.map((module) => (
+              <ModuleCard
+                key={module.id}
+                title={module.title}
+                description={module.description}
+                icon={module.icon}
+                path={module.path}
+                isActive={module.isActive}
+                accentColor={module.accentColor}
+                count={
+                  module.id === "processes" ? processes.length :
+                  module.id === "issues" ? issues.length :
+                  module.id === "actions" ? actions.length :
+                  undefined
+                }
+              />
+            ))}
+          </AdaptiveGrid>
+        </section>
+
+        {/* Standard Info */}
+        <section className="max-w-md">
+          <div className="mobile-card bg-primary text-primary-foreground">
+            <div className="flex items-start gap-3">
+              <FileText className="w-5 h-5 mt-0.5 shrink-0 opacity-80" />
+              <div>
+                <h3 className="font-semibold">ISO 9001:2015</h3>
+                <p className="text-sm opacity-80 mt-1">
+                  Quality management systems — Requirements
+                </p>
+                <p className="text-xs opacity-60 mt-2 font-mono">
+                  Active standard for this system
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </AdaptiveContainer>
     </div>
   );
 }
-

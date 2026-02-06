@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FileText, ArrowRight, FileCheck, ClipboardList, BookOpen, ScrollText } from "lucide-react";
+import { FilterBar, FilterConfig } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
 import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
@@ -21,16 +22,69 @@ const DOCUMENT_TYPE_CONFIG: Record<DocumentType, { label: string; icon: React.El
 
 export default function DocumentList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { documents, processes } = useManagementSystem();
-  const [filter, setFilter] = useState<"all" | "active" | "draft">("all");
-  const [typeFilter, setTypeFilter] = useState<"all" | DocumentType>("all");
 
-  const filteredDocuments = documents.filter((d) => {
-    if (d.status === "archived") return false;
-    if (filter !== "all" && d.status !== filter) return false;
-    if (typeFilter !== "all" && d.type !== typeFilter) return false;
-    return true;
+  const statusParam = searchParams.get("status") || "all";
+  const typeParam = searchParams.get("type") || "all";
+  const searchParam = searchParams.get("q") || "";
+
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({
+    status: statusParam,
+    type: typeParam,
   });
+  const [searchValue, setSearchValue] = useState(searchParam);
+
+  const filterConfigs: FilterConfig[] = useMemo(() => [
+    {
+      id: "status",
+      label: "Status",
+      options: [
+        { value: "all", label: "All" },
+        { value: "draft", label: "Draft" },
+        { value: "active", label: "Active" },
+      ],
+      defaultValue: "all",
+    },
+    {
+      id: "type",
+      label: "Type",
+      options: [
+        { value: "all", label: "All Types" },
+        { value: "procedure", label: "Procedure", icon: <FileCheck className="w-3.5 h-3.5" /> },
+        { value: "form", label: "Form", icon: <ClipboardList className="w-3.5 h-3.5" /> },
+        { value: "instruction", label: "Instruction", icon: <BookOpen className="w-3.5 h-3.5" /> },
+        { value: "record", label: "Record", icon: <ScrollText className="w-3.5 h-3.5" /> },
+        { value: "policy", label: "Policy", icon: <FileText className="w-3.5 h-3.5" /> },
+      ],
+      defaultValue: "all",
+    },
+  ], []);
+
+  const handleFilterChange = useCallback((filterId: string, value: string) => {
+    setFilterValues(prev => ({ ...prev, [filterId]: value }));
+  }, []);
+
+  const handleClearAll = useCallback(() => {
+    setFilterValues({ status: "all", type: "all" });
+    setSearchValue("");
+    setSearchParams({});
+  }, [setSearchParams]);
+
+  const filteredDocuments = useMemo(() => {
+    return documents.filter((d) => {
+      if (d.status === "archived") return false;
+      if (filterValues.status !== "all" && d.status !== filterValues.status) return false;
+      if (filterValues.type !== "all" && d.type !== filterValues.type) return false;
+      if (searchValue) {
+        const query = searchValue.toLowerCase();
+        if (!d.title.toLowerCase().includes(query) && !d.code.toLowerCase().includes(query)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [documents, filterValues, searchValue]);
 
   const getProcessNames = (processIds: string[]) => {
     return processIds
@@ -46,66 +100,15 @@ export default function DocumentList() {
         subtitle="Procedures & Forms — ISO 9001"
       />
 
-      {documents.length > 0 && (
-        <AdaptiveContainer padding="default" className="py-3 space-y-3 border-b border-border">
-          {/* Status Filter */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar">
-            <FilterButton 
-              active={filter === "all"} 
-              onClick={() => setFilter("all")}
-            >
-              All
-            </FilterButton>
-            <FilterButton 
-              active={filter === "active"} 
-              onClick={() => setFilter("active")}
-            >
-              Active
-            </FilterButton>
-            <FilterButton 
-              active={filter === "draft"} 
-              onClick={() => setFilter("draft")}
-            >
-              Draft
-            </FilterButton>
-          </div>
-          
-          {/* Type Filter */}
-          <div className="flex gap-2 flex-wrap overflow-x-auto no-scrollbar">
-            <FilterButton 
-              active={typeFilter === "all"} 
-              onClick={() => setTypeFilter("all")}
-              variant="secondary"
-            >
-              All Types
-            </FilterButton>
-            <FilterButton 
-              active={typeFilter === "procedure"} 
-              onClick={() => setTypeFilter("procedure")}
-              variant="secondary"
-            >
-              <FileCheck className="w-3.5 h-3.5 mr-1" />
-              Proc
-            </FilterButton>
-            <FilterButton 
-              active={typeFilter === "form"} 
-              onClick={() => setTypeFilter("form")}
-              variant="secondary"
-            >
-              <ClipboardList className="w-3.5 h-3.5 mr-1" />
-              Form
-            </FilterButton>
-            <FilterButton 
-              active={typeFilter === "instruction"} 
-              onClick={() => setTypeFilter("instruction")}
-              variant="secondary"
-            >
-              <BookOpen className="w-3.5 h-3.5 mr-1" />
-              Instr
-            </FilterButton>
-          </div>
-        </AdaptiveContainer>
-      )}
+      <FilterBar
+        filters={filterConfigs}
+        searchPlaceholder="Search by title or code..."
+        values={filterValues}
+        searchValue={searchValue}
+        onFilterChange={handleFilterChange}
+        onSearchChange={setSearchValue}
+        onClearAll={handleClearAll}
+      />
 
       <AdaptiveContainer className="py-4">
         {filteredDocuments.length === 0 ? (
@@ -162,8 +165,14 @@ export default function DocumentList() {
                   </div>
                   
                   <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
-                    <StatChip label="Processes" value={document.processIds.length} />
-                    <StatChip label="ISO Clauses" value={document.isoClauseReferences.length} />
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-sm font-medium">{document.processIds.length}</span>
+                      <span className="text-xs text-muted-foreground">Processes</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-sm font-medium">{document.isoClauseReferences.length}</span>
+                      <span className="text-xs text-muted-foreground">ISO Clauses</span>
+                    </div>
                   </div>
                 </button>
               );
@@ -173,43 +182,6 @@ export default function DocumentList() {
       </AdaptiveContainer>
 
       <Fab onClick={() => navigate("/documents/new")} label="Create document" />
-    </div>
-  );
-}
-
-function FilterButton({ 
-  children, 
-  active, 
-  onClick,
-  variant = "primary"
-}: { 
-  children: React.ReactNode; 
-  active: boolean; 
-  onClick: () => void;
-  variant?: "primary" | "secondary";
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "px-3 py-1.5 text-sm font-medium rounded-full transition-colors flex items-center whitespace-nowrap",
-        active 
-          ? variant === "primary" 
-            ? "bg-primary text-primary-foreground" 
-            : "bg-muted-foreground text-background"
-          : "text-muted-foreground hover:bg-muted"
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-function StatChip({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="font-mono text-sm font-medium">{value}</span>
-      <span className="text-xs text-muted-foreground">{label}</span>
     </div>
   );
 }
