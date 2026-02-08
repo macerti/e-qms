@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Action, ActionStatus, ActionOrigin, EfficiencyEvaluation, EfficiencyResult, ActionStatusChange } from "@/types/management-system";
+import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
 
 type CreateActionData = Omit<Action, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate" | "efficiencyEvaluation" | "completedDate" | "statusHistory"> & { 
   code?: string;
@@ -8,6 +9,27 @@ type CreateActionData = Omit<Action, "id" | "createdAt" | "updatedAt" | "code" |
 export function useActions() {
   const [actions, setActions] = useState<Action[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  // Load actions from the database once on mount.
+  useEffect(() => {
+    if (initialized) return;
+
+    const loadActions = async () => {
+      setIsLoading(true);
+      try {
+        const remoteActions = await fetchRecords<Action>("actions");
+        setActions(remoteActions);
+        setInitialized(true);
+      } catch (error) {
+        console.error("Failed to load actions:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadActions();
+  }, [initialized]);
 
   const generateCode = useCallback(() => {
     const count = actions.length + 1;
@@ -34,6 +56,9 @@ export function useActions() {
       ...data,
     };
     setActions((prev) => [...prev, newAction]);
+    void createRecord("actions", newAction).catch((error) => {
+      console.error("Failed to persist action:", error);
+    });
     return newAction;
   }, [generateCode]);
 
@@ -70,7 +95,11 @@ export function useActions() {
         if (data.status === 'completed_pending_evaluation' && !action.completedDate) {
           updated.completedDate = now;
         }
-        
+
+        void updateRecord("actions", id, updated).catch((error) => {
+          console.error("Failed to update action:", error);
+        });
+
         return updated;
       })
     );
@@ -106,21 +135,31 @@ export function useActions() {
       notes: data.notes,
     };
 
+    let updatedAction: Action | null = null;
+
     setActions((prev) =>
-      prev.map((action) =>
-        action.id === actionId
-          ? {
-              ...action,
-              status: 'evaluated' as ActionStatus,
-              efficiencyEvaluation: evaluation,
-              updatedAt: now,
-              version: action.version + 1,
-              revisionDate: now,
-              revisionNote: `Efficiency evaluated: ${data.result}`,
-            }
-          : action
-      )
+      prev.map((action) => {
+        if (action.id !== actionId) return action;
+
+        updatedAction = {
+          ...action,
+          status: "evaluated" as ActionStatus,
+          efficiencyEvaluation: evaluation,
+          updatedAt: now,
+          version: action.version + 1,
+          revisionDate: now,
+          revisionNote: `Efficiency evaluated: ${data.result}`,
+        };
+
+        return updatedAction;
+      }),
     );
+
+    if (updatedAction) {
+      void updateRecord("actions", actionId, updatedAction).catch((error) => {
+        console.error("Failed to persist action evaluation:", error);
+      });
+    }
   }, []);
 
   const getActionsByProcess = useCallback((processId: string) => {
