@@ -56,7 +56,6 @@ const modules = [
 
 export default function Dashboard() {
   const { processes, issues, actions, documents, getOverdueActions, allRequirements, getRequirementsOverview } = useManagementSystem();
-  const { processes, issues, actions, documents, getOverdueActions, allRequirements } = useManagementSystem();
 
   const overdueActions = getOverdueActions();
 
