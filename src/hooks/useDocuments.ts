@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Document, DocumentAttachment, Process } from "@/types/management-system";
+import { Document, DocumentAttachment } from "@/types/management-system";
 import { createRecord, deleteRecord, fetchRecords, updateRecord } from "@/lib/records";
 import { createSeedDocuments } from "@/data/qmsDocuments";
 
@@ -49,10 +49,8 @@ export function useDocuments() {
         const remoteDocuments = await fetchRecords<Document>("documents");
         if (remoteDocuments.length === 0) {
           const seeded = createSeedDocuments();
-          const processes = await fetchRecords<Process>("processes");
-          const linkedSeed = attachDocumentsToProcesses(seeded, processes);
-          setDocuments(linkedSeed);
-          await Promise.all(linkedSeed.map((document) => createRecord("documents", document)));
+          setDocuments(seeded);
+          await Promise.all(seeded.map((document) => createRecord("documents", document)));
         } else {
           setDocuments(remoteDocuments);
         }
@@ -61,8 +59,7 @@ export function useDocuments() {
         console.error("Failed to load documents:", error);
         // Fallback: still expose the ISO scaffold locally so the app is usable
         // even when the API is down or tenant records are not reachable.
-        const fallbackSeed = attachDocumentsToProcesses(createSeedDocuments(), []);
-        setDocuments(fallbackSeed);
+        setDocuments(createSeedDocuments());
       } finally {
         setIsLoading(false);
       }

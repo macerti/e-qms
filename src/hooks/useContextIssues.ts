@@ -9,8 +9,6 @@ import {
   RiskTrigger 
 } from "@/types/management-system";
 import { createRecord, fetchRecords, updateRecord, deleteRecord as deleteDbRecord } from "@/lib/records";
-import { createDemoIssues } from "@/data/demo-seed";
-import { Process } from "@/types/management-system";
 
 type CreateIssueData = {
   code?: string;
@@ -43,24 +41,10 @@ export function useContextIssues() {
       setIsLoading(true);
       try {
         const remoteIssues = await fetchRecords<ContextIssue>("issues");
-        if (remoteIssues.length > 0) {
-          setIssues(remoteIssues);
-          setInitialized(true);
-          return;
-        }
-
-        const processes = await fetchRecords<Process>("processes");
-        const seededIssues = createDemoIssues(processes);
-        setIssues(seededIssues);
+        setIssues(remoteIssues);
         setInitialized(true);
-
-        await Promise.all(seededIssues.map((issue) => createRecord("issues", issue)));
       } catch (error) {
         console.error("Failed to load issues:", error);
-
-        const seededIssues = createDemoIssues([]);
-        setIssues(seededIssues);
-        setInitialized(true);
       } finally {
         setIsLoading(false);
       }

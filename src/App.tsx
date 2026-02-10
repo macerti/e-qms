@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Settings from "./pages/Settings";
 import ActivityLog from "./pages/ActivityLog";
 import Help from "./pages/Help";
+import StandardRequirements from "./pages/settings/StandardRequirements";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -59,6 +60,7 @@ const App = () => (
 
               {/* Settings */}
               <Route path="/settings" element={<Settings />} />
+              <Route path="/settings/standard-requirements" element={<StandardRequirements />} />
               <Route path="/activity-log" element={<ActivityLog />} />
               <Route path="/help" element={<Help />} />
             </Route>
