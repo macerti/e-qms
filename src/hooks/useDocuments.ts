@@ -25,47 +25,13 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
   const allKnownProcesses = Array.from(processIdByKeyword.values());
 
   const mapByCode = (code: string): string[] => {
-    // System-wide governance and documented information
-    if (code.startsWith("MS-001") || code.startsWith("MS-002") || code.startsWith("MS-003")) {
-      return allKnownProcesses;
-    }
-
-    // Leadership & management review
-    if (code.startsWith("MS-012") || code.startsWith("MS-011")) {
-      return [processIdByKeyword.get("management")].filter(Boolean) as string[];
-    }
-
-    // HR / competence
-    if (code.startsWith("MS-004")) {
-      return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
-    }
-
-    // Infrastructure / IT / admin support
-    if (code.startsWith("MS-013")) {
-      return [
-        processIdByKeyword.get("it"),
-        processIdByKeyword.get("admin"),
-        processIdByKeyword.get("op1"),
-        processIdByKeyword.get("op2"),
-      ].filter(Boolean) as string[];
-    }
-
-    // Operations and customer-delivery flow
-    if (code.startsWith("MS-005") || code.startsWith("MS-006") || code.startsWith("MS-008") || code.startsWith("MS-014")) {
-      return [
-        processIdByKeyword.get("op1"),
-        processIdByKeyword.get("op2"),
-        processIdByKeyword.get("sales"),
-      ].filter(Boolean) as string[];
-    }
-
-    // Supplier selection and purchasing controls (explicitly prioritized)
-    if (code.startsWith("MS-007")) {
-      return [
-        processIdByKeyword.get("purchasing"),
-        processIdByKeyword.get("op1"),
-        processIdByKeyword.get("op2"),
-      ].filter(Boolean) as string[];
+    if (code.startsWith("MS-004")) return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
+    if (code.startsWith("MS-012") || code.startsWith("MS-011")) return [processIdByKeyword.get("management")].filter(Boolean) as string[];
+    if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
+    if (code.startsWith("MS-005") || code.startsWith("MS-008") || code.startsWith("MS-014")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("sales")].filter(Boolean) as string[];
+    if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
+    if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001") || code.startsWith("MS-013")) {
+      return Array.from(processIdByKeyword.values());
     }
 
     // Quality assurance, audit, corrective action and continual improvement
