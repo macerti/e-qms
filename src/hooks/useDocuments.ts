@@ -27,63 +27,39 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     if (n.includes("sales process")) register("sales", process.id);
   });
 
-  const allKnownProcesses = Array.from(new Set(processIdByKeyword.values()));
+  const allKnownProcesses = Array.from(processIdByKeyword.values());
 
-  const ids = (...keys: string[]) => Array.from(new Set(keys.map((key) => processIdByKeyword.get(key)).filter(Boolean))) as string[];
-
-  const mapByCodeAndMetadata = (document: Document): string[] => {
-    const code = document.code;
-    const textHint = `${document.title} ${document.purpose ?? ""}`.toLowerCase();
-    const clauses = document.isoClauseReferences.map((clause) => clause.clauseNumber);
-
-    // System-wide governance and documented information.
-    if (code.startsWith("MS-001") || code.startsWith("MS-002") || code.startsWith("MS-003")) {
-      return allKnownProcesses;
+  const mapByCode = (code: string): string[] => {
+    if (code.startsWith("MS-004")) return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
+    if (code.startsWith("MS-012") || code.startsWith("MS-011")) return [processIdByKeyword.get("management")].filter(Boolean) as string[];
+    if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
+    if (code.startsWith("MS-005") || code.startsWith("MS-008") || code.startsWith("MS-014")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("sales")].filter(Boolean) as string[];
+    if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
+    if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001") || code.startsWith("MS-013")) {
+      return Array.from(processIdByKeyword.values());
     }
 
-    // Leadership and strategic review.
-    if (code.startsWith("MS-011") || code.startsWith("MS-012")) {
-      return ids("management", "quality");
-    }
-
-    // HR and competence controls.
-    if (code.startsWith("MS-004") || textHint.includes("recruit") || textHint.includes("training") || textHint.includes("competence")) {
-      return ids("hr");
-    }
-
-    // Infrastructure and knowledge support.
-    if (code.startsWith("MS-013") || textHint.includes("infrastructure") || textHint.includes("knowledge")) {
-      return ids("it", "admin", "hr", "op1", "op2");
-    }
-
-    // Core operations and customer journey.
-    if (code.startsWith("MS-005") || code.startsWith("MS-006") || code.startsWith("MS-008") || code.startsWith("MS-014")) {
-      return ids("op1", "op2", "sales", "quality");
-    }
-
-    // Supplier selection and purchasing controls.
-    if (code.startsWith("MS-007") || textHint.includes("supplier") || textHint.includes("purchase")) {
-      return ids("purchasing", "op1", "op2", "quality");
-    }
-
-    // QA, audit, corrective action and continual improvement.
+    // Quality assurance, audit, corrective action and continual improvement
     if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) {
-      return ids("quality", "management");
+      return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
     }
 
-    // Clause-guided fallback when code is custom or manually created.
-    const inferredByClause = new Set<string>();
-    if (clauses.some((clause) => clause.startsWith("5."))) ids("management").forEach((id) => inferredByClause.add(id));
-    if (clauses.some((clause) => clause.startsWith("7.1") || clause.startsWith("7.2") || clause.startsWith("7.3"))) ids("hr", "it", "admin").forEach((id) => inferredByClause.add(id));
-    if (clauses.some((clause) => clause.startsWith("8.2"))) ids("sales", "op1", "op2").forEach((id) => inferredByClause.add(id));
-    if (clauses.some((clause) => clause.startsWith("8.4"))) ids("purchasing").forEach((id) => inferredByClause.add(id));
-    if (clauses.some((clause) => clause.startsWith("9.") || clause.startsWith("10."))) ids("quality", "management").forEach((id) => inferredByClause.add(id));
-
-    const inferred = Array.from(inferredByClause);
-    return inferred.length > 0 ? inferred : allKnownProcesses;
+    return [];
   };
 
   return seedDocuments.map((document) => ({ ...document, processIds: mapByCodeAndMetadata(document) }));
+}
+
+
+function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
+  const linkedFromCode = attachDocumentsToProcesses(documents, processes);
+  return linkedFromCode.map((document, index) => {
+    const current = documents[index];
+    if ((current.processIds?.length ?? 0) > 0) {
+      return current;
+    }
+    return { ...current, processIds: document.processIds };
+  });
 }
 
 

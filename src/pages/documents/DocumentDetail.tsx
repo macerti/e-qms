@@ -256,31 +256,21 @@ export default function DocumentDetail() {
             </section>
 
             <section className="mobile-card space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="font-medium">Requirement clauses this document satisfies</h3>
-                <Badge variant="secondary" className="font-mono">
-                  {currentDocument.isoClauseReferences.length} selected
-                </Badge>
-              </div>
-              <div className="space-y-2 max-h-64 overflow-y-auto rounded-lg border border-border bg-muted/20 p-2">
+              <h3 className="font-medium">Requirement clauses this document satisfies</h3>
+              <div className="space-y-1 max-h-64 overflow-y-auto border border-border rounded-lg p-3">
                 {ISO_9001_CLAUSES.map((clause) => {
                   const isSelected = currentDocument.isoClauseReferences.some((item) => item.clauseNumber === clause.clauseNumber);
                   return (
                     <label
                       key={clause.clauseNumber}
                       className={cn(
-                        "group flex items-start gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors",
-                        isSelected
-                          ? "border-primary/30 bg-background shadow-sm"
-                          : "border-transparent bg-background/80 hover:border-border hover:bg-background",
+                        "flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors",
+                        isSelected ? "bg-primary/10" : "hover:bg-muted/50",
                       )}
                     >
                       <Checkbox checked={isSelected} onCheckedChange={() => toggleClause(clause)} className="mt-0.5" />
-                      <div className="flex-1 min-w-0 text-sm text-foreground/90">
-                        <div className="inline-flex items-center gap-2">
-                          <span className="font-mono text-xs rounded-sm bg-muted px-1.5 py-0.5">{clause.clauseNumber}</span>
-                          <span className="font-medium leading-tight">{clause.clauseTitle}</span>
-                        </div>
+                      <div className="flex-1 min-w-0 text-sm">
+                        <span className="font-mono font-medium text-primary">{clause.clauseNumber}</span> {clause.clauseTitle}
                       </div>
                     </label>
                   );

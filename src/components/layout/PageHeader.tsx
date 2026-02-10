@@ -132,22 +132,20 @@ export function PageHeader({
             )}
             <div className="min-w-0">
               {breadcrumbItems.length > 0 && (
-                <nav aria-label="Breadcrumb" className="mb-0.5 overflow-x-auto no-scrollbar">
-                  <ol className="flex flex-nowrap items-center gap-1 whitespace-nowrap text-[11px] leading-none text-muted-foreground [&_*]:!min-h-0 [&_*]:!min-w-0">
-                    {breadcrumbItems.map((item, index) => (
-                      <li key={`${item.label}-${index}`} className="inline-flex items-center gap-1 shrink-0 align-middle whitespace-nowrap">
-                        {index > 0 && <ChevronRight className="w-3 h-3 shrink-0" />}
-                        {item.to && index < breadcrumbItems.length - 1 ? (
-                          <Link to={item.to} className="inline-flex items-center whitespace-nowrap hover:text-foreground transition-colors">
-                            {item.label}
-                          </Link>
-                        ) : (
-                          <span className="inline-flex items-center whitespace-nowrap">{item.label}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                </nav>
+                <div className="flex flex-nowrap items-center gap-1 text-[11px] leading-none text-muted-foreground mb-0.5 overflow-x-auto no-scrollbar whitespace-nowrap [&_*]:!min-h-0 [&_*]:!min-w-0">
+                  {breadcrumbItems.map((item, index) => (
+                    <span key={`${item.label}-${index}`} className="inline-flex items-center gap-1 shrink-0 align-middle">
+                      {index > 0 && <ChevronRight className="w-3 h-3" />}
+                      {item.to && index < breadcrumbItems.length - 1 ? (
+                        <Link to={item.to} className="inline-flex items-center hover:text-foreground transition-colors">
+                          {item.label}
+                        </Link>
+                      ) : (
+                        <span className="inline-flex items-center">{item.label}</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
               )}
 
               <div className="flex items-center gap-2">
