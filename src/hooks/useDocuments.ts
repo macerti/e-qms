@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect } from "react";
 import { Document, DocumentAttachment } from "@/types/management-system";
 import { createRecord, deleteRecord, fetchRecords, updateRecord } from "@/lib/records";
 import { createSeedDocuments } from "@/data/qmsDocuments";
+import { Document } from "@/types/management-system";
+import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
 
 type CreateDocumentData = Omit<Document, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate"> & {
   code?: string;
@@ -12,6 +14,7 @@ export function useDocuments() {
   const [isLoading, setIsLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
+  // Load documents from the database once on mount.
   useEffect(() => {
     if (initialized) return;
 
@@ -26,6 +29,7 @@ export function useDocuments() {
         } else {
           setDocuments(remoteDocuments);
         }
+        setDocuments(remoteDocuments);
         setInitialized(true);
       } catch (error) {
         console.error("Failed to load documents:", error);
@@ -64,6 +68,23 @@ export function useDocuments() {
     },
     [generateCode],
   );
+  const createDocument = useCallback((data: CreateDocumentData) => {
+    const now = new Date().toISOString();
+    const newDocument: Document = {
+      id: crypto.randomUUID(),
+      code: data.code || generateCode(),
+      createdAt: now,
+      updatedAt: now,
+      version: 1,
+      revisionDate: now,
+      ...data,
+    };
+    setDocuments((prev) => [...prev, newDocument]);
+    void createRecord("documents", newDocument).catch((error) => {
+      console.error("Failed to persist document:", error);
+    });
+    return newDocument;
+  }, [generateCode]);
 
   const updateDocument = useCallback((id: string, data: Partial<Document>, revisionNote?: string) => {
     const now = new Date().toISOString();
