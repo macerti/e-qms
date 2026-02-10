@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { HelpCircle, Settings, Activity, User } from "lucide-react";
 import { HelpCircle, Settings, Activity, User, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -23,11 +22,6 @@ export function UserMenu() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem asChild>
-          <Link to="/settings" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            User settings
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem asChild>
           <Link to="/settings" className="flex items-center gap-2">
@@ -38,7 +32,6 @@ export function UserMenu() {
         <DropdownMenuItem asChild>
           <Link to="/activity-log" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            Activity log
             Activity Log
           </Link>
         </DropdownMenuItem>
