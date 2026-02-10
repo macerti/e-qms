@@ -7,6 +7,34 @@ type CreateDocumentData = Omit<Document, "id" | "createdAt" | "updatedAt" | "cod
   code?: string;
 };
 
+function attachDocumentsToProcesses(seedDocuments: Document[], processes: Process[]): Document[] {
+  const processIdByKeyword = new Map<string, string>();
+  processes.forEach((process) => {
+    const n = process.name.toLowerCase();
+    if (n.includes("human resources")) processIdByKeyword.set("hr", process.id);
+    if (n.includes("management")) processIdByKeyword.set("management", process.id);
+    if (n.includes("quality")) processIdByKeyword.set("quality", process.id);
+    if (n.includes("operational process 01")) processIdByKeyword.set("op1", process.id);
+    if (n.includes("operational process 02")) processIdByKeyword.set("op2", process.id);
+    if (n.includes("purchasing")) processIdByKeyword.set("purchasing", process.id);
+  });
+
+  const mapByCode = (code: string): string[] => {
+    if (code.startsWith("MS-004")) return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
+    if (code.startsWith("MS-012") || code.startsWith("MS-011")) return [processIdByKeyword.get("management")].filter(Boolean) as string[];
+    if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
+    if (code.startsWith("MS-005") || code.startsWith("MS-008") || code.startsWith("MS-014")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2")].filter(Boolean) as string[];
+    if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
+    if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001") || code.startsWith("MS-013")) {
+      return Array.from(processIdByKeyword.values());
+    }
+    return [];
+  };
+
+  return seedDocuments.map((document) => ({ ...document, processIds: mapByCode(document.code) }));
+}
+
+
 export function useDocuments() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(false);
