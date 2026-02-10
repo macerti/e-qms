@@ -9,17 +9,22 @@ type CreateDocumentData = Omit<Document, "id" | "createdAt" | "updatedAt" | "cod
 
 function attachDocumentsToProcesses(seedDocuments: Document[], processes: Process[]): Document[] {
   const processIdByKeyword = new Map<string, string>();
+
+  const register = (keyword: string, processId: string) => {
+    processIdByKeyword.set(keyword, processId);
+  };
+
   processes.forEach((process) => {
     const n = process.name.toLowerCase();
-    if (n.includes("human resources")) processIdByKeyword.set("hr", process.id);
-    if (n.includes("management")) processIdByKeyword.set("management", process.id);
-    if (n.includes("quality")) processIdByKeyword.set("quality", process.id);
-    if (n.includes("operational process 01")) processIdByKeyword.set("op1", process.id);
-    if (n.includes("operational process 02")) processIdByKeyword.set("op2", process.id);
-    if (n.includes("purchasing")) processIdByKeyword.set("purchasing", process.id);
-    if (n.includes("it process")) processIdByKeyword.set("it", process.id);
-    if (n.includes("administration process")) processIdByKeyword.set("admin", process.id);
-    if (n.includes("sales process")) processIdByKeyword.set("sales", process.id);
+    if (n.includes("human resources")) register("hr", process.id);
+    if (n.includes("management")) register("management", process.id);
+    if (n.includes("quality")) register("quality", process.id);
+    if (n.includes("operational process 01")) register("op1", process.id);
+    if (n.includes("operational process 02")) register("op2", process.id);
+    if (n.includes("purchasing")) register("purchasing", process.id);
+    if (n.includes("it process")) register("it", process.id);
+    if (n.includes("administration process")) register("admin", process.id);
+    if (n.includes("sales process")) register("sales", process.id);
   });
 
   const allKnownProcesses = Array.from(processIdByKeyword.values());
@@ -42,7 +47,19 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     return [];
   };
 
-  return seedDocuments.map((document) => ({ ...document, processIds: mapByCode(document.code) }));
+  return seedDocuments.map((document) => ({ ...document, processIds: mapByCodeAndMetadata(document) }));
+}
+
+
+function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
+  const linkedFromCode = attachDocumentsToProcesses(documents, processes);
+  return linkedFromCode.map((document, index) => {
+    const current = documents[index];
+    if ((current.processIds?.length ?? 0) > 0) {
+      return current;
+    }
+    return { ...current, processIds: document.processIds };
+  });
 }
 
 

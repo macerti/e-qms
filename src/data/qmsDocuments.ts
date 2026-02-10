@@ -10,10 +10,10 @@ type SeedRow = {
 };
 
 const rows: SeedRow[] = [
-  { section: "1", code: "MS-001", title: "Quality Management System Manual", type: "record", clause: "4-10", purpose: "Overview of QMS structure, processes, interactions, and compliance approach." },
+  { section: "1", code: "MS-001", title: "QMS Governance, Scope & Interaction Procedure", type: "procedure", clause: "4-10", purpose: "Defines QMS architecture, process interaction model, documented scope, and governance references." },
   { section: "1", code: "MS-001-01", title: "Quality Policy", type: "policy", clause: "5.2", purpose: "Statement of commitments: customer focus, legal requirements, improvement." },
   { section: "1", code: "MS-001-02", title: "Quality Objectives", type: "policy", clause: "6.2", purpose: "Defined measurable objectives consistent with policy and context; baseline for performance." },
-  { section: "1", code: "MS-001-02-A", title: "QMS KPI Dashboard", type: "record", clause: "6.2 / 9.1", purpose: "Monitors progress against quality objectives." },
+  { section: "1", code: "MS-001-05", title: "QMS KPI Dashboard", type: "record", clause: "6.2 / 9.1", purpose: "Monitors progress against quality objectives." },
   { section: "1", code: "MS-001-03", title: "QMS Scope", type: "record", clause: "4.3", purpose: "Definition of QMS boundaries, products/services, and applicability." },
   { section: "1", code: "MS-001-04", title: "Process Interaction Map", type: "record", clause: "4.4", purpose: "Visual representation of QMS processes and interactions." },
   { section: "2", code: "MS-012", title: "Leadership & Governance Procedure", type: "procedure", clause: "5.1-5.3", purpose: "How top management demonstrates commitment, accountability and support to the QMS." },
@@ -33,7 +33,7 @@ const rows: SeedRow[] = [
   { section: "5", code: "MS-004-04", title: "Training Record / Attendance", type: "record", clause: "7.2", purpose: "Evidence of training completion." },
   { section: "5", code: "MS-004-05", title: "Competence Assessment", type: "record", clause: "7.2", purpose: "Evaluations showing employees are competent." },
   { section: "5", code: "MS-004-06", title: "Awareness & Induction Record", type: "record", clause: "7.3", purpose: "Evidence employees understand policy, objectives, and contribution." },
-  { section: "5", code: "MS-004-07", title: "Organizational Knowledge Management", type: "procedure", clause: "7.1.6", purpose: "How critical knowledge is identified, maintained, and protected." },
+  { section: "5", code: "MS-004-07", title: "Organizational Knowledge Management Instruction", type: "instruction", clause: "7.1.6", purpose: "Operational guidance to identify, maintain and protect critical organizational knowledge." },
   { section: "5", code: "MS-004-08", title: "Knowledge Register", type: "record", clause: "7.1.6", purpose: "List of key knowledge, holders, backup and risks." },
   { section: "6", code: "MS-013", title: "Infrastructure & Work Environment Control", type: "procedure", clause: "7.1.3-7.1.4", purpose: "How facilities, equipment, IT, and work conditions are maintained." },
   { section: "6", code: "MS-013-01", title: "Maintenance / Infrastructure Log", type: "record", clause: "7.1.3", purpose: "Evidence of maintenance activities." },
@@ -41,7 +41,8 @@ const rows: SeedRow[] = [
   { section: "7", code: "MS-005-01", title: "SOP: Core Operational Process", type: "instruction", clause: "8.5", purpose: "Standard operating procedures for main product/service delivery." },
   { section: "7", code: "MS-005-02", title: "Work Instruction - Task Detail", type: "instruction", clause: "8.5", purpose: "Procedure-level task instructions for critical activities." },
   { section: "7", code: "MS-005-03", title: "Change Request & Log", type: "form", clause: "8.5.6", purpose: "Form to request changes and record outcomes." },
-  { section: "7", code: "MS-014", title: "Design & Development Applicability Assessment", type: "record", clause: "8.3", purpose: "Justification of applicability/exclusion of design & development." },
+  { section: "7", code: "MS-014", title: "Design & Development Control Procedure", type: "procedure", clause: "8.3", purpose: "Defines how design & development is planned, controlled, and justified when applicable." },
+  { section: "7", code: "MS-014-01", title: "Design & Development Applicability Assessment", type: "record", clause: "8.3", purpose: "Justification of applicability/exclusion of design & development." },
   { section: "8", code: "MS-006", title: "Customer Communication & Requirements", type: "procedure", clause: "8.2.1", purpose: "How customer needs, communications, and commitments are captured and addressed." },
   { section: "8", code: "MS-006-01", title: "Customer Feedback & Complaints Log", type: "record", clause: "9.1.2 / 8.2.1", purpose: "Captures feedback, complaints, and actions." },
   { section: "8", code: "MS-006-02", title: "Customer Satisfaction Survey", type: "form", clause: "9.1.2", purpose: "Template for measuring customer satisfaction." },
@@ -67,12 +68,50 @@ const rows: SeedRow[] = [
   { section: "11", code: "MS-011-02", title: "Management Review Minutes", type: "record", clause: "9.3", purpose: "Decisions and action items." },
 ];
 
+function expandClauseToken(token: string): string[] {
+  const normalized = token.trim();
+  const rangeMatch = normalized.match(/^(\d+(?:\.\d+)*?)-(\d+(?:\.\d+)*)$/);
+  if (!rangeMatch) return [normalized];
+
+  const start = rangeMatch[1];
+  const end = rangeMatch[2];
+
+  // Simple clause range (e.g. 4-10)
+  if (!start.includes(".") && !end.includes(".")) {
+    const startNum = Number(start);
+    const endNum = Number(end);
+    if (Number.isFinite(startNum) && Number.isFinite(endNum) && endNum >= startNum) {
+      return Array.from({ length: endNum - startNum + 1 }, (_, i) => String(startNum + i));
+    }
+    return [start, end];
+  }
+
+  // Subclause range sharing same major prefix (e.g. 5.1-5.3 or 7.1.3-7.1.4)
+  const startParts = start.split(".").map(Number);
+  const endParts = end.split(".").map(Number);
+  if (startParts.length === endParts.length && startParts.slice(0, -1).every((value, idx) => value === endParts[idx])) {
+    const from = startParts[startParts.length - 1];
+    const to = endParts[endParts.length - 1];
+    if (Number.isFinite(from) && Number.isFinite(to) && to >= from) {
+      const prefix = startParts.slice(0, -1).join(".");
+      return Array.from({ length: to - from + 1 }, (_, i) => `${prefix}.${from + i}`);
+    }
+  }
+
+  return [start, end];
+}
+
 function parseClauses(clauseText: string): ISOClauseReference[] {
-  return clauseText
-    .split("/")
+  const clauses = clauseText
+    .split(/[/,;]/)
     .map((part) => part.trim())
     .filter(Boolean)
-    .map((part) => ({ clauseNumber: part, clauseTitle: "ISO 9001:2015" }));
+    .flatMap((part) => expandClauseToken(part));
+
+  return Array.from(new Set(clauses)).map((clauseNumber) => ({
+    clauseNumber,
+    clauseTitle: "ISO 9001:2015",
+  }));
 }
 
 export function createSeedDocuments(): Document[] {
