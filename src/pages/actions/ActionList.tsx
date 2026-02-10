@@ -147,7 +147,7 @@ const originLabels: Record<string, string> = {
             helperText="Each action links to its source and the responsible process."
           />
         ) : (
-          <AdaptiveGrid cols="1-2" gap="md">
+          <AdaptiveGrid cols="1-2-3" gap="md">
             {filteredActions.map((action) => {
               const overdue = isOverdue(action.deadline, action.status);
               

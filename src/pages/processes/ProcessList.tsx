@@ -118,7 +118,7 @@ const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.Elem
             helperText="Each process will have inputs, outputs, a pilot, and linked indicators, risks, and actions."
           />
         ) : (
-          <AdaptiveGrid cols="1-2" gap="md">
+          <AdaptiveGrid cols="1-2-3-4" gap="md">
             {filteredProcesses.map((process) => {
               const typeConfig = PROCESS_TYPE_CONFIG[process.type];
               const TypeIcon = typeConfig.icon;
@@ -159,7 +159,7 @@ const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.Elem
                     <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
                   </div>
                   
-                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
+                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border flex-wrap">
                     <StatChip label="Activities" value={process.activities?.length || 0} />
                     <StatChip label="Risks" value={process.riskIds.length} />
                     <StatChip label="Actions" value={process.actionIds.length} />

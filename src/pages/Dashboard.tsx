@@ -131,7 +131,7 @@ export default function Dashboard() {
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
             Modules (Demo dataset loaded)
           </h2>
-          <AdaptiveGrid cols="1-2" gap="md">
+          <AdaptiveGrid cols="1-2-3" gap="md">
             {modules.map((module) => (
               <ModuleCard
                 key={module.id}

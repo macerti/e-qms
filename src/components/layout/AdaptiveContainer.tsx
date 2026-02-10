@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 interface AdaptiveContainerProps {
   children: React.ReactNode;
   className?: string;
-  /** Maximum width constraint. Defaults to 'content' (960px) */
+  /** Maximum width constraint. Defaults to content viewport width token. */
   maxWidth?: "content" | "wide" | "full";
   /** Padding scheme */
   padding?: "none" | "default" | "compact";
@@ -20,7 +20,7 @@ interface AdaptiveContainerProps {
 export function AdaptiveContainer({ 
   children, 
   className,
-  maxWidth = "content",
+  maxWidth = "wide",
   padding = "default"
 }: AdaptiveContainerProps) {
   return (
@@ -28,8 +28,8 @@ export function AdaptiveContainer({
       // Base: Full width on mobile
       "w-full mx-auto",
       // Max-width constraints - content stays readable
-      maxWidth === "content" && "max-w-[960px]",
-      maxWidth === "wide" && "max-w-[1200px]",
+      maxWidth === "content" && "max-w-[var(--content-max-width)]",
+      maxWidth === "wide" && "max-w-[var(--wide-max-width)]",
       maxWidth === "full" && "max-w-full",
       // Padding schemes
       padding === "default" && "px-4 lg:px-6",

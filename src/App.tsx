@@ -5,10 +5,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ManagementSystemProvider } from "@/context/ManagementSystemContext";
 import { TenantProvider } from "@/context/TenantContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import Settings from "./pages/Settings";
 import ActivityLog from "./pages/ActivityLog";
 import Help from "./pages/Help";
 import StandardRequirements from "./pages/settings/StandardRequirements";
+import UserDetails from "./pages/settings/UserDetails";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -32,6 +34,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
@@ -61,6 +64,7 @@ const App = () => (
               {/* Settings */}
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/standard-requirements" element={<StandardRequirements />} />
+              <Route path="/settings/user-details" element={<UserDetails />} />
               <Route path="/activity-log" element={<ActivityLog />} />
               <Route path="/help" element={<Help />} />
             </Route>

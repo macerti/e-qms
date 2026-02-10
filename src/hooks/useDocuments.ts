@@ -22,6 +22,8 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     if (n.includes("sales process")) processIdByKeyword.set("sales", process.id);
   });
 
+  const allKnownProcesses = Array.from(processIdByKeyword.values());
+
   const mapByCode = (code: string): string[] => {
     if (code.startsWith("MS-004")) return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
     if (code.startsWith("MS-012") || code.startsWith("MS-011")) return [processIdByKeyword.get("management")].filter(Boolean) as string[];
@@ -31,10 +33,28 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001") || code.startsWith("MS-013")) {
       return Array.from(processIdByKeyword.values());
     }
+
+    // Quality assurance, audit, corrective action and continual improvement
+    if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) {
+      return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
+    }
+
     return [];
   };
 
   return seedDocuments.map((document) => ({ ...document, processIds: mapByCode(document.code) }));
+}
+
+
+function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
+  const linkedFromCode = attachDocumentsToProcesses(documents, processes);
+  return linkedFromCode.map((document, index) => {
+    const current = documents[index];
+    if ((current.processIds?.length ?? 0) > 0) {
+      return current;
+    }
+    return { ...current, processIds: document.processIds };
+  });
 }
 
 
@@ -57,7 +77,16 @@ export function useDocuments() {
           setDocuments(linkedSeed);
           await Promise.all(linkedSeed.map((document) => createRecord("documents", document)));
         } else {
-          setDocuments(remoteDocuments);
+          const processes = await fetchRecords<Process>("processes");
+          const backfilled = backfillMissingProcessLinks(remoteDocuments, processes);
+          setDocuments(backfilled);
+
+          // Persist inferred links for documents that were previously unlinked.
+          await Promise.all(
+            backfilled
+              .filter((document, index) => (remoteDocuments[index].processIds?.length ?? 0) === 0 && document.processIds.length > 0)
+              .map((document) => updateRecord("documents", document.id, document)),
+          );
         }
         setInitialized(true);
       } catch (error) {

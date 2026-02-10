@@ -10,7 +10,7 @@ interface AdaptiveGridProps {
    * - "1-2-3" = 1 col mobile, 2 tablet, 3 desktop
    * - "2-3-4" = 2 col mobile, 3 tablet, 4 desktop
    */
-  cols?: "1" | "1-2" | "1-2-3" | "2-3-4" | "1-3";
+  cols?: "1" | "1-2" | "1-2-3" | "1-2-3-4" | "2-3-4" | "1-3";
   /** Gap size */
   gap?: "sm" | "md" | "lg";
 }
@@ -34,6 +34,7 @@ export function AdaptiveGrid({
       cols === "1" && "grid-cols-1",
       cols === "1-2" && "grid-cols-1 md:grid-cols-2",
       cols === "1-2-3" && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+      cols === "1-2-3-4" && "grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4",
       cols === "2-3-4" && "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
       cols === "1-3" && "grid-cols-1 lg:grid-cols-3",
       // Gap sizes

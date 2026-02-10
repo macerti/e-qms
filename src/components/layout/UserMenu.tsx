@@ -24,7 +24,7 @@ export function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuItem asChild>
-          <Link to="/settings" className="flex items-center gap-2">
+          <Link to="/settings/user-details" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             User details
           </Link>

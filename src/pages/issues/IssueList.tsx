@@ -139,7 +139,7 @@ const quadrantConfig: Record<SwotQuadrant, { label: string; color: string; bgCol
             helperText="Issues can be risks (threats, weaknesses) or opportunities (strengths, external opportunities)."
           />
         ) : viewMode === "list" ? (
-          <AdaptiveGrid cols="1-2" gap="md">
+          <AdaptiveGrid cols="1-2-3" gap="md">
             {filteredIssues.map((issue) => {
               const config = quadrantConfig[issue.quadrant];
               return (

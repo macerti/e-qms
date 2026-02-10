@@ -116,8 +116,8 @@
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     
     /* Adaptive layout */
-    --content-max-width: 960px;
-    --wide-max-width: 1200px;
+    --content-max-width: 1520px;
+    --wide-max-width: 1680px;
     --sidebar-width: 256px;
   }
 

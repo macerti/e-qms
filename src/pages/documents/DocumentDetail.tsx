@@ -17,12 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Document, DocumentType } from "@/types/management-system";
+import { Document, DocumentType, ISOClauseReference } from "@/types/management-system";
 import { cn } from "@/lib/utils";
 
 const DOCUMENT_TYPE_CONFIG: Record<DocumentType, { label: string; icon: React.ElementType; color: string }> = {
@@ -33,11 +34,34 @@ const DOCUMENT_TYPE_CONFIG: Record<DocumentType, { label: string; icon: React.El
   policy: { label: "Policy", icon: FileText, color: "text-red-600" },
 };
 
+const ISO_9001_CLAUSES: ISOClauseReference[] = [
+  { clauseNumber: "4.1", clauseTitle: "Understanding the organization and its context" },
+  { clauseNumber: "4.2", clauseTitle: "Interested parties" },
+  { clauseNumber: "4.3", clauseTitle: "QMS scope" },
+  { clauseNumber: "4.4", clauseTitle: "QMS processes" },
+  { clauseNumber: "5.1", clauseTitle: "Leadership and commitment" },
+  { clauseNumber: "5.2", clauseTitle: "Policy" },
+  { clauseNumber: "5.3", clauseTitle: "Roles and responsibilities" },
+  { clauseNumber: "6.1", clauseTitle: "Risks and opportunities" },
+  { clauseNumber: "6.2", clauseTitle: "Quality objectives" },
+  { clauseNumber: "7.5", clauseTitle: "Documented information" },
+  { clauseNumber: "8.1", clauseTitle: "Operational planning and control" },
+  { clauseNumber: "8.2", clauseTitle: "Customer requirements" },
+  { clauseNumber: "8.4", clauseTitle: "Supplier control" },
+  { clauseNumber: "8.5", clauseTitle: "Production / service" },
+  { clauseNumber: "9.1", clauseTitle: "Monitoring and measurement" },
+  { clauseNumber: "9.2", clauseTitle: "Internal audit" },
+  { clauseNumber: "9.3", clauseTitle: "Management review" },
+  { clauseNumber: "10.2", clauseTitle: "Corrective action" },
+  { clauseNumber: "10.3", clauseTitle: "Continual improvement" },
+];
+
 export default function DocumentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const {
     documents,
+    processes,
     getDocumentById,
     updateDocument,
     archiveDocument,
@@ -56,7 +80,7 @@ export default function DocumentDetail() {
   }, [documents, currentDocument]);
 
   const mergeCandidates = useMemo(() => {
-    if (!currentDocument) return [];
+    if (!currentDocument || currentDocument.type !== "procedure") return [];
     return documents.filter(
       (item) => item.id !== currentDocument.id && item.type === "procedure" && item.status !== "archived",
     );
@@ -72,6 +96,7 @@ export default function DocumentDetail() {
 
   const typeConfig = DOCUMENT_TYPE_CONFIG[currentDocument.type];
   const TypeIcon = typeConfig.icon;
+  const activeProcesses = processes.filter((p) => p.status !== "archived");
 
   const handleArchive = () => {
     archiveDocument(currentDocument.id);
@@ -91,12 +116,29 @@ export default function DocumentDetail() {
       return;
     }
     mergeDocuments(currentDocument.id, mergeTarget);
-    toast.success("Document merged and source archived");
+    toast.success("Procedure merged and source archived");
     navigate(`/documents/${mergeTarget}`);
   };
 
   const saveInlineField = (field: keyof Document, value: string) => {
     updateDocument(currentDocument.id, { [field]: value.trim() || undefined }, `Updated ${field}`);
+  };
+
+  const toggleProcess = (processId: string) => {
+    const next = currentDocument.processIds.includes(processId)
+      ? currentDocument.processIds.filter((value) => value !== processId)
+      : [...currentDocument.processIds, processId];
+
+    updateDocument(currentDocument.id, { processIds: next }, "Updated linked processes");
+  };
+
+  const toggleClause = (clause: ISOClauseReference) => {
+    const exists = currentDocument.isoClauseReferences.some((item) => item.clauseNumber === clause.clauseNumber);
+    const next = exists
+      ? currentDocument.isoClauseReferences.filter((item) => item.clauseNumber !== clause.clauseNumber)
+      : [...currentDocument.isoClauseReferences, clause];
+
+    updateDocument(currentDocument.id, { isoClauseReferences: next }, "Updated satisfied requirement clauses");
   };
 
   const handleUploadAttachment = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,26 +188,30 @@ export default function DocumentDetail() {
         }}
       />
 
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 lg:px-6 py-6 space-y-6 max-w-[var(--wide-max-width)] mx-auto">
         <div className="flex items-center gap-3 flex-wrap">
           <StatusBadge status={currentDocument.status} />
           <div className={cn("flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm", typeConfig.color)}>
             <TypeIcon className="w-3.5 h-3.5" />
             <span className="font-medium">{typeConfig.label}</span>
           </div>
-          <span className="text-sm text-muted-foreground font-mono">Rev. {format(new Date(currentDocument.revisionDate), "dd/MM/yyyy")}</span>
+          <span className="text-sm text-muted-foreground font-mono">
+            Rev. {format(new Date(currentDocument.revisionDate), "dd/MM/yyyy")}
+          </span>
         </div>
 
         <Tabs defaultValue="detail" className="space-y-4">
-          <TabsList className="grid grid-cols-3 w-full">
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="detail">Detail</TabsTrigger>
             <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="related">Related forms/docs</TabsTrigger>
+            <TabsTrigger value="related">Related docs</TabsTrigger>
+            <TabsTrigger value="management">Management</TabsTrigger>
           </TabsList>
 
           <TabsContent value="detail" className="space-y-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <InlineField
-              label="Procedure Name"
+              label={currentDocument.type === "procedure" ? "Procedure Name" : "Document Name"}
               defaultValue={currentDocument.title}
               onSave={(value) => saveInlineField("title", value)}
             />
@@ -176,7 +222,7 @@ export default function DocumentDetail() {
               onSave={(value) => saveInlineField("purpose", value)}
             />
             <InlineField
-              label="Responsibilities"
+              label="Approvers / Responsibilities"
               defaultValue={currentDocument.responsibilities ?? ""}
               multiline
               onSave={(value) => saveInlineField("responsibilities", value)}
@@ -187,11 +233,55 @@ export default function DocumentDetail() {
               multiline
               onSave={(value) => saveInlineField("definitions", value)}
             />
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+            <section className="mobile-card space-y-3">
+              <h3 className="font-medium">Linked processes</h3>
+              <div className="space-y-2 max-h-56 overflow-y-auto border border-border rounded-lg p-3">
+                {activeProcesses.map((process) => (
+                  <label key={process.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
+                    <Checkbox
+                      checked={currentDocument.processIds.includes(process.id)}
+                      onCheckedChange={() => toggleProcess(process.id)}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{process.name}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{process.code}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </section>
+
+            <section className="mobile-card space-y-3">
+              <h3 className="font-medium">Requirement clauses this document satisfies</h3>
+              <div className="space-y-1 max-h-64 overflow-y-auto border border-border rounded-lg p-3">
+                {ISO_9001_CLAUSES.map((clause) => {
+                  const isSelected = currentDocument.isoClauseReferences.some((item) => item.clauseNumber === clause.clauseNumber);
+                  return (
+                    <label
+                      key={clause.clauseNumber}
+                      className={cn(
+                        "flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors",
+                        isSelected ? "bg-primary/10" : "hover:bg-muted/50",
+                      )}
+                    >
+                      <Checkbox checked={isSelected} onCheckedChange={() => toggleClause(clause)} className="mt-0.5" />
+                      <div className="flex-1 min-w-0 text-sm">
+                        <span className="font-mono font-medium text-primary">{clause.clauseNumber}</span> {clause.clauseTitle}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </section>
+            </div>
           </TabsContent>
 
           <TabsContent value="content" className="space-y-4">
             <InlineField
-              label="Procedure Content"
+              label="Document content"
               defaultValue={currentDocument.content ?? currentDocument.description ?? ""}
               multiline
               onSave={(value) => saveInlineField("content", value)}
@@ -223,9 +313,7 @@ export default function DocumentDetail() {
                           type="button"
                           variant="outline"
                           size="icon"
-                          onClick={() =>
-                            handleDownloadAttachment(attachment.name, attachment.mimeType, attachment.contentBase64)
-                          }
+                          onClick={() => handleDownloadAttachment(attachment.name, attachment.mimeType, attachment.contentBase64)}
                         >
                           <Download className="w-4 h-4" />
                         </Button>
@@ -253,43 +341,55 @@ export default function DocumentDetail() {
                 {linkedDocs.map((item) => (
                   <li key={item.id}>
                     <button
-                      className="w-full text-left border rounded-md px-3 py-2 hover:bg-muted"
+                      className="w-full text-left border rounded-md px-3 py-3 hover:bg-muted transition-colors"
                       onClick={() => navigate(`/documents/${item.id}`)}
                     >
-                      <p className="text-sm font-medium">{item.code} — {item.title}</p>
-                      <p className="text-xs text-muted-foreground">{item.type}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-medium">{item.code} — {item.title}</p>
+                        <StatusBadge status={item.status} />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Type: {item.type} • Revision {item.version} • Updated {format(new Date(item.updatedAt), "dd/MM/yyyy")}
+                      </p>
                     </button>
                   </li>
                 ))}
               </ul>
             )}
           </TabsContent>
-        </Tabs>
 
-        <section className="mobile-card space-y-3">
-          <h3 className="font-medium">Management actions</h3>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Select value={mergeTarget} onValueChange={setMergeTarget}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Merge this document into another procedure" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mergeCandidates.map((candidate) => (
-                    <SelectItem key={candidate.id} value={candidate.id}>
-                      {candidate.code} — {candidate.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button type="button" variant="outline" onClick={handleMerge}>
-                <Merge className="w-4 h-4 mr-2" />Merge
-              </Button>
-            </div>
-            <Button variant="outline" onClick={handleArchive}>Archive document</Button>
-            <Button variant="destructive" onClick={handleDelete}>Delete permanently</Button>
-          </div>
-        </section>
+          <TabsContent value="management" className="space-y-3">
+            <section className="mobile-card space-y-3">
+              <h3 className="font-medium">Management actions</h3>
+
+              {currentDocument.type === "procedure" && (
+                <div className="space-y-2">
+                  <Label>Merge this procedure into another one</Label>
+                  <div className="flex items-center gap-2">
+                    <Select value={mergeTarget} onValueChange={setMergeTarget}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select target procedure" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mergeCandidates.map((candidate) => (
+                          <SelectItem key={candidate.id} value={candidate.id}>
+                            {candidate.code} — {candidate.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" variant="outline" onClick={handleMerge}>
+                      <Merge className="w-4 h-4 mr-2" />Merge
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <Button variant="outline" onClick={handleArchive}>Archive document</Button>
+              <Button variant="destructive" onClick={handleDelete}>Delete permanently</Button>
+            </section>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
@@ -309,7 +409,7 @@ function InlineField({
   const [value, setValue] = useState(defaultValue);
 
   return (
-    <section className="mobile-card space-y-2">
+    <section className={cn("mobile-card space-y-2", !multiline && "max-w-[760px]")}>
       <Label>{label}</Label>
       {multiline ? (
         <Textarea value={value} onChange={(event) => setValue(event.target.value)} rows={4} />
