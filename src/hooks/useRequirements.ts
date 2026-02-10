@@ -11,15 +11,22 @@ import {
   getDuplicableRequirements,
   getUniqueRequirements,
 } from "@/data/iso9001-requirements";
-import { Process, ContextIssue, Action } from "@/types/management-system";
+import { Process, ContextIssue, Action, Document } from "@/types/management-system";
 
 interface UseRequirementsProps {
   processes: Process[];
   issues: ContextIssue[];
   actions: Action[];
+  documents: Document[];
 }
 
-export function useRequirements({ processes, issues, actions }: UseRequirementsProps) {
+export function useRequirements({ processes, issues, actions, documents }: UseRequirementsProps) {
+  const clauseMatches = useCallback((requirementClause: string, documentClause: string) => {
+    const r = requirementClause.trim();
+    const d = documentClause.trim();
+    return d === r || d.startsWith(`${r}.`) || r.startsWith(`${d}.`) || d.includes(r);
+  }, []);
+
   // All available requirements (preloaded)
   const allRequirements = useMemo(() => ISO9001_REQUIREMENTS, []);
 
@@ -100,8 +107,18 @@ export function useRequirements({ processes, issues, actions }: UseRequirementsP
   ): RequirementFulfillment => {
     const processIssues = issues.filter(i => i.processId === processId);
     const processActions = actions.filter(a => a.processId === processId);
+    const processDocuments = documents.filter(d => d.processIds.includes(processId) && d.status !== "archived");
 
     const inferredFrom: RequirementFulfillment["inferredFrom"] = [];
+
+
+    // Documented evidence can satisfy many clauses if references are present.
+    processDocuments.forEach((document) => {
+      const hasMatchingClause = document.isoClauseReferences.some((ref) => clauseMatches(requirement.clauseNumber, ref.clauseNumber));
+      if (hasMatchingClause) {
+        inferredFrom.push({ type: "document_linked", documentId: document.id });
+      }
+    });
 
     // Inference rules based on requirement clause
     switch (requirement.clauseNumber) {
@@ -117,8 +134,9 @@ export function useRequirements({ processes, issues, actions }: UseRequirementsP
       case "10.2": // Nonconformity and corrective action
       case "10.3": // Continual improvement
         // Satisfied if process has at least one action
-        if (processActions.length > 0) {
-          processActions.forEach(action => {
+        const evidencedActions = processActions.filter(action => action.status === "evaluated" || action.status === "completed_pending_evaluation");
+        if (evidencedActions.length > 0) {
+          evidencedActions.forEach(action => {
             inferredFrom.push({ type: "action_linked", actionId: action.id });
           });
         }
@@ -143,7 +161,7 @@ export function useRequirements({ processes, issues, actions }: UseRequirementsP
       state: inferredFrom.length > 0 ? "satisfied" : "not_yet_satisfied",
       inferredFrom,
     };
-  }, [issues, actions]);
+  }, [issues, actions, documents, clauseMatches]);
 
   // Get fulfillment status for all requirements in a process
   const getFulfillmentForProcess = useCallback((processId: string): Map<string, RequirementFulfillment> => {

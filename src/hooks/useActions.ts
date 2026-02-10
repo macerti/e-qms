@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { Action, ActionStatus, ActionOrigin, EfficiencyEvaluation, EfficiencyResult, ActionStatusChange } from "@/types/management-system";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
+import { createDemoActions } from "@/data/demo-seed";
+import { ContextIssue, Process } from "@/types/management-system";
 
 type CreateActionData = Omit<Action, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate" | "efficiencyEvaluation" | "completedDate" | "statusHistory"> & { 
   code?: string;
@@ -19,6 +21,26 @@ export function useActions() {
       setIsLoading(true);
       try {
         const remoteActions = await fetchRecords<Action>("actions");
+        if (remoteActions.length > 0) {
+          setActions(remoteActions);
+          setInitialized(true);
+          return;
+        }
+
+        const [processes, issues] = await Promise.all([
+          fetchRecords<Process>("processes"),
+          fetchRecords<ContextIssue>("issues"),
+        ]);
+        const seededActions = createDemoActions(processes, issues);
+        setActions(seededActions);
+        setInitialized(true);
+
+        await Promise.all(seededActions.map((action) => createRecord("actions", action)));
+      } catch (error) {
+        console.error("Failed to load actions:", error);
+        const seededActions = createDemoActions([], []);
+        setActions(seededActions);
+        setInitialized(true);
         setActions(remoteActions);
         setInitialized(true);
       } catch (error) {

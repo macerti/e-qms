@@ -17,12 +17,19 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     if (n.includes("operational process 01")) processIdByKeyword.set("op1", process.id);
     if (n.includes("operational process 02")) processIdByKeyword.set("op2", process.id);
     if (n.includes("purchasing")) processIdByKeyword.set("purchasing", process.id);
+    if (n.includes("it process")) processIdByKeyword.set("it", process.id);
+    if (n.includes("administration process")) processIdByKeyword.set("admin", process.id);
+    if (n.includes("sales process")) processIdByKeyword.set("sales", process.id);
   });
 
   const mapByCode = (code: string): string[] => {
     if (code.startsWith("MS-004")) return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
     if (code.startsWith("MS-012") || code.startsWith("MS-011")) return [processIdByKeyword.get("management")].filter(Boolean) as string[];
     if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
+    if (code.startsWith("MS-005") || code.startsWith("MS-008") || code.startsWith("MS-014")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("sales")].filter(Boolean) as string[];
+    if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
+    if (code.startsWith("MS-013")) return [processIdByKeyword.get("it"), processIdByKeyword.get("admin"), processIdByKeyword.get("op1"), processIdByKeyword.get("op2")].filter(Boolean) as string[];
+    if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001")) {
     if (code.startsWith("MS-005") || code.startsWith("MS-008") || code.startsWith("MS-014")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2")].filter(Boolean) as string[];
     if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
     if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001") || code.startsWith("MS-013")) {
@@ -49,6 +56,10 @@ export function useDocuments() {
         const remoteDocuments = await fetchRecords<Document>("documents");
         if (remoteDocuments.length === 0) {
           const seeded = createSeedDocuments();
+          const processes = await fetchRecords<Process>("processes");
+          const linkedSeed = attachDocumentsToProcesses(seeded, processes);
+          setDocuments(linkedSeed);
+          await Promise.all(linkedSeed.map((document) => createRecord("documents", document)));
           setDocuments(seeded);
           await Promise.all(seeded.map((document) => createRecord("documents", document)));
         } else {
@@ -59,6 +70,8 @@ export function useDocuments() {
         console.error("Failed to load documents:", error);
         // Fallback: still expose the ISO scaffold locally so the app is usable
         // even when the API is down or tenant records are not reachable.
+        const fallbackSeed = attachDocumentsToProcesses(createSeedDocuments(), []);
+        setDocuments(fallbackSeed);
         setDocuments(createSeedDocuments());
       } finally {
         setIsLoading(false);

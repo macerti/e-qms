@@ -119,6 +119,7 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     processes: processesHook.processes,
     issues: issuesHook.issues,
     actions: actionsHook.actions,
+    documents: documentsHook.documents,
   });
 
   const value: ManagementSystemContextType = {

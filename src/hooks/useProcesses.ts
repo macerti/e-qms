@@ -64,6 +64,7 @@ export function useProcesses() {
             inputs: p.inputs,
             outputs: p.outputs,
             activities: activitiesWithGovernance,
+            regulations: p.regulations,
             regulations: [],
             pilotName: p.pilotName,
             status: "active" as ProcessStatus,
@@ -90,6 +91,39 @@ export function useProcesses() {
         );
       } catch (error) {
         console.error("Failed to load processes:", error);
+
+        // Fallback demo seed when API is unavailable.
+        const now = new Date().toISOString();
+        const fallbackProcesses: Process[] = DEFAULT_PROCESSES.map((p) => {
+          const processId = crypto.randomUUID();
+          const activitiesWithGovernance = ensureGovernanceActivity(processId, p.activities);
+          return {
+            id: processId,
+            code: p.code,
+            name: p.name,
+            type: p.type,
+            purpose: p.purpose,
+            inputs: p.inputs,
+            outputs: p.outputs,
+            activities: activitiesWithGovernance,
+            regulations: p.regulations,
+            pilotName: p.pilotName,
+            status: "active" as ProcessStatus,
+            standard: "ISO_9001",
+            createdAt: now,
+            updatedAt: now,
+            version: 1,
+            revisionDate: now,
+            indicatorIds: [],
+            riskIds: [],
+            opportunityIds: [],
+            actionIds: [],
+            auditIds: [],
+            documentIds: [],
+          };
+        });
+        setProcesses(fallbackProcesses);
+        setInitialized(true);
       } finally {
         setIsLoading(false);
       }
