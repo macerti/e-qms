@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { 
   ContextIssue, 
   IssueType, 
@@ -8,6 +8,9 @@ import {
   RiskVersion,
   RiskTrigger 
 } from "@/types/management-system";
+import { createRecord, fetchRecords, updateRecord, deleteRecord as deleteDbRecord } from "@/lib/records";
+import { createDemoIssues } from "@/data/demo-seed";
+import { Process } from "@/types/management-system";
 
 type CreateIssueData = {
   code?: string;
@@ -30,6 +33,41 @@ export function getPriorityFromCriticity(criticity: number): RiskPriority {
 export function useContextIssues() {
   const [issues, setIssues] = useState<ContextIssue[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  // Load issues from the database once on mount.
+  useEffect(() => {
+    if (initialized) return;
+
+    const loadIssues = async () => {
+      setIsLoading(true);
+      try {
+        const remoteIssues = await fetchRecords<ContextIssue>("issues");
+        if (remoteIssues.length > 0) {
+          setIssues(remoteIssues);
+          setInitialized(true);
+          return;
+        }
+
+        const processes = await fetchRecords<Process>("processes");
+        const seededIssues = createDemoIssues(processes);
+        setIssues(seededIssues);
+        setInitialized(true);
+
+        await Promise.all(seededIssues.map((issue) => createRecord("issues", issue)));
+      } catch (error) {
+        console.error("Failed to load issues:", error);
+
+        const seededIssues = createDemoIssues([]);
+        setIssues(seededIssues);
+        setInitialized(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadIssues();
+  }, [initialized]);
 
   // Generate code with format RISK/YY/XXX or OPP/YY/XXX based on issue type
   const generateCode = useCallback((issueType: IssueType) => {
@@ -106,6 +144,9 @@ export function useContextIssues() {
     };
     
     setIssues((prev) => [...prev, newIssue]);
+    void createRecord("issues", newIssue).catch((error) => {
+      console.error("Failed to persist issue:", error);
+    });
     return newIssue;
   }, [generateCode]);
 
@@ -123,7 +164,11 @@ export function useContextIssues() {
           revisionDate: now,
           revisionNote: revisionNote || data.revisionNote,
         };
-        
+
+        void updateRecord("issues", id, updated).catch((error) => {
+          console.error("Failed to update issue:", error);
+        });
+
         return updated;
       })
     );
@@ -158,7 +203,7 @@ export function useContextIssues() {
         
         const now = new Date().toISOString();
         
-        return {
+        const updated = {
           ...issue,
           riskVersions: [...issue.riskVersions, newVersion],
           // Update description to latest
@@ -173,6 +218,12 @@ export function useContextIssues() {
           revisionDate: now,
           revisionNote: `Residual risk evaluation v${newVersionNumber}`,
         };
+
+        void updateRecord("issues", issueId, updated).catch((error) => {
+          console.error("Failed to update issue risk versions:", error);
+        });
+
+        return updated;
       })
     );
   }, []);
@@ -192,6 +243,9 @@ export function useContextIssues() {
 
   const deleteIssue = useCallback((id: string) => {
     setIssues((prev) => prev.filter((issue) => issue.id !== id));
+    void deleteDbRecord("issues", id).catch((error) => {
+      console.error("Failed to delete issue:", error);
+    });
   }, []);
 
   const getIssuesByProcess = useCallback((processId: string) => {

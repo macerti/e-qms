@@ -42,10 +42,19 @@ const modules = [
     isActive: true,
     accentColor: "bg-action",
   },
+  {
+    id: "documents",
+    title: "Documents",
+    description: "Prefilled QMS procedure hierarchy with forms and records.",
+    icon: FolderKanban,
+    path: "/documents",
+    isActive: true,
+    accentColor: "bg-primary",
+  },
 ];
 
 export default function Dashboard() {
-  const { processes, issues, actions, getOverdueActions, allRequirements } = useManagementSystem();
+  const { processes, issues, actions, documents, getOverdueActions, allRequirements } = useManagementSystem();
 
   const overdueActions = getOverdueActions();
 
@@ -101,7 +110,7 @@ export default function Dashboard() {
         {/* Modules Grid */}
         <section>
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-            Modules
+            Modules (Demo dataset loaded)
           </h2>
           <AdaptiveGrid cols="1-2" gap="md">
             {modules.map((module) => (
@@ -117,6 +126,7 @@ export default function Dashboard() {
                   module.id === "processes" ? processes.length :
                   module.id === "issues" ? issues.length :
                   module.id === "actions" ? actions.length :
+                  module.id === "documents" ? documents.length :
                   undefined
                 }
               />
