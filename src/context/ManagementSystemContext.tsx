@@ -58,6 +58,10 @@ interface ManagementSystemContextType {
   createDocument: ReturnType<typeof useDocuments>["createDocument"];
   updateDocument: ReturnType<typeof useDocuments>["updateDocument"];
   archiveDocument: ReturnType<typeof useDocuments>["archiveDocument"];
+  deleteDocument: ReturnType<typeof useDocuments>["deleteDocument"];
+  mergeDocuments: ReturnType<typeof useDocuments>["mergeDocuments"];
+  uploadDocumentAttachment: ReturnType<typeof useDocuments>["uploadDocumentAttachment"];
+  removeDocumentAttachment: ReturnType<typeof useDocuments>["removeDocumentAttachment"];
   getDocumentById: ReturnType<typeof useDocuments>["getDocumentById"];
   getDocumentsByProcess: ReturnType<typeof useDocuments>["getDocumentsByProcess"];
   getActiveDocuments: ReturnType<typeof useDocuments>["getActiveDocuments"];
@@ -165,6 +169,10 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
     createDocument: documentsHook.createDocument,
     updateDocument: documentsHook.updateDocument,
     archiveDocument: documentsHook.archiveDocument,
+    deleteDocument: documentsHook.deleteDocument,
+    mergeDocuments: documentsHook.mergeDocuments,
+    uploadDocumentAttachment: documentsHook.uploadDocumentAttachment,
+    removeDocumentAttachment: documentsHook.removeDocumentAttachment,
     getDocumentById: documentsHook.getDocumentById,
     getDocumentsByProcess: documentsHook.getDocumentsByProcess,
     getActiveDocuments: documentsHook.getActiveDocuments,
