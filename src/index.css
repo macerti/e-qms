@@ -116,8 +116,8 @@
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     
     /* Adaptive layout */
-    --content-max-width: 960px;
-    --wide-max-width: 1200px;
+    --content-max-width: 1520px;
+    --wide-max-width: 1680px;
     --sidebar-width: 256px;
   }
 
@@ -177,15 +177,8 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "ss01", "ss02", "cv01";
-    /* Mobile: bottom nav padding. Desktop: no bottom padding (handled by lg:pb-0) */
-    padding-bottom: calc(var(--nav-height) + var(--safe-area-bottom));
-  }
-  
-  /* Remove body padding on desktop - nav is on side */
-  @media (min-width: 1024px) {
-    body {
-      padding-bottom: 0;
-    }
+    /* Content spacing for mobile nav is handled by .pb-safe on the app layout. */
+    padding-bottom: 0;
   }
 
   /* Typography hierarchy */

@@ -71,7 +71,7 @@
      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-2">
        {/* Search */}
        {onSearchChange && (
-         <div className="relative flex-1 min-w-[200px] max-w-[300px]">
+         <div className="relative w-full lg:w-[320px] xl:w-[380px] shrink-0">
            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
            <Input
              placeholder={searchPlaceholder}
@@ -98,7 +98,7 @@
              value={values[filter.id] || filter.defaultValue || "all"}
              onValueChange={(value) => onFilterChange(filter.id, value)}
            >
-             <SelectTrigger className="h-9 min-w-[140px] text-sm bg-card">
+             <SelectTrigger className="h-9 w-[160px] text-sm bg-card">
                <span className="text-muted-foreground mr-1">{filter.label}:</span>
                <SelectValue />
              </SelectTrigger>

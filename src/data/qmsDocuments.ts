@@ -24,7 +24,7 @@ const rows: SeedRow[] = [
   { section: "3", code: "MS-002-02", title: "Document Change/Revision Log", type: "record", clause: "7.5", purpose: "Tracks revisions, authors, justification, review dates." },
   { section: "4", code: "MS-003", title: "Context & Interested Parties Procedure", type: "procedure", clause: "4.1-4.2", purpose: "How organizational context and relevant issues are monitored." },
   { section: "4", code: "MS-003-01", title: "Interested Parties & Needs Register", type: "record", clause: "4.2", purpose: "Stakeholder list and relevant requirements." },
-  { section: "4", code: "MS-003-02", title: "Risk & Opportunity Management Procedure", type: "procedure", clause: "6.1", purpose: "Identification, evaluation and documented responses to risks & opportunities." },
+  { section: "4", code: "MS-003-02", title: "Risk & Opportunity Assessment Form", type: "form", clause: "6.1", purpose: "Template to identify, evaluate and plan responses to risks & opportunities." },
   { section: "4", code: "MS-003-03", title: "Risk & Opportunity Log", type: "record", clause: "6.1", purpose: "Documented risk treatment and review outcomes." },
   { section: "5", code: "MS-004", title: "HR, Competence, Awareness & Training Procedure", type: "procedure", clause: "7.1-7.3", purpose: "How personnel needs, job profiles, recruitment, onboarding, training, awareness and competence are managed." },
   { section: "5", code: "MS-004-01", title: "Job Description & Competence Profile", type: "record", clause: "7.1-7.2", purpose: "Role requirements linked to QMS impact." },

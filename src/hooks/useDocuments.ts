@@ -22,23 +22,73 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     if (n.includes("sales process")) processIdByKeyword.set("sales", process.id);
   });
 
+  const allKnownProcesses = Array.from(processIdByKeyword.values());
+
   const mapByCode = (code: string): string[] => {
-    if (code.startsWith("MS-004")) return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
-    if (code.startsWith("MS-012") || code.startsWith("MS-011")) return [processIdByKeyword.get("management")].filter(Boolean) as string[];
-    if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
-    if (code.startsWith("MS-005") || code.startsWith("MS-008") || code.startsWith("MS-014")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("sales")].filter(Boolean) as string[];
-    if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
-    if (code.startsWith("MS-013")) return [processIdByKeyword.get("it"), processIdByKeyword.get("admin"), processIdByKeyword.get("op1"), processIdByKeyword.get("op2")].filter(Boolean) as string[];
-    if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001")) {
-    if (code.startsWith("MS-005") || code.startsWith("MS-008") || code.startsWith("MS-014")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2")].filter(Boolean) as string[];
-    if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
-    if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001") || code.startsWith("MS-013")) {
-      return Array.from(processIdByKeyword.values());
+    // System-wide governance and documented information
+    if (code.startsWith("MS-001") || code.startsWith("MS-002") || code.startsWith("MS-003")) {
+      return allKnownProcesses;
     }
+
+    // Leadership & management review
+    if (code.startsWith("MS-012") || code.startsWith("MS-011")) {
+      return [processIdByKeyword.get("management")].filter(Boolean) as string[];
+    }
+
+    // HR / competence
+    if (code.startsWith("MS-004")) {
+      return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
+    }
+
+    // Infrastructure / IT / admin support
+    if (code.startsWith("MS-013")) {
+      return [
+        processIdByKeyword.get("it"),
+        processIdByKeyword.get("admin"),
+        processIdByKeyword.get("op1"),
+        processIdByKeyword.get("op2"),
+      ].filter(Boolean) as string[];
+    }
+
+    // Operations and customer-delivery flow
+    if (code.startsWith("MS-005") || code.startsWith("MS-006") || code.startsWith("MS-008") || code.startsWith("MS-014")) {
+      return [
+        processIdByKeyword.get("op1"),
+        processIdByKeyword.get("op2"),
+        processIdByKeyword.get("sales"),
+      ].filter(Boolean) as string[];
+    }
+
+    // Supplier selection and purchasing controls (explicitly prioritized)
+    if (code.startsWith("MS-007")) {
+      return [
+        processIdByKeyword.get("purchasing"),
+        processIdByKeyword.get("op1"),
+        processIdByKeyword.get("op2"),
+      ].filter(Boolean) as string[];
+    }
+
+    // Quality assurance, audit, corrective action and continual improvement
+    if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) {
+      return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
+    }
+
     return [];
   };
 
   return seedDocuments.map((document) => ({ ...document, processIds: mapByCode(document.code) }));
+}
+
+
+function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
+  const linkedFromCode = attachDocumentsToProcesses(documents, processes);
+  return linkedFromCode.map((document, index) => {
+    const current = documents[index];
+    if ((current.processIds?.length ?? 0) > 0) {
+      return current;
+    }
+    return { ...current, processIds: document.processIds };
+  });
 }
 
 
@@ -60,10 +110,17 @@ export function useDocuments() {
           const linkedSeed = attachDocumentsToProcesses(seeded, processes);
           setDocuments(linkedSeed);
           await Promise.all(linkedSeed.map((document) => createRecord("documents", document)));
-          setDocuments(seeded);
-          await Promise.all(seeded.map((document) => createRecord("documents", document)));
         } else {
-          setDocuments(remoteDocuments);
+          const processes = await fetchRecords<Process>("processes");
+          const backfilled = backfillMissingProcessLinks(remoteDocuments, processes);
+          setDocuments(backfilled);
+
+          // Persist inferred links for documents that were previously unlinked.
+          await Promise.all(
+            backfilled
+              .filter((document, index) => (remoteDocuments[index].processIds?.length ?? 0) === 0 && document.processIds.length > 0)
+              .map((document) => updateRecord("documents", document.id, document)),
+          );
         }
         setInitialized(true);
       } catch (error) {
@@ -72,7 +129,6 @@ export function useDocuments() {
         // even when the API is down or tenant records are not reachable.
         const fallbackSeed = attachDocumentsToProcesses(createSeedDocuments(), []);
         setDocuments(fallbackSeed);
-        setDocuments(createSeedDocuments());
       } finally {
         setIsLoading(false);
       }
