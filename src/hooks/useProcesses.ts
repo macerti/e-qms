@@ -65,6 +65,7 @@ export function useProcesses() {
             outputs: p.outputs,
             activities: activitiesWithGovernance,
             regulations: p.regulations,
+            regulations: [],
             pilotName: p.pilotName,
             status: "active" as ProcessStatus,
             standard: "ISO_9001",

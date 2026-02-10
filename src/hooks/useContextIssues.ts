@@ -61,6 +61,10 @@ export function useContextIssues() {
         const seededIssues = createDemoIssues([]);
         setIssues(seededIssues);
         setInitialized(true);
+        setIssues(remoteIssues);
+        setInitialized(true);
+      } catch (error) {
+        console.error("Failed to load issues:", error);
       } finally {
         setIsLoading(false);
       }

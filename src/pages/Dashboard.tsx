@@ -2,7 +2,8 @@ import {
   Workflow, 
   AlertTriangle, 
   CheckSquare, 
-  FileText
+  FileText,
+  FolderKanban
 } from "lucide-react";
 import { ComplianceCard } from "@/components/dashboard/ComplianceCard";
 import { ProcessHealthCard } from "@/components/dashboard/ProcessHealthCard";
@@ -55,6 +56,7 @@ const modules = [
 
 export default function Dashboard() {
   const { processes, issues, actions, documents, getOverdueActions, allRequirements, getRequirementsOverview } = useManagementSystem();
+  const { processes, issues, actions, documents, getOverdueActions, allRequirements } = useManagementSystem();
 
   const overdueActions = getOverdueActions();
 

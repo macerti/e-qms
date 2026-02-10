@@ -50,6 +50,11 @@ export const DEFAULT_PROCESSES: DefaultProcessData[] = [
       { id: crypto.randomUUID(), name: "Onboarding and induction", description: "Integrate new staff and QMS awareness", sequence: 3, allocatedRequirementIds: req("req-7.3") },
       { id: crypto.randomUUID(), name: "Training management", description: "Plan and execute annual training", sequence: 4, allocatedRequirementIds: req("req-7.2") },
       { id: crypto.randomUUID(), name: "Competence evaluation", description: "Evaluate effectiveness and close gaps", sequence: 5, allocatedRequirementIds: req("req-9.1.1") },
+      { id: crypto.randomUUID(), name: "Workforce planning", description: "Determine roles and competency demand", sequence: 1 },
+      { id: crypto.randomUUID(), name: "Recruitment and selection", description: "Run sourcing, interviews and selection", sequence: 2 },
+      { id: crypto.randomUUID(), name: "Onboarding and induction", description: "Integrate new staff and QMS awareness", sequence: 3 },
+      { id: crypto.randomUUID(), name: "Training management", description: "Plan and execute annual training", sequence: 4 },
+      { id: crypto.randomUUID(), name: "Competence evaluation", description: "Evaluate effectiveness and close gaps", sequence: 5 },
     ],
     regulations: [
       dzReg("Law 90-11", "Algerian Labor Relations Law", "Employment contracts, duties and employee rights integrated into HR workflow."),
@@ -70,6 +75,15 @@ export const DEFAULT_PROCESSES: DefaultProcessData[] = [
       { id: crypto.randomUUID(), name: "Set quality objectives", description: "Publish measurable and monitored objectives", sequence: 2, allocatedRequirementIds: req("req-6.2", "req-5.2") },
       { id: crypto.randomUUID(), name: "Conduct management review", description: "Review KPI trends, risks and audit results", sequence: 3, allocatedRequirementIds: req("req-9.3") },
       { id: crypto.randomUUID(), name: "Approve action plans", description: "Approve CAPA and improvement initiatives", sequence: 4, allocatedRequirementIds: req("req-10.2", "req-10.3") },
+      { id: crypto.randomUUID(), name: "Communicate leadership decisions", description: "Cascade decisions to pilots and teams", sequence: 5 },
+    ],
+    regulations: [
+      dzReg("Law 04-08", "Commercial register and governance obligations", "Governance and accountability duties are integrated into leadership review."),
+    ],
+      { id: crypto.randomUUID(), name: "Define strategic orientation", description: "Set yearly direction and priorities", sequence: 1 },
+      { id: crypto.randomUUID(), name: "Set quality objectives", description: "Publish measurable and monitored objectives", sequence: 2 },
+      { id: crypto.randomUUID(), name: "Conduct management review", description: "Review KPI trends, risks and audit results", sequence: 3 },
+      { id: crypto.randomUUID(), name: "Approve action plans", description: "Approve CAPA and improvement initiatives", sequence: 4 },
       { id: crypto.randomUUID(), name: "Communicate leadership decisions", description: "Cascade decisions to pilots and teams", sequence: 5 },
     ],
     regulations: [
@@ -118,6 +132,39 @@ export const DEFAULT_PROCESSES: DefaultProcessData[] = [
     pilotName: "Operations Lead 01",
   },
   {
+    activities: [
+      { id: crypto.randomUUID(), name: "Plan internal audits", description: "Build and maintain annual audit program", sequence: 1 },
+      { id: crypto.randomUUID(), name: "Run conformity checks", description: "Verify controls against QMS requirements", sequence: 2 },
+      { id: crypto.randomUUID(), name: "Manage nonconformities", description: "Register, investigate and classify NCs", sequence: 3 },
+      { id: crypto.randomUUID(), name: "Supervise corrective actions", description: "Track action plans and due dates", sequence: 4 },
+      { id: crypto.randomUUID(), name: "Evaluate effectiveness", description: "Assess residual risk and close actions", sequence: 5 },
+    ],
+    regulations: [
+      dzReg("Law 09-03", "Consumer protection and fraud control", "Customer complaint handling and product/service conformity checks included."),
+    ],
+    pilotName: "Quality Manager",
+  },
+  {
+    code: "PRO-004",
+    name: "Operational Process 01",
+    type: "operational",
+    purpose:
+      "Deliver core service/product flow from order intake to execution while meeting specification, time and quality commitments.",
+    inputs: ["Customer orders", "Technical specifications", "Approved resources", "Work instructions"],
+    outputs: ["Delivered service/product", "Production records", "Release decision", "Delivery traceability"],
+    activities: [
+      { id: crypto.randomUUID(), name: "Order review", description: "Validate requirement feasibility", sequence: 1 },
+      { id: crypto.randomUUID(), name: "Operational planning", description: "Prepare resources and timeline", sequence: 2 },
+      { id: crypto.randomUUID(), name: "Execution", description: "Perform production/service realization", sequence: 3 },
+      { id: crypto.randomUUID(), name: "In-process control", description: "Perform checkpoints and rework decisions", sequence: 4 },
+      { id: crypto.randomUUID(), name: "Final release", description: "Verify final conformity before delivery", sequence: 5 },
+    ],
+    regulations: [
+      dzReg("Law 03-10", "Environmental protection law", "Operational waste and environmental impacts are controlled and logged."),
+    ],
+    pilotName: "Operations Lead 01",
+  },
+  {
     code: "PRO-005",
     name: "Operational Process 02",
     type: "operational",
@@ -130,6 +177,10 @@ export const DEFAULT_PROCESSES: DefaultProcessData[] = [
       { id: crypto.randomUUID(), name: "Execute intervention", description: "Perform field operation", sequence: 2, allocatedRequirementIds: req("req-8.5.1", "req-8.5.2") },
       { id: crypto.randomUUID(), name: "Safety verification", description: "Check HSE controls and incidents", sequence: 3, allocatedRequirementIds: req("req-7.1.4") },
       { id: crypto.randomUUID(), name: "Customer validation", description: "Capture acceptance and remarks", sequence: 4, allocatedRequirementIds: req("req-9.1.2") },
+      { id: crypto.randomUUID(), name: "Prepare intervention", description: "Plan resources and logistics", sequence: 1 },
+      { id: crypto.randomUUID(), name: "Execute intervention", description: "Perform field operation", sequence: 2 },
+      { id: crypto.randomUUID(), name: "Safety verification", description: "Check HSE controls and incidents", sequence: 3 },
+      { id: crypto.randomUUID(), name: "Customer validation", description: "Capture acceptance and remarks", sequence: 4 },
       { id: crypto.randomUUID(), name: "Close operation", description: "Archive records and feedback", sequence: 5 },
     ],
     regulations: [
@@ -217,5 +268,27 @@ export const DEFAULT_PROCESSES: DefaultProcessData[] = [
       dzReg("Law 04-02", "Commercial practices law", "Sales commitments and customer communications are documented and controlled."),
     ],
     pilotName: "Sales Manager",
+    ],
+    pilotName: "Operations Lead 02",
+  },
+  {
+    code: "PRO-006",
+    name: "Purchasing Process",
+    type: "support",
+    purpose:
+      "Select and monitor suppliers, purchase compliant inputs, and ensure external providers meet contractual and quality requirements.",
+    inputs: ["Purchase requests", "Technical specifications", "Approved supplier list", "Budget and lead-time constraints"],
+    outputs: ["Purchase orders", "Supplier evaluations", "Incoming inspection records", "Updated approved supplier list"],
+    activities: [
+      { id: crypto.randomUUID(), name: "Define purchase requirements", description: "Specify technical and quality criteria", sequence: 1 },
+      { id: crypto.randomUUID(), name: "Evaluate suppliers", description: "Select suppliers based on risk and performance", sequence: 2 },
+      { id: crypto.randomUUID(), name: "Issue and monitor orders", description: "Track delivery and conformity commitments", sequence: 3 },
+      { id: crypto.randomUUID(), name: "Incoming verification", description: "Inspect incoming products/services", sequence: 4 },
+      { id: crypto.randomUUID(), name: "Supplier review", description: "Review supplier score and improvement plan", sequence: 5 },
+    ],
+    regulations: [
+      dzReg("Law 04-02", "Commercial practices law", "Supplier selection and contracting respect fair commercial practices and documentation."),
+    ],
+    pilotName: "Procurement Manager",
   },
 ];

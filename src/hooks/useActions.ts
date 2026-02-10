@@ -41,6 +41,10 @@ export function useActions() {
         const seededActions = createDemoActions([], []);
         setActions(seededActions);
         setInitialized(true);
+        setActions(remoteActions);
+        setInitialized(true);
+      } catch (error) {
+        console.error("Failed to load actions:", error);
       } finally {
         setIsLoading(false);
       }

@@ -30,6 +30,9 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
     if (code.startsWith("MS-013")) return [processIdByKeyword.get("it"), processIdByKeyword.get("admin"), processIdByKeyword.get("op1"), processIdByKeyword.get("op2")].filter(Boolean) as string[];
     if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001")) {
+    if (code.startsWith("MS-005") || code.startsWith("MS-008") || code.startsWith("MS-014")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2")].filter(Boolean) as string[];
+    if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
+    if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001") || code.startsWith("MS-013")) {
       return Array.from(processIdByKeyword.values());
     }
     return [];
@@ -57,6 +60,8 @@ export function useDocuments() {
           const linkedSeed = attachDocumentsToProcesses(seeded, processes);
           setDocuments(linkedSeed);
           await Promise.all(linkedSeed.map((document) => createRecord("documents", document)));
+          setDocuments(seeded);
+          await Promise.all(seeded.map((document) => createRecord("documents", document)));
         } else {
           setDocuments(remoteDocuments);
         }
@@ -67,6 +72,7 @@ export function useDocuments() {
         // even when the API is down or tenant records are not reachable.
         const fallbackSeed = attachDocumentsToProcesses(createSeedDocuments(), []);
         setDocuments(fallbackSeed);
+        setDocuments(createSeedDocuments());
       } finally {
         setIsLoading(false);
       }
