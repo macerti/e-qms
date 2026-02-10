@@ -228,6 +228,7 @@ export default function DocumentForm() {
 
         <div className="form-field">
           <Label>Applicable Processes</Label>
+          <p className="text-xs text-muted-foreground">Linking a document to a process enables compliance evidence for that process requirements.</p>
           {activeProcesses.length === 0 ? (
             <p className="text-sm text-muted-foreground italic py-2">No processes defined yet.</p>
           ) : (

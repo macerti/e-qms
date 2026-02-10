@@ -101,7 +101,7 @@ export default function DocumentList() {
             onAction={() => navigate("/documents/new")}
           />
         ) : (
-          <AdaptiveGrid cols="1-2" gap="md">
+          <AdaptiveGrid cols="1-2-3" gap="md">
             {procedures.map((document) => {
               const linkedForms = getProcedureChildren(document.id).slice(0, 4);
               const linkedCount = getProcedureChildren(document.id).length;

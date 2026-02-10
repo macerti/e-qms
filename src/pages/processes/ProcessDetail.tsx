@@ -216,101 +216,80 @@ export default function ProcessDetail() {
           </ProcessTabContent>
         </ProcessTabs>
 
-        {/* Linked Items */}
-        <section className="mt-6">
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+        {/* Linked Items + Quick Actions */}
+        <section className="mt-6 space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider px-1">
             Linked Items
           </h3>
-          <div className="grid grid-cols-2 gap-3">
-            <LinkedItemCard
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            <LinkedItemActionCard
               icon={AlertTriangle}
               label="Risks"
               count={risks.length}
               color="text-risk"
-              onClick={() => navigate(`/issues?process=${process.id}&type=risk`)}
+              onView={() => navigate(`/issues?process=${process.id}&type=risk`)}
+              onCreate={() => navigate(`/issues/new?process=${process.id}&quadrant=threat&type=risk`)}
             />
-            <LinkedItemCard
+            <LinkedItemActionCard
               icon={AlertTriangle}
               label="Opportunities"
               count={opportunities.length}
               color="text-opportunity"
-              onClick={() => navigate(`/issues?process=${process.id}&type=opportunity`)}
+              onView={() => navigate(`/issues?process=${process.id}&type=opportunity`)}
+              onCreate={() => navigate(`/issues/new?process=${process.id}&quadrant=opportunity&type=opportunity`)}
             />
-            <LinkedItemCard
+            <LinkedItemActionCard
               icon={CheckSquare}
               label="Actions"
               count={actions.length}
               color="text-action"
-              onClick={() => navigate(`/actions?process=${process.id}`)}
+              onView={() => navigate(`/actions?process=${process.id}`)}
+              onCreate={() => navigate(`/actions/new?process=${process.id}`)}
             />
-            <LinkedItemCard
+            <LinkedItemActionCard
               icon={FileText}
               label="Documents"
               count={documents.length}
               color="text-blue-600"
-              onClick={() => navigate(`/documents`)}
+              onView={() => navigate(`/documents?process=${process.id}`)}
+              onCreate={() => navigate(`/documents/new?process=${process.id}`)}
             />
           </div>
-        </section>
-
-        {/* Quick Actions */}
-        <section className="mt-6 space-y-2">
-          <Button 
-            variant="outline" 
-            className="w-full justify-start"
-            onClick={() => navigate(`/issues/new?process=${process.id}`)}
-          >
-            <AlertTriangle className="w-4 h-4 mr-2" />
-            Add Risk or Opportunity
-          </Button>
-          <Button 
-            variant="outline" 
-            className="w-full justify-start"
-            onClick={() => navigate(`/actions/new?process=${process.id}`)}
-          >
-            <CheckSquare className="w-4 h-4 mr-2" />
-            Create Action
-          </Button>
-          <Button 
-            variant="outline" 
-            className="w-full justify-start"
-            onClick={() => navigate(`/documents/new`)}
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            Create Document
-          </Button>
         </section>
       </div>
     </div>
   );
 }
 
-interface LinkedItemCardProps {
+interface LinkedItemActionCardProps {
   icon: React.ElementType;
   label: string;
   count: number;
   color: string;
-  onClick?: () => void;
-  disabled?: boolean;
+  onView: () => void;
+  onCreate: () => void;
 }
 
-function LinkedItemCard({ icon: Icon, label, count, color, onClick, disabled }: LinkedItemCardProps) {
+function LinkedItemActionCard({ icon: Icon, label, count, color, onView, onCreate }: LinkedItemActionCardProps) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`
-        mobile-card text-left
-        ${disabled ? "opacity-50 cursor-not-allowed" : ""}
-      `}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Icon className={`w-4 h-4 ${color}`} />
-          <span className="text-sm">{label}</span>
+    <div className="mobile-card space-y-3">
+      <button onClick={onView} className="w-full text-left">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon className={`w-4 h-4 ${color}`} />
+            <span className="text-sm font-medium">{label}</span>
+          </div>
+          <span className="font-mono text-lg font-bold">{count}</span>
         </div>
-        <span className="font-mono text-lg font-bold">{count}</span>
-      </div>
-    </button>
+      </button>
+      <Button
+        type="button"
+        variant="secondary"
+        className="w-full bg-accent/15 hover:bg-accent/25 text-foreground"
+        onClick={onCreate}
+      >
+        Add {label.slice(0, -1)}
+      </Button>
+    </div>
   );
 }
