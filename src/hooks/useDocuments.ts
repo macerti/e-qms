@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Document, DocumentAttachment } from "@/types/management-system";
+import { Document, DocumentAttachment, Process } from "@/types/management-system";
 import { createRecord, deleteRecord, fetchRecords, updateRecord } from "@/lib/records";
 import { createSeedDocuments } from "@/data/qmsDocuments";
 
