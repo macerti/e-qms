@@ -2,9 +2,10 @@ import { useState, useCallback, useEffect } from "react";
 import { Process, ProcessStatus, ProcessActivity } from "@/types/management-system";
 import { DEFAULT_PROCESSES, createGovernanceActivity } from "@/data/default-processes";
 import { GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/types/requirements";
+import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
 
 // Local state management for processes
-// In production, this would connect to Lovable Cloud / Supabase
+// In production, this would connect to a backend data store.
 
 type CreateProcessData = Omit<Process, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate" | "indicatorIds" | "riskIds" | "opportunityIds" | "actionIds" | "auditIds" | "activities" | "regulations" | "documentIds"> & { 
   code?: string;
@@ -33,44 +34,69 @@ export function useProcesses() {
   const [isLoading, setIsLoading] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  // Initialize with default processes on first load
+  // Initialize from the database on first load.
   useEffect(() => {
-    if (!initialized && processes.length === 0) {
-      const now = new Date().toISOString();
-      const defaultProcesses: Process[] = DEFAULT_PROCESSES.map((p) => {
-        const processId = crypto.randomUUID();
-        // Ensure governance activity exists
-        const activitiesWithGovernance = ensureGovernanceActivity(processId, p.activities);
-        
-        return {
-          id: processId,
-          code: p.code,
-          name: p.name,
-          type: p.type,
-          purpose: p.purpose,
-          inputs: p.inputs,
-          outputs: p.outputs,
-          activities: activitiesWithGovernance,
-          regulations: [],
-          pilotName: p.pilotName,
-          status: "active" as ProcessStatus,
-          standard: "ISO_9001",
-          createdAt: now,
-          updatedAt: now,
-          version: 1,
-          revisionDate: now,
-          indicatorIds: [],
-          riskIds: [],
-          opportunityIds: [],
-          actionIds: [],
-          auditIds: [],
-          documentIds: [],
-        };
-      });
-      setProcesses(defaultProcesses);
-      setInitialized(true);
-    }
-  }, [initialized, processes.length]);
+    if (initialized) return;
+
+    const loadProcesses = async () => {
+      setIsLoading(true);
+      try {
+        const remoteProcesses = await fetchRecords<Process>("processes");
+
+        if (remoteProcesses.length > 0) {
+          setProcesses(remoteProcesses);
+          setInitialized(true);
+          return;
+        }
+
+        // If the database is empty, seed it with the default processes.
+        const now = new Date().toISOString();
+        const defaultProcesses: Process[] = DEFAULT_PROCESSES.map((p) => {
+          const processId = crypto.randomUUID();
+          const activitiesWithGovernance = ensureGovernanceActivity(processId, p.activities);
+
+          return {
+            id: processId,
+            code: p.code,
+            name: p.name,
+            type: p.type,
+            purpose: p.purpose,
+            inputs: p.inputs,
+            outputs: p.outputs,
+            activities: activitiesWithGovernance,
+            regulations: [],
+            pilotName: p.pilotName,
+            status: "active" as ProcessStatus,
+            standard: "ISO_9001",
+            createdAt: now,
+            updatedAt: now,
+            version: 1,
+            revisionDate: now,
+            indicatorIds: [],
+            riskIds: [],
+            opportunityIds: [],
+            actionIds: [],
+            auditIds: [],
+            documentIds: [],
+          };
+        });
+
+        setProcesses(defaultProcesses);
+        setInitialized(true);
+
+        // Persist seed data in the background.
+        await Promise.all(
+          defaultProcesses.map((process) => createRecord("processes", process)),
+        );
+      } catch (error) {
+        console.error("Failed to load processes:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadProcesses();
+  }, [initialized]);
 
   const generateCode = useCallback(() => {
     const count = processes.length + 1;
@@ -103,6 +129,10 @@ export function useProcesses() {
       ...data,
     };
     setProcesses((prev) => [...prev, newProcess]);
+    // Persist asynchronously so the UI remains responsive.
+    void createRecord("processes", newProcess).catch((error) => {
+      console.error("Failed to persist process:", error);
+    });
     return newProcess;
   }, [generateCode]);
 
@@ -111,26 +141,25 @@ export function useProcesses() {
     setProcesses((prev) =>
       prev.map((p) => {
         if (p.id !== id) return p;
-        
-        // If activities are being updated, ensure governance activity is preserved
+
+        // If activities are being updated, ensure governance activity is preserved.
         let updatedActivities = data.activities;
         if (updatedActivities) {
           updatedActivities = ensureGovernanceActivity(p.id, updatedActivities);
         }
-        
-        // Build revision history entry
+
+        // Build revision history entry for traceability.
         const newRevisionEntry = {
           id: crypto.randomUUID(),
           version: p.version + 1,
           date: now,
           note: revisionNote || data.revisionNote || "Updated",
         };
-        
-        // Append to existing history
+
         const existingHistory = p.revisionHistory || [];
         const updatedHistory = [...existingHistory, newRevisionEntry];
-        
-        return {
+
+        const updatedProcess = {
           ...p,
           ...data,
           ...(updatedActivities && { activities: updatedActivities }),
@@ -140,7 +169,14 @@ export function useProcesses() {
           revisionNote: revisionNote || data.revisionNote,
           revisionHistory: updatedHistory,
         };
-      })
+
+        // Persist asynchronously after state update.
+        void updateRecord("processes", id, updatedProcess).catch((error) => {
+          console.error("Failed to update process:", error);
+        });
+
+        return updatedProcess;
+      }),
     );
   }, []);
 

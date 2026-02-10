@@ -1,10 +1,13 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ManagementSystemProvider } from "@/context/ManagementSystemContext";
+import { TenantProvider } from "@/context/TenantContext";
 import { AppLayout } from "@/components/layout/AppLayout";
+import Settings from "./pages/Settings";
+import ActivityLog from "./pages/ActivityLog";
+import Help from "./pages/Help";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -21,10 +24,8 @@ import DocumentForm from "./pages/documents/DocumentForm";
 import DocumentDetail from "./pages/documents/DocumentDetail";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
-
 const App = () => (
-  <QueryClientProvider client={queryClient}>
+  <TenantProvider>
     <ManagementSystemProvider>
       <TooltipProvider>
         <Toaster />
@@ -55,6 +56,11 @@ const App = () => (
               <Route path="/documents/new" element={<DocumentForm />} />
               <Route path="/documents/:id" element={<DocumentDetail />} />
               <Route path="/documents/:id/edit" element={<DocumentForm />} />
+
+              {/* Settings */}
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/activity-log" element={<ActivityLog />} />
+              <Route path="/help" element={<Help />} />
             </Route>
             
             {/* 404 */}
@@ -63,7 +69,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </ManagementSystemProvider>
-  </QueryClientProvider>
+  </TenantProvider>
 );
 
 export default App;

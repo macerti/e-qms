@@ -51,6 +51,17 @@ export interface ISOClauseReference {
   clauseTitle: string; // e.g., "Documented Information - General"
 }
 
+// Binary attachments are stored in-base64 for now; later they can move to object storage.
+
+export interface DocumentAttachment {
+  id: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  uploadedAt: string;
+  contentBase64: string;
+}
+
 // Document (Procedure, Form, etc.)
 export interface Document extends BaseEntity, Versionable {
   code: string; // e.g., "DOC-001"
@@ -61,6 +72,13 @@ export interface Document extends BaseEntity, Versionable {
   isoClauseReferences: ISOClauseReference[]; // ISO 9001 requirements satisfied
   standard: ManagementStandard;
   status: 'draft' | 'active' | 'archived';
+  purpose?: string;
+  responsibilities?: string;
+  definitions?: string;
+  content?: string;
+  parentProcedureId?: string;
+  mergedDocumentIds?: string[];
+  attachments?: DocumentAttachment[];
 }
 
 // Revision history entry for audit trail
