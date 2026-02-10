@@ -29,6 +29,9 @@ export function useDocuments() {
         setInitialized(true);
       } catch (error) {
         console.error("Failed to load documents:", error);
+        // Fallback: still expose the ISO scaffold locally so the app is usable
+        // even when the API is down or tenant records are not reachable.
+        setDocuments(createSeedDocuments());
       } finally {
         setIsLoading(false);
       }
@@ -123,6 +126,7 @@ export function useDocuments() {
 
       updateDocument(source.id, { status: "archived" }, `Merged into ${target.code}`);
 
+      // Move children forms/records under the target procedure.
       documents
         .filter((item) => item.parentProcedureId === source.id)
         .forEach((child) => {
