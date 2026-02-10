@@ -42,10 +42,19 @@ const modules = [
     isActive: true,
     accentColor: "bg-action",
   },
+  {
+    id: "documents",
+    title: "Documents",
+    description: "Prefilled QMS procedure hierarchy with forms and records.",
+    icon: FolderKanban,
+    path: "/documents",
+    isActive: true,
+    accentColor: "bg-primary",
+  },
 ];
 
 export default function Dashboard() {
-  const { processes, issues, actions, getOverdueActions, allRequirements } = useManagementSystem();
+  const { processes, issues, actions, documents, getOverdueActions, allRequirements, getRequirementsOverview } = useManagementSystem();
 
   const overdueActions = getOverdueActions();
 
@@ -69,6 +78,24 @@ export default function Dashboard() {
   // Get unallocated unique requirements
   const uniqueReqs = getUniqueRequirements();
   const unallocatedUniqueCount = uniqueReqs.filter(r => !allocatedRequirementIds.has(r.id)).length;
+
+  const requirementsStats = processes.reduce(
+    (acc, process) => {
+      const overview = getRequirementsOverview(process.id);
+      acc.allocated += overview.allocated;
+      acc.satisfied += overview.satisfied;
+      acc.notSatisfied += overview.notSatisfied;
+      return acc;
+    },
+    { allocated: 0, satisfied: 0, notSatisfied: 0 },
+  );
+
+  const satisfactionRate = requirementsStats.allocated > 0
+    ? Math.round((requirementsStats.satisfied / requirementsStats.allocated) * 100)
+    : 0;
+  const pendingRate = requirementsStats.allocated > 0
+    ? Math.round((requirementsStats.notSatisfied / requirementsStats.allocated) * 100)
+    : 0;
 
   return (
     <div className="min-h-screen">
@@ -101,7 +128,7 @@ export default function Dashboard() {
         {/* Modules Grid */}
         <section>
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-            Modules
+            Modules (Demo dataset loaded)
           </h2>
           <AdaptiveGrid cols="1-2" gap="md">
             {modules.map((module) => (
@@ -117,6 +144,7 @@ export default function Dashboard() {
                   module.id === "processes" ? processes.length :
                   module.id === "issues" ? issues.length :
                   module.id === "actions" ? actions.length :
+                  module.id === "documents" ? documents.length :
                   undefined
                 }
               />
@@ -125,6 +153,29 @@ export default function Dashboard() {
         </section>
 
         {/* Standard Info */}
+        <section>
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+            Requirements fulfillment (allocated set)
+          </h2>
+          <AdaptiveGrid cols="1-2-3" gap="md">
+            <div className="mobile-card">
+              <p className="text-xs text-muted-foreground">Allocated requirements</p>
+              <p className="text-2xl font-semibold mt-1">{requirementsStats.allocated}</p>
+              <p className="text-xs text-muted-foreground mt-2">Across all process activities</p>
+            </div>
+            <div className="mobile-card border-green-200 bg-green-50/60">
+              <p className="text-xs text-green-700">Satisfied</p>
+              <p className="text-2xl font-semibold mt-1 text-green-700">{requirementsStats.satisfied} ({satisfactionRate}%)</p>
+              <p className="text-xs text-green-700 mt-2">Evidence inferred from linked documents, issues and actions</p>
+            </div>
+            <div className="mobile-card border-amber-200 bg-amber-50/60">
+              <p className="text-xs text-amber-700">Allocated but not yet satisfied</p>
+              <p className="text-2xl font-semibold mt-1 text-amber-700">{requirementsStats.notSatisfied} ({pendingRate}%)</p>
+              <p className="text-xs text-amber-700 mt-2">Needs stronger evidence (docs, evaluated actions, or issue traceability)</p>
+            </div>
+          </AdaptiveGrid>
+        </section>
+
         <section className="max-w-md">
           <div className="mobile-card bg-primary text-primary-foreground">
             <div className="flex items-start gap-3">

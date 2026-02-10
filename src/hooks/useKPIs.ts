@@ -1,8 +1,27 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ProcessKPI, CreateKPIData, KPIValueRecord } from "@/types/objectives";
+import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
 
 export function useKPIs() {
   const [kpis, setKPIs] = useState<ProcessKPI[]>([]);
+  const [initialized, setInitialized] = useState(false);
+
+  // Load KPIs from the database.
+  useEffect(() => {
+    if (initialized) return;
+
+    const loadKPIs = async () => {
+      try {
+        const remoteKPIs = await fetchRecords<ProcessKPI>("kpis");
+        setKPIs(remoteKPIs);
+        setInitialized(true);
+      } catch (error) {
+        console.error("Failed to load KPIs:", error);
+      }
+    };
+
+    void loadKPIs();
+  }, [initialized]);
 
   const generateCode = useCallback(() => {
     const count = kpis.length + 1;
@@ -19,17 +38,24 @@ export function useKPIs() {
       ...data,
     };
     setKPIs((prev) => [...prev, newKPI]);
+    void createRecord("kpis", newKPI).catch((error) => {
+      console.error("Failed to persist KPI:", error);
+    });
     return newKPI;
   }, []);
 
   const archiveKPI = useCallback((id: string) => {
     const now = new Date().toISOString();
     setKPIs((prev) =>
-      prev.map((kpi) =>
-        kpi.id === id
-          ? { ...kpi, status: 'archived' as const, updatedAt: now }
-          : kpi
-      )
+      prev.map((kpi) => {
+        if (kpi.id !== id) return kpi;
+
+        const updated = { ...kpi, status: "archived" as const, updatedAt: now };
+        void updateRecord("kpis", id, updated).catch((error) => {
+          console.error("Failed to archive KPI:", error);
+        });
+        return updated;
+      })
     );
   }, []);
 
@@ -43,15 +69,21 @@ export function useKPIs() {
       notes,
     };
     setKPIs((prev) =>
-      prev.map((kpi) =>
-        kpi.id === kpiId
-          ? {
-              ...kpi,
-              valueHistory: [...kpi.valueHistory, valueRecord],
-              updatedAt: now,
-            }
-          : kpi
-      )
+      prev.map((kpi) => {
+        if (kpi.id !== kpiId) return kpi;
+
+        const updated = {
+          ...kpi,
+          valueHistory: [...kpi.valueHistory, valueRecord],
+          updatedAt: now,
+        };
+
+        void updateRecord("kpis", kpiId, updated).catch((error) => {
+          console.error("Failed to add KPI value:", error);
+        });
+
+        return updated;
+      })
     );
     return valueRecord;
   }, []);
