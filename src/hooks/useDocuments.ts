@@ -63,28 +63,7 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     return [];
   };
 
-  const mapByTitle = (document: Document): string[] => {
-    const text = `${document.title} ${document.description ?? ""} ${document.purpose ?? ""}`.toLowerCase();
-
-    if (text.includes("supplier") || text.includes("procurement") || text.includes("purchas")) {
-      return [processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
-    }
-
-    if (text.includes("recruit") || text.includes("competence") || text.includes("training") || text.includes("human resource")) {
-      return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
-    }
-
-    if (text.includes("audit") || text.includes("nonconform") || text.includes("corrective") || text.includes("improvement")) {
-      return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
-    }
-
-    return [];
-  };
-
-  return seedDocuments.map((document) => {
-    const processIds = Array.from(new Set([...mapByCode(document.code), ...mapByTitle(document)]));
-    return { ...document, processIds };
-  });
+  return seedDocuments.map((document) => ({ ...document, processIds: mapByCode(document.code) }));
 }
 
 
