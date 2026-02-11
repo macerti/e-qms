@@ -67,7 +67,6 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     if (n.includes("sales process")) register("sales", process.id);
   });
 
-  const allKnownProcesses = Array.from(processIdByKeyword.values());
 
   const mapByCode = (code: string): string[] => {
     if (code.startsWith("MS-004")) return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
@@ -87,19 +86,7 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     return [];
   };
 
-  return seedDocuments.map((document) => ({ ...document, processIds: mapByCodeAndMetadata(document) }));
-}
-
-
-function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
-  const linkedFromCode = attachDocumentsToProcesses(documents, processes);
-  return linkedFromCode.map((document, index) => {
-    const current = documents[index];
-    if ((current.processIds?.length ?? 0) > 0) {
-      return current;
-    }
-    return { ...current, processIds: document.processIds };
-  });
+  return seedDocuments.map((document) => ({ ...document, processIds: mapByCode(document.code) }));
 }
 
 
@@ -145,7 +132,6 @@ export function useDocuments() {
           setDocuments(linkedSeed);
           await Promise.all(linkedSeed.map((document) => createRecord("documents", document)));
         } else {
-          const processes = await fetchRecords<Process>("processes");
           const backfilled = backfillMissingProcessLinks(remoteDocuments, processes);
           setDocuments(backfilled);
 
