@@ -50,7 +50,8 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
   });
 
 
-  const mapByCode = (code: string): string[] => {
+  const mapDocumentToProcessIds = (document: Document): string[] => {
+    const { code } = document;
     if (code.startsWith("MS-004")) return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
     if (code.startsWith("MS-012") || code.startsWith("MS-011")) return [processIdByKeyword.get("management")].filter(Boolean) as string[];
     if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
@@ -60,16 +61,16 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
       return Array.from(processIdByKeyword.values());
     }
 
-    return [];
-  };
-
-  return seedDocuments.map((document) => ({ ...document, processIds: mapByCode(document.code) }));
-}
-
+    const text = `${document.title} ${document.description ?? ""} ${document.content ?? ""}`.toLowerCase();
     if (text.includes("supplier") || text.includes("procurement") || text.includes("purchas")) {
       return [processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
     }
 
+    return [];
+  };
+
+  return seedDocuments.map((document) => ({ ...document, processIds: mapDocumentToProcessIds(document) }));
+}
 function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
   const linkedFromCode = attachDocumentsToProcesses(documents, processes);
   const validProcessIds = new Set(processes.map((process) => process.id));
