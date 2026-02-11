@@ -40,11 +40,9 @@ export function useActions() {
           fetchRecords<Process>("processes"),
           fetchRecords<ContextIssue>("issues"),
         ]);
-        const processesForLinking = processes.length > 0 ? processes : createFallbackProcesses();
-        const issuesForLinking = issues.length > 0 ? issues : createDemoIssues(processesForLinking);
 
         if (remoteActions.length > 0) {
-          const backfilledActions = backfillActionProcessLinks(remoteActions, processesForLinking);
+          const backfilledActions = backfillActionProcessLinks(remoteActions, processes);
           setActions(backfilledActions);
           setInitialized(true);
 
@@ -56,7 +54,7 @@ export function useActions() {
           return;
         }
 
-        const seededActions = createDemoActions(processesForLinking, issuesForLinking);
+        const seededActions = createDemoActions(processes, issues);
         setActions(seededActions);
         setInitialized(true);
 

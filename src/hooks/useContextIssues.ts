@@ -61,10 +61,9 @@ export function useContextIssues() {
           fetchRecords<ContextIssue>("issues"),
           fetchRecords<Process>("processes"),
         ]);
-        const processesForLinking = processes.length > 0 ? processes : createFallbackProcesses();
 
         if (remoteIssues.length > 0) {
-          const backfilledIssues = backfillIssueProcessLinks(remoteIssues, processesForLinking);
+          const backfilledIssues = backfillIssueProcessLinks(remoteIssues, processes);
           setIssues(backfilledIssues);
           setInitialized(true);
 
@@ -76,7 +75,7 @@ export function useContextIssues() {
           return;
         }
 
-        const seededIssues = createDemoIssues(processesForLinking);
+        const seededIssues = createDemoIssues(processes);
         setIssues(seededIssues);
         setInitialized(true);
 
