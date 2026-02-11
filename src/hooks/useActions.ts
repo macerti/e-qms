@@ -1,12 +1,27 @@
 import { useState, useCallback, useEffect } from "react";
 import { Action, ActionStatus, ActionOrigin, EfficiencyEvaluation, EfficiencyResult, ActionStatusChange } from "@/types/management-system";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
-import { createDemoActions } from "@/data/demo-seed";
+import { createDemoActions, createDemoIssues, inferProcessIdFromText } from "@/data/demo-seed";
 import { ContextIssue, Process } from "@/types/management-system";
+import { createFallbackProcesses } from "@/data/default-processes";
 
 type CreateActionData = Omit<Action, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate" | "efficiencyEvaluation" | "completedDate" | "statusHistory"> & { 
   code?: string;
 };
+
+
+function backfillActionProcessLinks(actions: Action[], processes: Process[]): Action[] {
+  const processIds = new Set(processes.map((process) => process.id));
+
+  return actions.map((action) => {
+    if (action.processId && processIds.has(action.processId)) {
+      return action;
+    }
+
+    const inferredProcessId = inferProcessIdFromText(processes, `${action.code} ${action.title} ${action.description}`);
+    return inferredProcessId ? { ...action, processId: inferredProcessId } : action;
+  });
+}
 
 export function useActions() {
   const [actions, setActions] = useState<Action[]>([]);
@@ -20,25 +35,37 @@ export function useActions() {
     const loadActions = async () => {
       setIsLoading(true);
       try {
-        const remoteActions = await fetchRecords<Action>("actions");
-        if (remoteActions.length > 0) {
-          setActions(remoteActions);
-          setInitialized(true);
-          return;
-        }
-
-        const [processes, issues] = await Promise.all([
+        const [remoteActions, processes, issues] = await Promise.all([
+          fetchRecords<Action>("actions"),
           fetchRecords<Process>("processes"),
           fetchRecords<ContextIssue>("issues"),
         ]);
-        const seededActions = createDemoActions(processes, issues);
+        const processesForLinking = processes.length > 0 ? processes : createFallbackProcesses();
+        const issuesForLinking = issues.length > 0 ? issues : createDemoIssues(processesForLinking);
+
+        if (remoteActions.length > 0) {
+          const backfilledActions = backfillActionProcessLinks(remoteActions, processesForLinking);
+          setActions(backfilledActions);
+          setInitialized(true);
+
+          await Promise.all(
+            backfilledActions
+              .filter((action, index) => action.processId !== remoteActions[index].processId)
+              .map((action) => updateRecord("actions", action.id, action)),
+          );
+          return;
+        }
+
+        const seededActions = createDemoActions(processesForLinking, issuesForLinking);
         setActions(seededActions);
         setInitialized(true);
 
         await Promise.all(seededActions.map((action) => createRecord("actions", action)));
       } catch (error) {
         console.error("Failed to load actions:", error);
-        const seededActions = createDemoActions([], []);
+        const fallbackProcesses = createFallbackProcesses();
+        const fallbackIssues = createDemoIssues(fallbackProcesses);
+        const seededActions = createDemoActions(fallbackProcesses, fallbackIssues);
         setActions(seededActions);
         setInitialized(true);
       } finally {

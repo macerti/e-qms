@@ -10,8 +10,8 @@ interface RevisionHistoryProps {
   history?: RevisionEntry[];
 }
 
-const MAX_VISIBLE_REVISIONS = 4;
-const REVISION_ITEM_HEIGHT = 56; // Approximate height per revision entry
+const MAX_VISIBLE_REVISIONS = 5;
+const REVISION_ITEM_HEIGHT = 64; // Approximate height per revision entry
 
 export function RevisionHistory({ 
   currentVersion, 
@@ -35,7 +35,7 @@ export function RevisionHistory({
   }
 
   const showScrollArea = allRevisions.length > MAX_VISIBLE_REVISIONS;
-  const maxHeight = MAX_VISIBLE_REVISIONS * REVISION_ITEM_HEIGHT;
+  const scrollHeight = MAX_VISIBLE_REVISIONS * REVISION_ITEM_HEIGHT;
 
   const RevisionList = () => (
     <ol className="space-y-3 relative">
@@ -68,7 +68,7 @@ export function RevisionHistory({
                 </span>
               )}
             </div>
-            <p className="text-sm mt-0.5 text-foreground">
+            <p className="text-sm mt-0.5 text-foreground break-words">
               {revision.note}
             </p>
           </div>
@@ -94,9 +94,11 @@ export function RevisionHistory({
       </div>
       
       {showScrollArea ? (
-        <ScrollArea className="pr-4" style={{ maxHeight }}>
-          <RevisionList />
-        </ScrollArea>
+        <div className="rounded-lg border border-border/60 bg-muted/10 p-3">
+          <ScrollArea className="pr-3" style={{ height: scrollHeight }}>
+            <RevisionList />
+          </ScrollArea>
+        </div>
       ) : (
         <RevisionList />
       )}

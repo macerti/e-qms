@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Process, ProcessStatus, ProcessActivity } from "@/types/management-system";
-import { DEFAULT_PROCESSES, createGovernanceActivity } from "@/data/default-processes";
+import { DEFAULT_PROCESSES, createFallbackProcesses, createGovernanceActivity } from "@/data/default-processes";
 import { GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/types/requirements";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
 
@@ -49,37 +49,9 @@ export function useProcesses() {
           return;
         }
 
-        // If the database is empty, seed it with the default processes.
-        const now = new Date().toISOString();
-        const defaultProcesses: Process[] = DEFAULT_PROCESSES.map((p) => {
-          const processId = crypto.randomUUID();
-          const activitiesWithGovernance = ensureGovernanceActivity(processId, p.activities);
-
-          return {
-            id: processId,
-            code: p.code,
-            name: p.name,
-            type: p.type,
-            purpose: p.purpose,
-            inputs: p.inputs,
-            outputs: p.outputs,
-            activities: activitiesWithGovernance,
-            regulations: p.regulations,
-            pilotName: p.pilotName,
-            status: "active" as ProcessStatus,
-            standard: "ISO_9001",
-            createdAt: now,
-            updatedAt: now,
-            version: 1,
-            revisionDate: now,
-            indicatorIds: [],
-            riskIds: [],
-            opportunityIds: [],
-            actionIds: [],
-            auditIds: [],
-            documentIds: [],
-          };
-        });
+        // If the database is empty, seed it with a deterministic fallback dataset
+        // so linked demo records can reliably reference process IDs.
+        const defaultProcesses = createFallbackProcesses();
 
         setProcesses(defaultProcesses);
         setInitialized(true);
@@ -92,35 +64,7 @@ export function useProcesses() {
         console.error("Failed to load processes:", error);
 
         // Fallback demo seed when API is unavailable.
-        const now = new Date().toISOString();
-        const fallbackProcesses: Process[] = DEFAULT_PROCESSES.map((p) => {
-          const processId = `fallback-${p.code.toLowerCase()}`;
-          const activitiesWithGovernance = ensureGovernanceActivity(processId, p.activities);
-          return {
-            id: processId,
-            code: p.code,
-            name: p.name,
-            type: p.type,
-            purpose: p.purpose,
-            inputs: p.inputs,
-            outputs: p.outputs,
-            activities: activitiesWithGovernance,
-            regulations: p.regulations,
-            pilotName: p.pilotName,
-            status: "active" as ProcessStatus,
-            standard: "ISO_9001",
-            createdAt: now,
-            updatedAt: now,
-            version: 1,
-            revisionDate: now,
-            indicatorIds: [],
-            riskIds: [],
-            opportunityIds: [],
-            actionIds: [],
-            auditIds: [],
-            documentIds: [],
-          };
-        });
+        const fallbackProcesses = createFallbackProcesses();
         setProcesses(fallbackProcesses);
         setInitialized(true);
       } finally {

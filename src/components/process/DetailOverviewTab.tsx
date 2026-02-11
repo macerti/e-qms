@@ -24,12 +24,15 @@ import { cn } from "@/lib/utils";
 import { RevisionHistory } from "./RevisionHistory";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.ElementType; color: string }> = {
   management: { label: "Management", icon: Settings, color: "text-purple-600" },
   operational: { label: "Operational", icon: Cog, color: "text-process" },
   support: { label: "Support", icon: Wrench, color: "text-amber-600" },
 };
+
+const MAX_OVERVIEW_VISIBLE_ITEMS = 5;
 
 interface DetailOverviewTabProps {
   process: Process;
@@ -288,6 +291,17 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
               </Button>
             </div>
           </div>
+        ) : process.inputs.length > MAX_OVERVIEW_VISIBLE_ITEMS ? (
+          <ScrollArea className="h-52 rounded-lg border border-border/60 p-3">
+            <ul className="space-y-2">
+              {process.inputs.map((input, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-process mt-2 shrink-0" />
+                  <span>{input}</span>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
         ) : (
           <ul className="space-y-2">
             {process.inputs.map((input, index) => (
@@ -372,6 +386,17 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
               </Button>
             </div>
           </div>
+        ) : process.outputs.length > MAX_OVERVIEW_VISIBLE_ITEMS ? (
+          <ScrollArea className="h-52 rounded-lg border border-border/60 p-3">
+            <ul className="space-y-2">
+              {process.outputs.map((output, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-success mt-2 shrink-0" />
+                  <span>{output}</span>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
         ) : (
           <ul className="space-y-2">
             {process.outputs.map((output, index) => (
@@ -395,21 +420,41 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
               Applicable Regulations
             </h3>
           </div>
-          <div className="space-y-3">
-            {process.regulations.map((regulation) => (
-              <div key={regulation.id} className="p-3 bg-muted/30 rounded-lg border border-border">
-                <p className="font-mono text-xs text-primary font-medium">
-                  {regulation.reference}
-                </p>
-                <p className="font-medium mt-1">{regulation.name}</p>
-                {regulation.complianceDisposition && (
-                  <p className="text-sm text-muted-foreground mt-2 pt-2 border-t border-border">
-                    <span className="font-medium">Compliance disposition:</span> {regulation.complianceDisposition}
-                  </p>
-                )}
+          {process.regulations.length > MAX_OVERVIEW_VISIBLE_ITEMS ? (
+            <ScrollArea className="h-72 rounded-lg border border-border/60 p-3">
+              <div className="space-y-3">
+                {process.regulations.map((regulation) => (
+                  <div key={regulation.id} className="p-3 bg-muted/30 rounded-lg border border-border">
+                    <p className="font-mono text-xs text-primary font-medium">
+                      {regulation.reference}
+                    </p>
+                    <p className="font-medium mt-1">{regulation.name}</p>
+                    {regulation.complianceDisposition && (
+                      <p className="text-sm text-muted-foreground mt-2 pt-2 border-t border-border">
+                        <span className="font-medium">Compliance disposition:</span> {regulation.complianceDisposition}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </ScrollArea>
+          ) : (
+            <div className="space-y-3">
+              {process.regulations.map((regulation) => (
+                <div key={regulation.id} className="p-3 bg-muted/30 rounded-lg border border-border">
+                  <p className="font-mono text-xs text-primary font-medium">
+                    {regulation.reference}
+                  </p>
+                  <p className="font-medium mt-1">{regulation.name}</p>
+                  {regulation.complianceDisposition && (
+                    <p className="text-sm text-muted-foreground mt-2 pt-2 border-t border-border">
+                      <span className="font-medium">Compliance disposition:</span> {regulation.complianceDisposition}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -425,6 +470,25 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
           <p className="text-sm text-muted-foreground italic">
             No documents linked to this process yet.
           </p>
+        ) : documents.length > MAX_OVERVIEW_VISIBLE_ITEMS ? (
+          <ScrollArea className="h-72 rounded-lg border border-border/60 p-2">
+            <ul className="space-y-2">
+              {documents.map((doc) => (
+                <li key={doc.id}>
+                  <button
+                    onClick={() => navigate(`/documents/${doc.id}`)}
+                    className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-muted/50 text-left transition-colors"
+                  >
+                    <FileText className="w-4 h-4 text-primary shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{doc.title}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{doc.code}</p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
         ) : (
           <ul className="space-y-2">
             {documents.map((doc) => (
