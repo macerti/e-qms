@@ -1,4 +1,4 @@
-import { ChevronLeft, MoreVertical, ChevronRight, Search, CircleHelp } from "lucide-react";
+import { ChevronLeft, MoreVertical, ChevronRight, Search } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -56,88 +56,6 @@ const SEARCH_TARGETS = [
   { label: "Help", path: "/help" },
 ];
 
-
-type ContextualHelp = {
-  title: string;
-  why: string;
-  how: string[];
-};
-
-const CONTEXTUAL_HELP: Record<string, ContextualHelp> = {
-  dashboard: {
-    title: "Dashboard overview",
-    why: "Use this page to understand QMS health at a glance and quickly spot priorities.",
-    how: [
-      "Start with compliance and risk cards to identify urgent gaps.",
-      "Tap any card metric to drill down into its underlying list.",
-      "Review trends before opening detail pages to act with context.",
-    ],
-  },
-  processes: {
-    title: "Processes",
-    why: "Processes are the backbone of compliance tracking and requirement allocation.",
-    how: [
-      "Create or edit process activities and allocate ISO requirements.",
-      "Link risks, actions, documents, and regulations to each process.",
-      "Use process detail to monitor evidence and close compliance gaps.",
-    ],
-  },
-  documents: {
-    title: "Documents",
-    why: "Documents and procedures provide compliance evidence for requirements and processes.",
-    how: [
-      "Open a procedure and verify linked processes and ISO clauses.",
-      "Use related docs to organize forms, records, and instructions.",
-      "Keep statuses and revisions updated to maintain traceability.",
-    ],
-  },
-  issues: {
-    title: "Issues and risks",
-    why: "Risks, opportunities, and issues drive preventive and corrective action planning.",
-    how: [
-      "Evaluate impact/probability and set treatment strategy.",
-      "Link each issue to the right process and responsible owner.",
-      "Track residual risk after actions are implemented.",
-    ],
-  },
-  actions: {
-    title: "Actions",
-    why: "Actions are execution evidence proving risk treatment and continuous improvement.",
-    how: [
-      "Create actions from issues or process findings.",
-      "Assign owners, due dates, and monitor status transitions.",
-      "Evaluate effectiveness before final closure.",
-    ],
-  },
-  settings: {
-    title: "Settings",
-    why: "Settings centralize account, standards, and system-level preferences.",
-    how: [
-      "Update user profile and reference configuration pages.",
-      "Check standard requirement settings for allocation consistency.",
-      "Use activity views to audit key changes over time.",
-    ],
-  },
-  "activity-log": {
-    title: "Activity log",
-    why: "The log provides auditability of key actions performed in the system.",
-    how: [
-      "Filter by user/date to investigate historical changes.",
-      "Use entries as evidence during internal audits.",
-      "Correlate log events with revisions in process/doc detail.",
-    ],
-  },
-  help: {
-    title: "Help",
-    why: "This area explains workflows and best practices for using the QMS tool.",
-    how: [
-      "Read module guidance before onboarding new users.",
-      "Use examples to standardize naming and linking patterns.",
-      "Refer back when designing new compliance workflows.",
-    ],
-  },
-};
-
 export function PageHeader({
   title,
   subtitle,
@@ -149,7 +67,6 @@ export function PageHeader({
   const navigate = useNavigate();
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const autoBreadcrumbs = (() => {
@@ -185,21 +102,6 @@ export function PageHeader({
 
   const breadcrumbItems = breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs : autoBreadcrumbs;
 
-
-
-  const helpContent = useMemo(() => {
-    const section = location.pathname.split("/").filter(Boolean)[0] ?? "dashboard";
-    return CONTEXTUAL_HELP[section] ?? {
-      title,
-      why: subtitle || "Use this page to manage related QMS data and maintain compliance evidence.",
-      how: [
-        "Review the main content and complete required fields.",
-        "Link related entities so traceability and compliance status remain meaningful.",
-        "Use filters and search to quickly find and update records.",
-      ],
-    };
-  }, [location.pathname, subtitle, title]);
-
   const filteredSearchTargets = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return SEARCH_TARGETS;
@@ -230,22 +132,20 @@ export function PageHeader({
             )}
             <div className="min-w-0">
               {breadcrumbItems.length > 0 && (
-                <nav aria-label="Breadcrumb" className="mb-0.5 overflow-x-auto no-scrollbar">
-                  <ol className="flex flex-nowrap items-center gap-1 whitespace-nowrap text-[11px] leading-none text-muted-foreground [&_*]:!min-h-0 [&_*]:!min-w-0">
-                    {breadcrumbItems.map((item, index) => (
-                      <li key={`${item.label}-${index}`} className="inline-flex items-center gap-1 shrink-0 align-middle whitespace-nowrap">
-                        {index > 0 && <ChevronRight className="w-3 h-3 shrink-0" />}
-                        {item.to && index < breadcrumbItems.length - 1 ? (
-                          <Link to={item.to} className="inline-flex items-center whitespace-nowrap hover:text-foreground transition-colors">
-                            {item.label}
-                          </Link>
-                        ) : (
-                          <span className="inline-flex items-center whitespace-nowrap">{item.label}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                </nav>
+                <div className="flex flex-nowrap items-center gap-1 text-[11px] leading-none text-muted-foreground mb-0.5 overflow-x-auto no-scrollbar whitespace-nowrap [&_*]:!min-h-0 [&_*]:!min-w-0">
+                  {breadcrumbItems.map((item, index) => (
+                    <span key={`${item.label}-${index}`} className="inline-flex items-center gap-1 shrink-0 align-middle">
+                      {index > 0 && <ChevronRight className="w-3 h-3" />}
+                      {item.to && index < breadcrumbItems.length - 1 ? (
+                        <Link to={item.to} className="inline-flex items-center hover:text-foreground transition-colors">
+                          {item.label}
+                        </Link>
+                      ) : (
+                        <span className="inline-flex items-center">{item.label}</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
               )}
 
               <div className="flex items-center gap-2">
@@ -263,9 +163,6 @@ export function PageHeader({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setHelpOpen(true)} aria-label="Open help">
-              <CircleHelp className="h-5 w-5" />
-            </Button>
             <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setSearchOpen(true)}>
               <Search className="h-5 w-5" />
             </Button>
@@ -294,26 +191,6 @@ export function PageHeader({
           </div>
         </div>
       </header>
-
-
-      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
-        <DialogContent className="sm:max-w-[640px]">
-          <DialogHeader>
-            <DialogTitle>{helpContent.title}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 text-sm">
-            <p className="text-muted-foreground">{helpContent.why}</p>
-            <div>
-              <p className="font-medium mb-2">What to do here</p>
-              <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                {helpContent.how.map((tip, index) => (
-                  <li key={`${tip}-${index}`}>{tip}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
         <DialogContent className="sm:max-w-[640px]">

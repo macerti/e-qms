@@ -46,9 +46,7 @@ export const DEFAULT_PROCESSES: DefaultProcessData[] = [
       { id: crypto.randomUUID(), name: "Competence evaluation", description: "Evaluate effectiveness and close gaps", sequence: 5, allocatedRequirementIds: req("req-9.1.1") },
     ],
     regulations: [
-      dzReg("Law 90-11", "Algerian Labor Relations Law", "Employment contracts, working conditions, and disciplinary procedures are governed and documented in HR procedures."),
-      dzReg("Law 18-07", "Personal Data Protection Law", "Employee personal files, recruitment data, and training records are classified and access-controlled with retention rules."),
-      dzReg("Executive Decree 96-98", "Occupational health and safety obligations", "Safety awareness and competency records are maintained for onboarding and periodic refreshers."),
+      dzReg("Law 90-11", "Algerian Labor Relations Law", "Employment duties and rights are integrated into HR workflow."),
     ],
     pilotName: "HR Manager",
   },
@@ -67,8 +65,7 @@ export const DEFAULT_PROCESSES: DefaultProcessData[] = [
       { id: crypto.randomUUID(), name: "Communicate leadership decisions", description: "Cascade decisions to process owners", sequence: 5 },
     ],
     regulations: [
-      dzReg("Law 04-08", "Commercial register and governance obligations", "Governance duties, decision traceability, and accountability are integrated into leadership review outputs."),
-      dzReg("Law 01-04", "Accounting and financial transparency obligations", "Management review inputs include financial governance evidence and resource allocation traceability."),
+      dzReg("Law 04-08", "Commercial register and governance obligations", "Governance duties are integrated into leadership review."),
     ],
     pilotName: "General Manager",
   },
@@ -137,10 +134,7 @@ export const DEFAULT_PROCESSES: DefaultProcessData[] = [
       { id: crypto.randomUUID(), name: "Incoming verification", description: "Inspect incoming products/services", sequence: 4, allocatedRequirementIds: req("req-8.6", "req-8.7") },
       { id: crypto.randomUUID(), name: "Supplier review", description: "Review supplier score and plan", sequence: 5, allocatedRequirementIds: req("req-9.1.1") },
     ],
-    regulations: [
-      dzReg("Law 04-02", "Commercial practices law", "Supplier selection and contracting are documented with fair-practice controls."),
-      dzReg("Executive Decree 20-373", "Public/procurement anti-fraud controls", "Supplier qualification and conflict-of-interest checks are evidenced in evaluation records."),
-    ],
+    regulations: [dzReg("Law 04-02", "Commercial practices law", "Supplier selection and contracting are documented.")],
     pilotName: "Procurement Manager",
   },
   {
@@ -157,10 +151,7 @@ export const DEFAULT_PROCESSES: DefaultProcessData[] = [
       { id: crypto.randomUUID(), name: "Access management", description: "Control access rights", sequence: 4, allocatedRequirementIds: req("req-8.5.2") },
       { id: crypto.randomUUID(), name: "Performance monitoring", description: "Track availability and incidents", sequence: 5, allocatedRequirementIds: req("req-9.1.1") },
     ],
-    regulations: [
-      dzReg("Law 18-07", "Personal data protection law", "Data processing, access logs, and backup copies are controlled and retained per policy."),
-      dzReg("Law 09-04", "Cybercrime prevention and evidence retention", "Incident records and access traces are retained to support digital incident investigations."),
-    ],
+    regulations: [dzReg("Law 18-07", "Personal data protection law", "Data processing and logs are controlled and retained.")],
     pilotName: "IT Manager",
   },
   {

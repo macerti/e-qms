@@ -36,73 +36,24 @@ const DOCUMENT_TYPE_CONFIG: Record<DocumentType, { label: string; icon: React.El
   policy: { label: "Policy", icon: FileText, color: "text-red-600" },
 };
 
-
-function inferProcessIdsForDocument(document: Document, processes: { id: string; name: string }[]): string[] {
-  const byKey = new Map<string, string>();
-  processes.forEach((process) => {
-    const lowerName = process.name.toLowerCase();
-    if (lowerName.includes("human resources")) byKey.set("hr", process.id);
-    if (lowerName.includes("management")) byKey.set("management", process.id);
-    if (lowerName.includes("quality")) byKey.set("quality", process.id);
-    if (lowerName.includes("operational process 01")) byKey.set("op1", process.id);
-    if (lowerName.includes("operational process 02")) byKey.set("op2", process.id);
-    if (lowerName.includes("purchasing")) byKey.set("purchasing", process.id);
-    if (lowerName.includes("it process")) byKey.set("it", process.id);
-    if (lowerName.includes("administration process")) byKey.set("admin", process.id);
-    if (lowerName.includes("sales process")) byKey.set("sales", process.id);
-  });
-
-  const list = (...keys: string[]) => Array.from(new Set(keys.map((key) => byKey.get(key)).filter(Boolean))) as string[];
-  const all = Array.from(new Set(byKey.values()));
-  const code = document.code;
-
-  if (code.startsWith("MS-001") || code.startsWith("MS-002") || code.startsWith("MS-003")) return all;
-  if (code.startsWith("MS-011") || code.startsWith("MS-012")) return list("management", "quality");
-  if (code.startsWith("MS-004")) return list("hr");
-  if (code.startsWith("MS-013")) return list("it", "admin", "hr", "op1", "op2");
-  if (code.startsWith("MS-005") || code.startsWith("MS-006") || code.startsWith("MS-008") || code.startsWith("MS-014")) return list("op1", "op2", "sales", "quality");
-  if (code.startsWith("MS-007")) return list("purchasing", "op1", "op2", "quality");
-  if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) return list("quality", "management");
-  return [];
-}
-
 const ISO_9001_CLAUSES: ISOClauseReference[] = [
-  { clauseNumber: "4", clauseTitle: "Context of the organization" },
   { clauseNumber: "4.1", clauseTitle: "Understanding the organization and its context" },
   { clauseNumber: "4.2", clauseTitle: "Interested parties" },
   { clauseNumber: "4.3", clauseTitle: "QMS scope" },
   { clauseNumber: "4.4", clauseTitle: "QMS processes" },
-  { clauseNumber: "5", clauseTitle: "Leadership" },
   { clauseNumber: "5.1", clauseTitle: "Leadership and commitment" },
   { clauseNumber: "5.2", clauseTitle: "Policy" },
   { clauseNumber: "5.3", clauseTitle: "Roles and responsibilities" },
-  { clauseNumber: "6", clauseTitle: "Planning" },
   { clauseNumber: "6.1", clauseTitle: "Risks and opportunities" },
   { clauseNumber: "6.2", clauseTitle: "Quality objectives" },
-  { clauseNumber: "7", clauseTitle: "Support" },
-  { clauseNumber: "7.1", clauseTitle: "Resources" },
-  { clauseNumber: "7.1.3", clauseTitle: "Infrastructure" },
-  { clauseNumber: "7.1.4", clauseTitle: "Environment for process operation" },
-  { clauseNumber: "7.1.5", clauseTitle: "Monitoring and measuring resources" },
-  { clauseNumber: "7.1.6", clauseTitle: "Organizational knowledge" },
-  { clauseNumber: "7.2", clauseTitle: "Competence" },
-  { clauseNumber: "7.3", clauseTitle: "Awareness" },
   { clauseNumber: "7.5", clauseTitle: "Documented information" },
-  { clauseNumber: "8", clauseTitle: "Operation" },
   { clauseNumber: "8.1", clauseTitle: "Operational planning and control" },
   { clauseNumber: "8.2", clauseTitle: "Customer requirements" },
-  { clauseNumber: "8.2.1", clauseTitle: "Customer communication" },
-  { clauseNumber: "8.3", clauseTitle: "Design and development" },
   { clauseNumber: "8.4", clauseTitle: "Supplier control" },
-  { clauseNumber: "8.4.1", clauseTitle: "Control of externally provided processes/products/services" },
-  { clauseNumber: "8.5", clauseTitle: "Production / service provision" },
-  { clauseNumber: "8.5.6", clauseTitle: "Control of changes" },
-  { clauseNumber: "9", clauseTitle: "Performance evaluation" },
+  { clauseNumber: "8.5", clauseTitle: "Production / service" },
   { clauseNumber: "9.1", clauseTitle: "Monitoring and measurement" },
-  { clauseNumber: "9.1.2", clauseTitle: "Customer satisfaction" },
   { clauseNumber: "9.2", clauseTitle: "Internal audit" },
   { clauseNumber: "9.3", clauseTitle: "Management review" },
-  { clauseNumber: "10", clauseTitle: "Improvement" },
   { clauseNumber: "10.2", clauseTitle: "Corrective action" },
   { clauseNumber: "10.3", clauseTitle: "Continual improvement" },
 ];
@@ -148,20 +99,6 @@ export default function DocumentDetail() {
   const typeConfig = DOCUMENT_TYPE_CONFIG[currentDocument.type];
   const TypeIcon = typeConfig.icon;
   const activeProcesses = processes.filter((p) => p.status !== "archived");
-
-  useEffect(() => {
-    const knownProcessIds = new Set(activeProcesses.map((process) => process.id));
-    const hasValidLink = (currentDocument.processIds ?? []).some((processId) => knownProcessIds.has(processId));
-
-    if (hasValidLink) {
-      return;
-    }
-
-    const inferred = inferProcessIdsForDocument(currentDocument, activeProcesses);
-    if (inferred.length > 0) {
-      updateDocument(currentDocument.id, { processIds: inferred }, "Auto-linked processes from procedure code");
-    }
-  }, [activeProcesses, currentDocument, updateDocument]);
 
   const handleArchive = () => {
     archiveDocument(currentDocument.id);
@@ -306,7 +243,7 @@ export default function DocumentDetail() {
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
             <section className="mobile-card space-y-3">
-              <h3 className="font-medium flex items-center gap-2">Linked processes <HelpHint content="Select where this document applies. Process links feed compliance evidence and make retrieval easier." /></h3>
+              <h3 className="font-medium">Linked processes</h3>
               <div className="space-y-2 max-h-56 overflow-y-auto border border-border rounded-lg p-3">
                 {activeProcesses.map((process) => (
                   <label key={process.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer">
@@ -324,31 +261,21 @@ export default function DocumentDetail() {
             </section>
 
             <section className="mobile-card space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="font-medium flex items-center gap-2">Requirement clauses this document satisfies <HelpHint content="Choose ISO 9001 clauses supported by this document so compliance status is meaningful." /></h3>
-                <Badge variant="secondary" className="font-mono">
-                  {currentDocument.isoClauseReferences.length} selected
-                </Badge>
-              </div>
-              <div className="space-y-2 max-h-64 overflow-y-auto rounded-lg border border-border bg-muted/20 p-2">
+              <h3 className="font-medium">Requirement clauses this document satisfies</h3>
+              <div className="space-y-1 max-h-64 overflow-y-auto border border-border rounded-lg p-3">
                 {ISO_9001_CLAUSES.map((clause) => {
                   const isSelected = currentDocument.isoClauseReferences.some((item) => item.clauseNumber === clause.clauseNumber);
                   return (
                     <label
                       key={clause.clauseNumber}
                       className={cn(
-                        "group flex items-start gap-3 rounded-md border px-3 py-2 cursor-pointer transition-colors",
-                        isSelected
-                          ? "border-primary/30 bg-background shadow-sm"
-                          : "border-transparent bg-background/80 hover:border-border hover:bg-background",
+                        "flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors",
+                        isSelected ? "bg-primary/10" : "hover:bg-muted/50",
                       )}
                     >
                       <Checkbox checked={isSelected} onCheckedChange={() => toggleClause(clause)} className="mt-0.5" />
-                      <div className="flex-1 min-w-0 text-sm text-foreground/90">
-                        <div className="inline-flex items-center gap-2">
-                          <span className="font-mono text-xs rounded-sm bg-muted px-1.5 py-0.5">{clause.clauseNumber}</span>
-                          <span className="font-medium leading-tight">{clause.clauseTitle}</span>
-                        </div>
+                      <div className="flex-1 min-w-0 text-sm">
+                        <span className="font-mono font-medium text-primary">{clause.clauseNumber}</span> {clause.clauseTitle}
                       </div>
                     </label>
                   );
@@ -440,11 +367,11 @@ export default function DocumentDetail() {
 
           <TabsContent value="management" className="space-y-3">
             <section className="mobile-card space-y-3">
-              <h3 className="font-medium flex items-center gap-2">Management actions <HelpHint content="Use management actions for lifecycle operations like merge and archival controls." /></h3>
+              <h3 className="font-medium">Management actions</h3>
 
               {currentDocument.type === "procedure" && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2"><Label>Merge this procedure into another one</Label><HelpHint content="Merge only when consolidating duplicate procedures. Source will be archived and children re-linked." /></div>
+                  <Label>Merge this procedure into another one</Label>
                   <div className="flex items-center gap-2">
                     <Select value={mergeTarget} onValueChange={setMergeTarget}>
                       <SelectTrigger>
@@ -492,7 +419,7 @@ function InlineField({
 
   return (
     <section className={cn("mobile-card space-y-2", !multiline && "max-w-[760px]")}>
-      <div className="flex items-center gap-2"><Label>{label}</Label>{helpText && <HelpHint content={helpText} />}</div>
+      <Label>{label}</Label>
       {multiline ? (
         <Textarea value={value} onChange={(event) => setValue(event.target.value)} rows={4} />
       ) : (

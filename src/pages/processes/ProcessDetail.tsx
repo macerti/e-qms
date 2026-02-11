@@ -219,7 +219,7 @@ export default function ProcessDetail() {
 
         {/* Linked Items + Quick Actions */}
         <section className="mt-6 space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider px-1 flex items-center gap-2">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider px-1">
             Linked Items
             <HelpHint content="These counters show evidence linked to this process. Use Add/View actions to keep risks, opportunities, actions, and documents synchronized." />
           </h3>
