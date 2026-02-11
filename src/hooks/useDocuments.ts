@@ -56,15 +56,21 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
 
   processes.forEach((process) => {
     const n = process.name.toLowerCase();
-    if (n.includes("human resources")) register("hr", process.id);
-    if (n.includes("management")) register("management", process.id);
-    if (n.includes("quality")) register("quality", process.id);
-    if (n.includes("operational process 01")) register("op1", process.id);
-    if (n.includes("operational process 02")) register("op2", process.id);
-    if (n.includes("purchasing")) register("purchasing", process.id);
-    if (n.includes("it process")) register("it", process.id);
-    if (n.includes("administration process")) register("admin", process.id);
-    if (n.includes("sales process")) register("sales", process.id);
+    const c = process.code.toLowerCase();
+
+    if (n.includes("human resources") || c === "pro-001") register("hr", process.id);
+    if (n.includes("management") || c === "pro-002") register("management", process.id);
+    if (n.includes("quality") || c === "pro-003") register("quality", process.id);
+    if (n.includes("operational process 01") || c === "pro-004") register("op1", process.id);
+    if (n.includes("operational process 02") || c === "pro-005") register("op2", process.id);
+    if (n.includes("purchasing") || c === "pro-006") register("purchasing", process.id);
+    if (n.includes("it process") || c === "pro-007") register("it", process.id);
+    if (n.includes("administration process") || c === "pro-008") register("admin", process.id);
+    if (n.includes("sales process") || c === "pro-009") register("sales", process.id);
+
+    // Aliases for customized process names.
+    if (n.includes("recruit") || n.includes("talent")) register("hr", process.id);
+    if (n.includes("supplier") || n.includes("procurement")) register("purchasing", process.id);
   });
 
 
@@ -76,11 +82,6 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
     if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
     if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001") || code.startsWith("MS-013")) {
       return Array.from(processIdByKeyword.values());
-    }
-
-    // Quality assurance, audit, corrective action and continual improvement
-    if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) {
-      return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
     }
 
     return [];
