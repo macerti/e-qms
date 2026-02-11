@@ -110,6 +110,7 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
         </span>
       </div>
 
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
       {/* Purpose - Inline Editable */}
       <section className="mobile-card">
         <div className="flex items-center justify-between mb-2">
@@ -158,6 +159,63 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
         )}
       </section>
 
+
+      {/* Pilot - Inline Editable */}
+      <section className="mobile-card">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+              <User className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                Process Pilot
+              </p>
+              {editingSection === "pilot" ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <Input
+                    value={editPilot}
+                    onChange={(e) => setEditPilot(e.target.value)}
+                    placeholder="Pilot name..."
+                    className="h-8 w-48"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSavePilot();
+                      if (e.key === "Escape") handleCancelEdit();
+                    }}
+                  />
+                  <Button size="sm" variant="ghost" onClick={handleSavePilot} className="h-7 w-7 p-0">
+                    <Check className="w-3 h-3" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="h-7 w-7 p-0">
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <p className="font-medium">{process.pilotName || <span className="text-muted-foreground italic">Not assigned</span>}</p>
+              )}
+            </div>
+          </div>
+          {editingSection !== "pilot" && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setEditPilot(process.pilotName || "");
+                setEditingSection("pilot");
+              }}
+              className="h-7 w-7"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      </section>
+
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
       {/* Inputs - Inline Editable */}
       <section className="mobile-card">
         <div className="flex items-center justify-between mb-3">
@@ -325,7 +383,9 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
           </ul>
         )}
       </section>
+      </div>
 
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
       {/* Applicable Regulations */}
       {process.regulations && process.regulations.length > 0 && (
         <section className="mobile-card">
@@ -384,59 +444,7 @@ export function DetailOverviewTab({ process, documents }: DetailOverviewTabProps
           </ul>
         )}
       </section>
-
-      {/* Pilot - Inline Editable */}
-      <section className="mobile-card">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-              <User className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                Process Pilot
-              </p>
-              {editingSection === "pilot" ? (
-                <div className="flex items-center gap-2 mt-1">
-                  <Input
-                    value={editPilot}
-                    onChange={(e) => setEditPilot(e.target.value)}
-                    placeholder="Pilot name..."
-                    className="h-8 w-48"
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSavePilot();
-                      if (e.key === "Escape") handleCancelEdit();
-                    }}
-                  />
-                  <Button size="sm" variant="ghost" onClick={handleSavePilot} className="h-7 w-7 p-0">
-                    <Check className="w-3 h-3" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="h-7 w-7 p-0">
-                    <X className="w-3 h-3" />
-                  </Button>
-                </div>
-              ) : (
-                <p className="font-medium">{process.pilotName || <span className="text-muted-foreground italic">Not assigned</span>}</p>
-              )}
-            </div>
-          </div>
-          {editingSection !== "pilot" && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setEditPilot(process.pilotName || "");
-                setEditingSection("pilot");
-              }}
-              className="h-7 w-7"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </Button>
-          )}
-        </div>
-      </section>
+      </div>
 
       {/* Revision History */}
       <RevisionHistory

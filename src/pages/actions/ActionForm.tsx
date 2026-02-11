@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, addDays } from "date-fns";
 import { CheckCircle } from "lucide-react";
+import { HelpHint } from "@/components/ui/help-hint";
 
 const originOptions: { value: ActionOrigin; label: string; description: string }[] = [
   { value: "issue", label: "Issue (Risk/Opportunity)", description: "Action from a risk or opportunity" },
@@ -128,7 +129,10 @@ export default function ActionForm() {
         <form onSubmit={handleSubmit} className="py-6 space-y-6">
           {/* Action Code */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label htmlFor="code">Reference Code *</Label>
+            <HelpHint content="Use a unique code to track this action through planning, implementation, and effectiveness review." />
+          </div>
             <Input
               id="code"
               value={formData.code}
@@ -143,7 +147,10 @@ export default function ActionForm() {
 
           {/* Process Selection */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label>Process *</Label>
+            <HelpHint content="Actions should be linked to the affected process so compliance evidence and KPI impact are visible in one place." />
+          </div>
             <Select
               value={formData.processId}
               onValueChange={(value) => setFormData(prev => ({ ...prev, processId: value, linkedIssueIds: [] }))}
@@ -166,7 +173,10 @@ export default function ActionForm() {
 
           {/* Origin */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label>Origin *</Label>
+            <HelpHint content="Select the source event that triggered this action (risk, audit, review, objective gap, etc.)." />
+          </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
               {originOptions.map((option) => (
                 <button
@@ -192,7 +202,10 @@ export default function ActionForm() {
           {/* Link to Issues - Show when origin is "issue" OR when an issue was preselected */}
           {(formData.origin === "issue" || preselectedIssueId) && formData.processId && (
             <div className="form-field">
+              <div className="flex items-center gap-2">
               <Label>Link to Issue(s) *</Label>
+              <HelpHint content="When origin is Issue, link one or more issues so action effectiveness can be traced back to the original risk/opportunity." />
+            </div>
               <p className="form-helper mb-2">
                 Select one or more issues this action addresses.
               </p>
@@ -237,7 +250,10 @@ export default function ActionForm() {
 
           {/* Action Title */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label htmlFor="title">Action Title *</Label>
+            <HelpHint content="Write the action as a concrete deliverable so assignees understand exactly what to implement." />
+          </div>
             <Input
               id="title"
               value={formData.title}
@@ -251,7 +267,10 @@ export default function ActionForm() {
 
           {/* Description */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label htmlFor="description">Description *</Label>
+            <HelpHint content="Explain scope, expected result, and acceptance criteria. This supports objective evidence at closure time." />
+          </div>
             <Textarea
               id="description"
               value={formData.description}
@@ -266,7 +285,10 @@ export default function ActionForm() {
 
           {/* Deadline */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label htmlFor="deadline">Deadline *</Label>
+            <HelpHint content="Set a realistic due date to ensure timely risk treatment and corrective action completion." />
+          </div>
             <Input
               id="deadline"
               type="date"
@@ -280,7 +302,10 @@ export default function ActionForm() {
 
           {/* Responsible */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label htmlFor="responsible">Responsible Person</Label>
+            <HelpHint content="Assign an accountable owner. ISO-oriented workflows need clear responsibility and authority." />
+          </div>
             <Input
               id="responsible"
               value={formData.responsibleName}
@@ -294,7 +319,10 @@ export default function ActionForm() {
 
           {/* Initial Status */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label>Initial Status</Label>
+            <HelpHint content="Use Planned for approved but not started actions; In Progress once execution begins." />
+          </div>
             <div className="flex gap-2 mt-2">
               <StatusButton
                 selected={formData.status === "planned"}

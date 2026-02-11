@@ -2,43 +2,146 @@ import { useState, useCallback, useEffect } from "react";
 import { Document, DocumentAttachment, Process } from "@/types/management-system";
 import { createRecord, deleteRecord, fetchRecords, updateRecord } from "@/lib/records";
 import { createSeedDocuments } from "@/data/qmsDocuments";
+import { DEFAULT_PROCESSES } from "@/data/default-processes";
 
 type CreateDocumentData = Omit<Document, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate"> & {
   code?: string;
 };
 
+function buildFallbackProcesses(): Process[] {
+  const now = new Date().toISOString();
+  return DEFAULT_PROCESSES.map((process) => ({
+    id: crypto.randomUUID(),
+    code: process.code,
+    name: process.name,
+    type: process.type,
+    purpose: process.purpose,
+    inputs: process.inputs,
+    outputs: process.outputs,
+    activities: process.activities,
+    regulations: process.regulations,
+    pilotName: process.pilotName,
+    status: "active",
+    standard: "ISO_9001",
+    createdAt: now,
+    updatedAt: now,
+    version: 1,
+    revisionDate: now,
+    indicatorIds: [],
+    riskIds: [],
+    opportunityIds: [],
+    actionIds: [],
+    auditIds: [],
+    documentIds: [],
+  }));
+}
+
+function backfillMissingClauseReferences(documents: Document[]): Document[] {
+  const seedByCode = new Map(createSeedDocuments().map((document) => [document.code, document.isoClauseReferences]));
+  return documents.map((document) => {
+    if ((document.isoClauseReferences?.length ?? 0) > 0) {
+      return document;
+    }
+    const inferredClauses = seedByCode.get(document.code);
+    return inferredClauses ? { ...document, isoClauseReferences: inferredClauses } : document;
+  });
+}
+
 function attachDocumentsToProcesses(seedDocuments: Document[], processes: Process[]): Document[] {
   const processIdByKeyword = new Map<string, string>();
-  processes.forEach((process) => {
-    const n = process.name.toLowerCase();
-    if (n.includes("human resources")) processIdByKeyword.set("hr", process.id);
-    if (n.includes("management")) processIdByKeyword.set("management", process.id);
-    if (n.includes("quality")) processIdByKeyword.set("quality", process.id);
-    if (n.includes("operational process 01")) processIdByKeyword.set("op1", process.id);
-    if (n.includes("operational process 02")) processIdByKeyword.set("op2", process.id);
-    if (n.includes("purchasing")) processIdByKeyword.set("purchasing", process.id);
-    if (n.includes("it process")) processIdByKeyword.set("it", process.id);
-    if (n.includes("administration process")) processIdByKeyword.set("admin", process.id);
-    if (n.includes("sales process")) processIdByKeyword.set("sales", process.id);
-  });
 
-  const mapByCode = (code: string): string[] => {
-    if (code.startsWith("MS-004")) return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
-    if (code.startsWith("MS-012") || code.startsWith("MS-011")) return [processIdByKeyword.get("management")].filter(Boolean) as string[];
-    if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
-    if (code.startsWith("MS-005") || code.startsWith("MS-008") || code.startsWith("MS-014")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("sales")].filter(Boolean) as string[];
-    if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
-    if (code.startsWith("MS-013")) return [processIdByKeyword.get("it"), processIdByKeyword.get("admin"), processIdByKeyword.get("op1"), processIdByKeyword.get("op2")].filter(Boolean) as string[];
-    if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001")) {
-    if (code.startsWith("MS-005") || code.startsWith("MS-008") || code.startsWith("MS-014")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2")].filter(Boolean) as string[];
-    if (code.startsWith("MS-006") || code.startsWith("MS-007")) return [processIdByKeyword.get("op1"), processIdByKeyword.get("op2"), processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
-    if (code.startsWith("MS-002") || code.startsWith("MS-003") || code.startsWith("MS-001") || code.startsWith("MS-013")) {
-      return Array.from(processIdByKeyword.values());
-    }
-    return [];
+  const register = (keyword: string, processId: string) => {
+    processIdByKeyword.set(keyword, processId);
   };
 
-  return seedDocuments.map((document) => ({ ...document, processIds: mapByCode(document.code) }));
+  processes.forEach((process) => {
+    const n = process.name.toLowerCase();
+    if (n.includes("human resources")) register("hr", process.id);
+    if (n.includes("management")) register("management", process.id);
+    if (n.includes("quality")) register("quality", process.id);
+    if (n.includes("operational process 01")) register("op1", process.id);
+    if (n.includes("operational process 02")) register("op2", process.id);
+    if (n.includes("purchasing")) register("purchasing", process.id);
+    if (n.includes("it process")) register("it", process.id);
+    if (n.includes("administration process")) register("admin", process.id);
+    if (n.includes("sales process")) register("sales", process.id);
+  });
+
+  const allKnownProcesses = Array.from(new Set(processIdByKeyword.values()));
+
+  const ids = (...keys: string[]) => Array.from(new Set(keys.map((key) => processIdByKeyword.get(key)).filter(Boolean))) as string[];
+
+  const mapByCodeAndMetadata = (document: Document): string[] => {
+    const code = document.code;
+    const textHint = `${document.title} ${document.purpose ?? ""}`.toLowerCase();
+    const clauses = document.isoClauseReferences.map((clause) => clause.clauseNumber);
+
+    // System-wide governance and documented information.
+    if (code.startsWith("MS-001") || code.startsWith("MS-002") || code.startsWith("MS-003")) {
+      return allKnownProcesses;
+    }
+
+    // Leadership and strategic review.
+    if (code.startsWith("MS-011") || code.startsWith("MS-012")) {
+      return ids("management", "quality");
+    }
+
+    // HR and competence controls.
+    if (code.startsWith("MS-004") || textHint.includes("recruit") || textHint.includes("training") || textHint.includes("competence")) {
+      return ids("hr");
+    }
+
+    // Infrastructure and knowledge support.
+    if (code.startsWith("MS-013") || textHint.includes("infrastructure") || textHint.includes("knowledge")) {
+      return ids("it", "admin", "hr", "op1", "op2");
+    }
+
+    // Core operations and customer journey.
+    if (code.startsWith("MS-005") || code.startsWith("MS-006") || code.startsWith("MS-008") || code.startsWith("MS-014")) {
+      return ids("op1", "op2", "sales", "quality");
+    }
+
+    // Supplier selection and purchasing controls.
+    if (code.startsWith("MS-007") || textHint.includes("supplier") || textHint.includes("purchase")) {
+      return ids("purchasing", "op1", "op2", "quality");
+    }
+
+    // QA, audit, corrective action and continual improvement.
+    if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) {
+      return ids("quality", "management");
+    }
+
+    // Clause-guided fallback when code is custom or manually created.
+    const inferredByClause = new Set<string>();
+    if (clauses.some((clause) => clause.startsWith("5."))) ids("management").forEach((id) => inferredByClause.add(id));
+    if (clauses.some((clause) => clause.startsWith("7.1") || clause.startsWith("7.2") || clause.startsWith("7.3"))) ids("hr", "it", "admin").forEach((id) => inferredByClause.add(id));
+    if (clauses.some((clause) => clause.startsWith("8.2"))) ids("sales", "op1", "op2").forEach((id) => inferredByClause.add(id));
+    if (clauses.some((clause) => clause.startsWith("8.4"))) ids("purchasing").forEach((id) => inferredByClause.add(id));
+    if (clauses.some((clause) => clause.startsWith("9.") || clause.startsWith("10."))) ids("quality", "management").forEach((id) => inferredByClause.add(id));
+
+    const inferred = Array.from(inferredByClause);
+    return inferred.length > 0 ? inferred : allKnownProcesses;
+  };
+
+  return seedDocuments.map((document) => ({ ...document, processIds: mapByCodeAndMetadata(document) }));
+}
+
+
+function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
+  const linkedFromCode = attachDocumentsToProcesses(documents, processes);
+  const knownProcessIds = new Set(processes.map((process) => process.id));
+
+  return linkedFromCode.map((document, index) => {
+    const current = documents[index];
+    const currentProcessIds = current.processIds ?? [];
+
+    const hasAnyValidLinkedProcess = currentProcessIds.some((processId) => knownProcessIds.has(processId));
+    if (hasAnyValidLinkedProcess) {
+      return current;
+    }
+
+    return { ...current, processIds: document.processIds };
+  });
 }
 
 
@@ -54,25 +157,50 @@ export function useDocuments() {
       setIsLoading(true);
       try {
         const remoteDocuments = await fetchRecords<Document>("documents");
+
+        let processes: Process[] = [];
+        try {
+          processes = await fetchRecords<Process>("processes");
+        } catch (processError) {
+          console.warn("Failed to load processes for document linking, using fallback process list:", processError);
+        }
+
+        if (processes.length === 0) {
+          processes = buildFallbackProcesses();
+        }
+
         if (remoteDocuments.length === 0) {
           const seeded = createSeedDocuments();
-          const processes = await fetchRecords<Process>("processes");
           const linkedSeed = attachDocumentsToProcesses(seeded, processes);
           setDocuments(linkedSeed);
           await Promise.all(linkedSeed.map((document) => createRecord("documents", document)));
-          setDocuments(seeded);
-          await Promise.all(seeded.map((document) => createRecord("documents", document)));
         } else {
-          setDocuments(remoteDocuments);
+          const withLinkedProcesses = backfillMissingProcessLinks(remoteDocuments, processes);
+          const backfilled = backfillMissingClauseReferences(withLinkedProcesses);
+          setDocuments(backfilled);
+
+          // Persist inferred links/clauses for documents that were previously incomplete.
+          await Promise.all(
+            backfilled
+              .filter((document, index) => {
+                const remote = remoteDocuments[index];
+                const knownProcessIds = new Set(processes.map((process) => process.id));
+                const remoteProcessIds = remote.processIds ?? [];
+                const hasValidRemoteProcessLink = remoteProcessIds.some((processId) => knownProcessIds.has(processId));
+                const needsProcessBackfill = document.processIds.length > 0 && !hasValidRemoteProcessLink;
+                const hadNoClauses = (remote.isoClauseReferences?.length ?? 0) === 0 && (document.isoClauseReferences?.length ?? 0) > 0;
+                return needsProcessBackfill || hadNoClauses;
+              })
+              .map((document) => updateRecord("documents", document.id, document)),
+          );
         }
         setInitialized(true);
       } catch (error) {
         console.error("Failed to load documents:", error);
-        // Fallback: still expose the ISO scaffold locally so the app is usable
-        // even when the API is down or tenant records are not reachable.
-        const fallbackSeed = attachDocumentsToProcesses(createSeedDocuments(), []);
+        // Fallback: expose scaffold with process and clause links even when APIs are unavailable.
+        const fallbackSeed = backfillMissingClauseReferences(attachDocumentsToProcesses(createSeedDocuments(), buildFallbackProcesses()));
         setDocuments(fallbackSeed);
-        setDocuments(createSeedDocuments());
+        setInitialized(true);
       } finally {
         setIsLoading(false);
       }

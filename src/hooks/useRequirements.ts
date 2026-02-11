@@ -120,46 +120,51 @@ export function useRequirements({ processes, issues, actions, documents }: UseRe
       }
     });
 
-    // Inference rules based on requirement clause
-    switch (requirement.clauseNumber) {
-      case "6.1": // Risk-based thinking
-        // Satisfied if process has at least one linked issue (risk/opportunity)
-        if (processIssues.length > 0) {
-          processIssues.forEach(issue => {
-            inferredFrom.push({ type: "issue_linked", issueId: issue.id });
-          });
-        }
-        break;
+    // Inference rules based on requirement clause families.
+    const clause = requirement.clauseNumber;
 
-      case "10.2": // Nonconformity and corrective action
-      case "10.3": // Continual improvement
-        // Satisfied if process has at least one action
-        const evidencedActions = processActions.filter(action => action.status === "evaluated" || action.status === "completed_pending_evaluation");
-        if (evidencedActions.length > 0) {
-          evidencedActions.forEach(action => {
-            inferredFrom.push({ type: "action_linked", actionId: action.id });
-          });
-        }
-        break;
-
-      case "6.2": // Quality objectives
-        // Would check for objectives - simplified for now
-        break;
-
-      case "9.1.1": // Monitoring and measurement
-        // Would check for KPIs - simplified for now
-        break;
-
-      default:
-        // Other requirements need explicit evidence (future feature)
-        break;
+    // Risk and opportunity management is evidenced by linked context issues.
+    if (clause.startsWith("6.1") || clause.startsWith("4.1") || clause.startsWith("4.2")) {
+      processIssues.forEach((issue) => {
+        inferredFrom.push({ type: "issue_linked", issueId: issue.id });
+      });
     }
+
+    // Corrective action / improvement evidence is sourced from progressed actions.
+    if (clause.startsWith("10.2") || clause.startsWith("10.3") || clause.startsWith("8.7")) {
+      processActions
+        .filter((action) => action.status === "evaluated" || action.status === "completed_pending_evaluation")
+        .forEach((action) => {
+          inferredFrom.push({ type: "action_linked", actionId: action.id });
+        });
+    }
+
+    // Monitoring and measurement can be supported by any evaluated action as implementation evidence.
+    if (clause.startsWith("9.1") && processActions.length > 0) {
+      processActions
+        .filter((action) => action.status !== "cancelled")
+        .forEach((action) => {
+          inferredFrom.push({ type: "action_linked", actionId: action.id });
+        });
+    }
+
+    // Clause 7.5 can be inferred by existence of active controlled documents, even without explicit mapping.
+    if (clause.startsWith("7.5") && processDocuments.length > 0) {
+      processDocuments.forEach((document) => {
+        inferredFrom.push({ type: "document_linked", documentId: document.id });
+      });
+    }
+
+    const uniqueInference = inferredFrom.filter((item, index, arr) => {
+      const key = JSON.stringify(item);
+      return arr.findIndex((candidate) => JSON.stringify(candidate) === key) === index;
+    });
 
     return {
       requirementId: requirement.id,
       processId,
-      state: inferredFrom.length > 0 ? "satisfied" : "not_yet_satisfied",
-      inferredFrom,
+      state: uniqueInference.length > 0 ? "satisfied" : "not_yet_satisfied",
+      inferredFrom: uniqueInference,
     };
   }, [issues, actions, documents, clauseMatches]);
 

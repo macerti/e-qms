@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { RiskEvaluation, getPriorityFromCriticity } from "@/components/risk/RiskEvaluation";
 import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
+import { HelpHint } from "@/components/ui/help-hint";
 
 const quadrantOptions: { value: SwotQuadrant; label: string; type: IssueType; description: string; defaultNature: ContextNature }[] = [
   { value: "strength", label: "Strength", type: "opportunity", description: "Internal positive factor", defaultNature: "internal" },
@@ -105,7 +106,10 @@ export default function IssueForm() {
         <form onSubmit={handleSubmit} className="py-6 space-y-6">
           {/* Quadrant Selection - First to generate code */}
           <div className="form-field">
-            <Label>Type *</Label>
+            <div className="flex items-center gap-2">
+              <Label>Type *</Label>
+              <HelpHint content="ISO 9001 requires identifying risks and opportunities. Choose the SWOT type that best describes the context factor before evaluation." />
+            </div>
             <div className="grid grid-cols-2 gap-2 mt-2">
               {quadrantOptions.map((option) => (
                 <button
@@ -136,7 +140,10 @@ export default function IssueForm() {
           {/* Code Field - Only shown after quadrant selected */}
           {formData.quadrant && (
             <div className="form-field">
+              <div className="flex items-center gap-2">
               <Label htmlFor="code">Reference Code</Label>
+              <HelpHint content="Use a stable code so risks and opportunities remain traceable in audits and action plans." />
+            </div>
               <Input
                 id="code"
                 value={formData.code}
@@ -152,7 +159,10 @@ export default function IssueForm() {
 
           {/* Process Selection */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label>Process *</Label>
+            <HelpHint content="Link the issue to the process where it occurs. This is essential for process-level compliance and performance monitoring." />
+          </div>
             <Select
               value={formData.processId}
               onValueChange={(value) => setFormData(prev => ({ ...prev, processId: value }))}
@@ -175,7 +185,10 @@ export default function IssueForm() {
 
           {/* Context Nature (Internal / External) */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label>Context Nature</Label>
+            <HelpHint content="Classify whether the factor is internal or external, aligned with ISO 9001 context analysis (clauses 4.1 and 4.2)." />
+          </div>
             <div className="flex gap-2 mt-2">
               <button
                 type="button"
@@ -209,7 +222,10 @@ export default function IssueForm() {
 
           {/* Description */}
           <div className="form-field">
+            <div className="flex items-center gap-2">
             <Label htmlFor="description">Description *</Label>
+            <HelpHint content="Describe the situation clearly enough so another user can assess impact, assign action, and verify effectiveness." />
+          </div>
             <Textarea
               id="description"
               value={formData.description}

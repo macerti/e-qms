@@ -145,6 +145,16 @@ export function RequirementAllocationPicker({
                           {isSatisfied ? "✓ Satisfied" : "○ Not yet satisfied"}
                         </span>
                       </div>
+                      {fulfillment.inferredFrom.length > 0 && (
+                        <div className="pt-1 border-t border-border/50 mt-1 space-y-0.5">
+                          <p className="text-[10px] text-muted-foreground">Evidence sources:</p>
+                          {fulfillment.inferredFrom.slice(0, 3).map((source, idx) => (
+                            <p key={idx} className="text-[10px] text-muted-foreground">
+                              • {source.type === "document_linked" ? "Document linked" : source.type === "issue_linked" ? "Issue linked" : "Action linked"}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                       {req.type === "generic" && (
                         <p className="text-[10px] text-muted-foreground">
                           System requirement — cannot be removed

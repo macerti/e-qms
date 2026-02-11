@@ -65,7 +65,6 @@ export function useProcesses() {
             outputs: p.outputs,
             activities: activitiesWithGovernance,
             regulations: p.regulations,
-            regulations: [],
             pilotName: p.pilotName,
             status: "active" as ProcessStatus,
             standard: "ISO_9001",
@@ -95,7 +94,7 @@ export function useProcesses() {
         // Fallback demo seed when API is unavailable.
         const now = new Date().toISOString();
         const fallbackProcesses: Process[] = DEFAULT_PROCESSES.map((p) => {
-          const processId = crypto.randomUUID();
+          const processId = `fallback-${p.code.toLowerCase()}`;
           const activitiesWithGovernance = ensureGovernanceActivity(processId, p.activities);
           return {
             id: processId,
