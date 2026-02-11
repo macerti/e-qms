@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FileText,
@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Document, DocumentType, ISOClauseReference } from "@/types/management-system";
 import { cn } from "@/lib/utils";
+import { HelpHint } from "@/components/ui/help-hint";
 
 const DOCUMENT_TYPE_CONFIG: Record<DocumentType, { label: string; icon: React.ElementType; color: string }> = {
   procedure: { label: "Procedure", icon: FileCheck, color: "text-blue-600" },
@@ -215,24 +216,28 @@ export default function DocumentDetail() {
               label={currentDocument.type === "procedure" ? "Procedure Name" : "Document Name"}
               defaultValue={currentDocument.title}
               onSave={(value) => saveInlineField("title", value)}
+              helpText="Use a descriptive title that directly reflects the activity controlled by this document."
             />
             <InlineField
               label="Purpose"
               defaultValue={currentDocument.purpose ?? ""}
               multiline
               onSave={(value) => saveInlineField("purpose", value)}
+              helpText="State why this document exists and what ISO requirement or business need it addresses."
             />
             <InlineField
               label="Approvers / Responsibilities"
               defaultValue={currentDocument.responsibilities ?? ""}
               multiline
               onSave={(value) => saveInlineField("responsibilities", value)}
+              helpText="Define approvers, owners, and users responsible for implementing this document."
             />
             <InlineField
               label="Definitions"
               defaultValue={currentDocument.definitions ?? ""}
               multiline
               onSave={(value) => saveInlineField("definitions", value)}
+              helpText="Clarify terms and abbreviations to avoid inconsistent interpretation across teams."
             />
             </div>
 
@@ -286,11 +291,12 @@ export default function DocumentDetail() {
               defaultValue={currentDocument.content ?? currentDocument.description ?? ""}
               multiline
               onSave={(value) => saveInlineField("content", value)}
+              helpText="Maintain controlled operational instructions, acceptance criteria, and references in this body."
             />
 
             <section className="mobile-card space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-medium">Attachments</h3>
+                <h3 className="font-medium flex items-center gap-2">Attachments <HelpHint content="Attach controlled files or templates used as implementation evidence." /></h3>
                 <Label htmlFor="upload-input" className="cursor-pointer">
                   <span className="inline-flex items-center gap-2 text-sm text-primary">
                     <Upload className="w-4 h-4" /> Upload
@@ -401,11 +407,13 @@ function InlineField({
   defaultValue,
   onSave,
   multiline,
+  helpText,
 }: {
   label: string;
   defaultValue: string;
   onSave: (value: string) => void;
   multiline?: boolean;
+  helpText?: string;
 }) {
   const [value, setValue] = useState(defaultValue);
 

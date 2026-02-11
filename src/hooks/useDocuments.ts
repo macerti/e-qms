@@ -2,10 +2,50 @@ import { useState, useCallback, useEffect } from "react";
 import { Document, DocumentAttachment, Process } from "@/types/management-system";
 import { createRecord, deleteRecord, fetchRecords, updateRecord } from "@/lib/records";
 import { createSeedDocuments } from "@/data/qmsDocuments";
+import { DEFAULT_PROCESSES } from "@/data/default-processes";
 
 type CreateDocumentData = Omit<Document, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate"> & {
   code?: string;
 };
+
+function buildFallbackProcesses(): Process[] {
+  const now = new Date().toISOString();
+  return DEFAULT_PROCESSES.map((process) => ({
+    id: crypto.randomUUID(),
+    code: process.code,
+    name: process.name,
+    type: process.type,
+    purpose: process.purpose,
+    inputs: process.inputs,
+    outputs: process.outputs,
+    activities: process.activities,
+    regulations: process.regulations,
+    pilotName: process.pilotName,
+    status: "active",
+    standard: "ISO_9001",
+    createdAt: now,
+    updatedAt: now,
+    version: 1,
+    revisionDate: now,
+    indicatorIds: [],
+    riskIds: [],
+    opportunityIds: [],
+    actionIds: [],
+    auditIds: [],
+    documentIds: [],
+  }));
+}
+
+function backfillMissingClauseReferences(documents: Document[]): Document[] {
+  const seedByCode = new Map(createSeedDocuments().map((document) => [document.code, document.isoClauseReferences]));
+  return documents.map((document) => {
+    if ((document.isoClauseReferences?.length ?? 0) > 0) {
+      return document;
+    }
+    const inferredClauses = seedByCode.get(document.code);
+    return inferredClauses ? { ...document, isoClauseReferences: inferredClauses } : document;
+  });
+}
 
 function attachDocumentsToProcesses(seedDocuments: Document[], processes: Process[]): Document[] {
   const processIdByKeyword = new Map<string, string>();
@@ -87,9 +127,20 @@ export function useDocuments() {
       setIsLoading(true);
       try {
         const remoteDocuments = await fetchRecords<Document>("documents");
+
+        let processes: Process[] = [];
+        try {
+          processes = await fetchRecords<Process>("processes");
+        } catch (processError) {
+          console.warn("Failed to load processes for document linking, using fallback process list:", processError);
+        }
+
+        if (processes.length === 0) {
+          processes = buildFallbackProcesses();
+        }
+
         if (remoteDocuments.length === 0) {
           const seeded = createSeedDocuments();
-          const processes = await fetchRecords<Process>("processes");
           const linkedSeed = attachDocumentsToProcesses(seeded, processes);
           setDocuments(linkedSeed);
           await Promise.all(linkedSeed.map((document) => createRecord("documents", document)));
@@ -108,9 +159,8 @@ export function useDocuments() {
         setInitialized(true);
       } catch (error) {
         console.error("Failed to load documents:", error);
-        // Fallback: still expose the ISO scaffold locally so the app is usable
-        // even when the API is down or tenant records are not reachable.
-        const fallbackSeed = attachDocumentsToProcesses(createSeedDocuments(), []);
+        // Fallback: expose scaffold with process and clause links even when APIs are unavailable.
+        const fallbackSeed = backfillMissingClauseReferences(attachDocumentsToProcesses(createSeedDocuments(), buildFallbackProcesses()));
         setDocuments(fallbackSeed);
       } finally {
         setIsLoading(false);

@@ -11,6 +11,34 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { Button } from "@/components/ui/button";
 
+function compareDocumentCodes(aCode: string, bCode: string): number {
+  const tokenize = (code: string) =>
+    code
+      .replace(/^MS-/, "")
+      .split("-")
+      .flatMap((segment) => segment.split("."))
+      .map((part) => {
+        const n = Number(part);
+        return Number.isFinite(n) ? n : part;
+      });
+
+  const left = tokenize(aCode);
+  const right = tokenize(bCode);
+  const max = Math.max(left.length, right.length);
+
+  for (let index = 0; index < max; index += 1) {
+    const l = left[index];
+    const r = right[index];
+    if (l === undefined) return -1;
+    if (r === undefined) return 1;
+    if (typeof l === "number" && typeof r === "number" && l !== r) return l - r;
+    if (String(l) !== String(r)) return String(l).localeCompare(String(r));
+  }
+
+  return 0;
+}
+
+
 export default function DocumentList() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -64,11 +92,13 @@ export default function DocumentList() {
     });
   }, [documents, filterValues.status, searchValue]);
 
-  const procedures = filteredDocuments.filter((document) => document.type === "procedure");
+  const procedures = filteredDocuments
+    .filter((document) => document.type === "procedure")
+    .sort((a, b) => compareDocumentCodes(a.code, b.code));
   const getProcedureChildren = (procedureId: string) =>
     filteredDocuments
       .filter((document) => document.parentProcedureId === procedureId)
-      .sort((a, b) => a.code.localeCompare(b.code));
+      .sort((a, b) => compareDocumentCodes(a.code, b.code));
 
   return (
     <div className="min-h-screen">

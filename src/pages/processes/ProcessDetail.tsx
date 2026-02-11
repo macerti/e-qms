@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { toast } from "sonner";
+import { HelpHint } from "@/components/ui/help-hint";
 import { jsPDF } from "jspdf";
 import { ProcessTabs, ProcessTabsList, ProcessTabContent } from "@/components/process/ProcessTabs";
 import { DetailOverviewTab } from "@/components/process/DetailOverviewTab";
@@ -220,6 +221,7 @@ export default function ProcessDetail() {
         <section className="mt-6 space-y-3">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider px-1">
             Linked Items
+            <HelpHint content="These counters show evidence linked to this process. Use Add/View actions to keep risks, opportunities, actions, and documents synchronized." />
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
             <LinkedItemActionCard
