@@ -2,38 +2,14 @@ import { useState, useCallback, useEffect } from "react";
 import { Document, DocumentAttachment, Process } from "@/types/management-system";
 import { createRecord, deleteRecord, fetchRecords, updateRecord } from "@/lib/records";
 import { createSeedDocuments } from "@/data/qmsDocuments";
-import { DEFAULT_PROCESSES } from "@/data/default-processes";
+import { createFallbackProcesses } from "@/data/default-processes";
 
 type CreateDocumentData = Omit<Document, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate"> & {
   code?: string;
 };
 
 function buildFallbackProcesses(): Process[] {
-  const now = new Date().toISOString();
-  return DEFAULT_PROCESSES.map((process) => ({
-    id: crypto.randomUUID(),
-    code: process.code,
-    name: process.name,
-    type: process.type,
-    purpose: process.purpose,
-    inputs: process.inputs,
-    outputs: process.outputs,
-    activities: process.activities,
-    regulations: process.regulations,
-    pilotName: process.pilotName,
-    status: "active",
-    standard: "ISO_9001",
-    createdAt: now,
-    updatedAt: now,
-    version: 1,
-    revisionDate: now,
-    indicatorIds: [],
-    riskIds: [],
-    opportunityIds: [],
-    actionIds: [],
-    auditIds: [],
-    documentIds: [],
-  }));
+  return createFallbackProcesses();
 }
 
 function backfillMissingClauseReferences(documents: Document[]): Document[] {
@@ -56,18 +32,23 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
 
   processes.forEach((process) => {
     const n = process.name.toLowerCase();
-    if (n.includes("human resources")) register("hr", process.id);
-    if (n.includes("management")) register("management", process.id);
-    if (n.includes("quality")) register("quality", process.id);
-    if (n.includes("operational process 01")) register("op1", process.id);
-    if (n.includes("operational process 02")) register("op2", process.id);
-    if (n.includes("purchasing")) register("purchasing", process.id);
-    if (n.includes("it process")) register("it", process.id);
-    if (n.includes("administration process")) register("admin", process.id);
-    if (n.includes("sales process")) register("sales", process.id);
+    const c = process.code.toLowerCase();
+
+    if (n.includes("human resources") || c === "pro-001") register("hr", process.id);
+    if (n.includes("management") || c === "pro-002") register("management", process.id);
+    if (n.includes("quality") || c === "pro-003") register("quality", process.id);
+    if (n.includes("operational process 01") || c === "pro-004") register("op1", process.id);
+    if (n.includes("operational process 02") || c === "pro-005") register("op2", process.id);
+    if (n.includes("purchasing") || c === "pro-006") register("purchasing", process.id);
+    if (n.includes("it process") || c === "pro-007") register("it", process.id);
+    if (n.includes("administration process") || c === "pro-008") register("admin", process.id);
+    if (n.includes("sales process") || c === "pro-009") register("sales", process.id);
+
+    // Aliases for customized process names.
+    if (n.includes("recruit") || n.includes("talent")) register("hr", process.id);
+    if (n.includes("supplier") || n.includes("procurement")) register("purchasing", process.id);
   });
 
-  const allKnownProcesses = Array.from(processIdByKeyword.values());
 
   const mapByCode = (code: string): string[] => {
     if (code.startsWith("MS-004")) return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
@@ -79,37 +60,46 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
       return Array.from(processIdByKeyword.values());
     }
 
-    // Quality assurance, audit, corrective action and continual improvement
-    if (code.startsWith("MS-009") || code.startsWith("MS-010") || code.startsWith("MS-015")) {
+    return [];
+  };
+
+  const mapByTitle = (document: Document): string[] => {
+    const text = `${document.title} ${document.description ?? ""} ${document.purpose ?? ""}`.toLowerCase();
+
+    if (text.includes("supplier") || text.includes("procurement") || text.includes("purchas")) {
+      return [processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
+    }
+
+    if (text.includes("recruit") || text.includes("competence") || text.includes("training") || text.includes("human resource")) {
+      return [processIdByKeyword.get("hr")].filter(Boolean) as string[];
+    }
+
+    if (text.includes("audit") || text.includes("nonconform") || text.includes("corrective") || text.includes("improvement")) {
       return [processIdByKeyword.get("quality")].filter(Boolean) as string[];
     }
 
     return [];
   };
 
-  return seedDocuments.map((document) => ({ ...document, processIds: mapByCodeAndMetadata(document) }));
-}
-
-
-function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
-  const linkedFromCode = attachDocumentsToProcesses(documents, processes);
-  return linkedFromCode.map((document, index) => {
-    const current = documents[index];
-    if ((current.processIds?.length ?? 0) > 0) {
-      return current;
-    }
-    return { ...current, processIds: document.processIds };
+  return seedDocuments.map((document) => {
+    const processIds = Array.from(new Set([...mapByCode(document.code), ...mapByTitle(document)]));
+    return { ...document, processIds };
   });
 }
 
 
 function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
   const linkedFromCode = attachDocumentsToProcesses(documents, processes);
+  const validProcessIds = new Set(processes.map((process) => process.id));
+
   return linkedFromCode.map((document, index) => {
     const current = documents[index];
-    if ((current.processIds?.length ?? 0) > 0) {
-      return current;
+    const existingValidIds = (current.processIds ?? []).filter((processId) => validProcessIds.has(processId));
+
+    if (existingValidIds.length > 0) {
+      return existingValidIds.length === current.processIds.length ? current : { ...current, processIds: existingValidIds };
     }
+
     return { ...current, processIds: document.processIds };
   });
 }
@@ -145,14 +135,13 @@ export function useDocuments() {
           setDocuments(linkedSeed);
           await Promise.all(linkedSeed.map((document) => createRecord("documents", document)));
         } else {
-          const processes = await fetchRecords<Process>("processes");
           const backfilled = backfillMissingProcessLinks(remoteDocuments, processes);
           setDocuments(backfilled);
 
           // Persist inferred links for documents that were previously unlinked.
           await Promise.all(
             backfilled
-              .filter((document, index) => (remoteDocuments[index].processIds?.length ?? 0) === 0 && document.processIds.length > 0)
+              .filter((document, index) => (remoteDocuments[index].processIds ?? []).join("|") !== document.processIds.join("|") && document.processIds.length > 0)
               .map((document) => updateRecord("documents", document.id, document)),
           );
         }

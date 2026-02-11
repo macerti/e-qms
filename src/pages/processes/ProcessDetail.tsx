@@ -223,7 +223,7 @@ export default function ProcessDetail() {
             Linked Items
             <HelpHint content="These counters show evidence linked to this process. Use Add/View actions to keep risks, opportunities, actions, and documents synchronized." />
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
             <LinkedItemActionCard
               icon={AlertTriangle}
               label="Risks"
@@ -274,20 +274,20 @@ interface LinkedItemActionCardProps {
 
 function LinkedItemActionCard({ icon: Icon, label, count, color, onView, onCreate }: LinkedItemActionCardProps) {
   return (
-    <div className="mobile-card space-y-3">
+    <div className="mobile-card space-y-2 sm:space-y-3">
       <button onClick={onView} className="w-full text-left">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <Icon className={`w-4 h-4 ${color}`} />
-            <span className="text-sm font-medium">{label}</span>
+            <span className="text-xs sm:text-sm font-medium truncate">{label}</span>
           </div>
-          <span className="font-mono text-lg font-bold">{count}</span>
+          <span className="font-mono text-base sm:text-lg font-bold shrink-0">{count}</span>
         </div>
       </button>
       <Button
         type="button"
         variant="secondary"
-        className="w-full bg-accent/15 hover:bg-accent/25 text-foreground"
+        className="w-full h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm bg-accent/15 hover:bg-accent/25 text-foreground"
         onClick={onCreate}
       >
         Add {label.slice(0, -1)}

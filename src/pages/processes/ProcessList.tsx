@@ -1,6 +1,6 @@
- import { useState, useMemo, useCallback } from "react";
- import { useNavigate, useSearchParams } from "react-router-dom";
- import { Workflow, ArrowRight, Settings, Cog, Wrench, Scale } from "lucide-react";
+	 import { useState, useMemo, useCallback } from "react";
+	 import { useNavigate, useSearchParams } from "react-router-dom";
+	 import { Workflow, ArrowRight, Settings, Cog, Wrench, Scale } from "lucide-react";
  import { FilterBar, FilterConfig } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
@@ -22,7 +22,7 @@ const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.Elem
  export default function ProcessList() {
    const navigate = useNavigate();
    const [searchParams, setSearchParams] = useSearchParams();
-   const { processes } = useManagementSystem();
+	   const { processes, issues, actions, documents } = useManagementSystem();
    const [showCreateDialog, setShowCreateDialog] = useState(false);
  
    // Get filter values from URL params (for deep linking from Dashboard)
@@ -122,7 +122,11 @@ const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.Elem
             {filteredProcesses.map((process) => {
               const typeConfig = PROCESS_TYPE_CONFIG[process.type];
               const TypeIcon = typeConfig.icon;
-              const regulationsCount = process.regulations?.length || 0;
+	              const regulationsCount = process.regulations?.length || 0;
+	              const risksCount = issues.filter((issue) => issue.processId === process.id && issue.type === "risk").length;
+	              const opportunitiesCount = issues.filter((issue) => issue.processId === process.id && issue.type === "opportunity").length;
+	              const actionsCount = actions.filter((action) => action.processId === process.id).length;
+	              const documentsCount = documents.filter((document) => document.processIds.includes(process.id) && document.status !== "archived").length;
               
               return (
                 <button
@@ -159,11 +163,13 @@ const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.Elem
                     <ArrowRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1" />
                   </div>
                   
-                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border flex-wrap">
-                    <StatChip label="Activities" value={process.activities?.length || 0} />
-                    <StatChip label="Risks" value={process.riskIds.length} />
-                    <StatChip label="Actions" value={process.actionIds.length} />
-                    {regulationsCount > 0 && (
+	                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border flex-wrap">
+	                    <StatChip label="Activities" value={process.activities?.length || 0} />
+	                    <StatChip label="Risks" value={risksCount} />
+	                    <StatChip label="Opps" value={opportunitiesCount} />
+	                    <StatChip label="Actions" value={actionsCount} />
+	                    <StatChip label="Docs" value={documentsCount} />
+	                    {regulationsCount > 0 && (
                       <div className="flex items-center gap-1.5">
                         <Scale className="w-3.5 h-3.5 text-amber-600" />
                         <span className="font-mono text-sm font-medium">{regulationsCount}</span>

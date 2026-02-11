@@ -9,8 +9,9 @@ import {
   RiskTrigger 
 } from "@/types/management-system";
 import { createRecord, fetchRecords, updateRecord, deleteRecord as deleteDbRecord } from "@/lib/records";
-import { createDemoIssues } from "@/data/demo-seed";
+import { createDemoIssues, inferProcessIdFromText } from "@/data/demo-seed";
 import { Process } from "@/types/management-system";
+import { createFallbackProcesses } from "@/data/default-processes";
 
 type CreateIssueData = {
   code?: string;
@@ -22,6 +23,20 @@ type CreateIssueData = {
   severity?: number; // 1-3 scale
   probability?: number; // 1-3 scale
 };
+
+
+function backfillIssueProcessLinks(issues: ContextIssue[], processes: Process[]): ContextIssue[] {
+  const processIds = new Set(processes.map((process) => process.id));
+
+  return issues.map((issue) => {
+    if (issue.processId && processIds.has(issue.processId)) {
+      return issue;
+    }
+
+    const inferredProcessId = inferProcessIdFromText(processes, `${issue.code} ${issue.description}`);
+    return inferredProcessId ? { ...issue, processId: inferredProcessId } : issue;
+  });
+}
 
 // Calculate priority from criticity (3×3 matrix)
 export function getPriorityFromCriticity(criticity: number): RiskPriority {
@@ -42,14 +57,24 @@ export function useContextIssues() {
     const loadIssues = async () => {
       setIsLoading(true);
       try {
-        const remoteIssues = await fetchRecords<ContextIssue>("issues");
+        const [remoteIssues, processes] = await Promise.all([
+          fetchRecords<ContextIssue>("issues"),
+          fetchRecords<Process>("processes"),
+        ]);
+
         if (remoteIssues.length > 0) {
-          setIssues(remoteIssues);
+          const backfilledIssues = backfillIssueProcessLinks(remoteIssues, processes);
+          setIssues(backfilledIssues);
           setInitialized(true);
+
+          await Promise.all(
+            backfilledIssues
+              .filter((issue, index) => issue.processId !== remoteIssues[index].processId)
+              .map((issue) => updateRecord("issues", issue.id, issue)),
+          );
           return;
         }
 
-        const processes = await fetchRecords<Process>("processes");
         const seededIssues = createDemoIssues(processes);
         setIssues(seededIssues);
         setInitialized(true);
@@ -58,7 +83,8 @@ export function useContextIssues() {
       } catch (error) {
         console.error("Failed to load issues:", error);
 
-        const seededIssues = createDemoIssues([]);
+        const fallbackProcesses = createFallbackProcesses();
+        const seededIssues = createDemoIssues(fallbackProcesses);
         setIssues(seededIssues);
         setInitialized(true);
       } finally {

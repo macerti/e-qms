@@ -142,9 +142,9 @@ export default function DocumentForm() {
       <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6">
         <div className="form-field">
           <div className="flex items-center gap-2">
-          <Label htmlFor="title">Document Title *</Label>
+            <Label htmlFor="title">Document Title *</Label>
           <HelpHint content="Use a clear title aligned to the controlled process or activity so users can quickly identify its intent." />
-        </div>
+          </div>
           <Input
             id="title"
             value={formData.title}
@@ -155,9 +155,9 @@ export default function DocumentForm() {
 
         <div className="form-field">
           <div className="flex items-center gap-2">
-          <Label htmlFor="code">Document Code (optional)</Label>
+            <Label htmlFor="code">Document Code (optional)</Label>
           <HelpHint content="Apply your coding convention (e.g., MS-xxx for procedures, MS-xxx-yy for related forms/records) for traceability." />
-        </div>
+          </div>
           <Input
             id="code"
             value={formData.code}
@@ -168,9 +168,9 @@ export default function DocumentForm() {
 
         <div className="form-field">
           <div className="flex items-center gap-2">
-          <Label>Document Type *</Label>
+            <Label>Document Type *</Label>
           <HelpHint content="Choose the correct document class (procedure, form, instruction, record, policy) to preserve ISO document hierarchy." />
-        </div>
+          </div>
           <div className="grid grid-cols-1 gap-2 mt-2">
             {DOCUMENT_TYPES.map((typeOption) => {
               const Icon = typeOption.icon;
@@ -207,9 +207,9 @@ export default function DocumentForm() {
         {formData.type !== "procedure" && (
           <div className="form-field">
             <div className="flex items-center gap-2">
-            <Label>Parent Procedure</Label>
+              <Label>Parent Procedure</Label>
             <HelpHint content="Attach non-procedure documents to their governing procedure so users can navigate the hierarchy." />
-          </div>
+            </div>
             <Select
               value={formData.parentProcedureId}
               onValueChange={(value) => setFormData((prev) => ({ ...prev, parentProcedureId: value }))}
@@ -231,9 +231,9 @@ export default function DocumentForm() {
 
         <div className="form-field">
           <div className="flex items-center gap-2">
-          <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Description</Label>
           <HelpHint content="Summarize purpose and scope so users understand when this document should be used." />
-        </div>
+          </div>
           <Textarea
             id="description"
             value={formData.description}
@@ -244,7 +244,8 @@ export default function DocumentForm() {
 
         <div className="form-field">
           <div className="flex items-center gap-2">
-          <Label>Applicable Processes</Label>
+            <Label>Applicable Processes</Label>
+          </div>
           <p className="text-xs text-muted-foreground">Linking a document to a process enables compliance evidence for that process requirements.</p>
           {activeProcesses.length === 0 ? (
             <p className="text-sm text-muted-foreground italic py-2">No processes defined yet.</p>
@@ -265,9 +266,9 @@ export default function DocumentForm() {
 
         <div className="form-field">
           <div className="flex items-center gap-2">
-          <Label>ISO 9001 Requirements Satisfied</Label>
+            <Label>ISO 9001 Requirements Satisfied</Label>
           <HelpHint content="Select clauses this document supports. These links feed compliance status at process/activity level." />
-        </div>
+          </div>
           <div className="space-y-1 max-h-64 overflow-y-auto border border-border rounded-lg p-3">
             {ISO_9001_CLAUSES.map((clause) => {
               const isSelected = formData.isoClauseReferences.some((item) => item.clauseNumber === clause.clauseNumber);
@@ -288,9 +289,9 @@ export default function DocumentForm() {
 
         <div className="form-field">
           <div className="flex items-center gap-2">
-          <Label>Status</Label>
+            <Label>Status</Label>
           <HelpHint content="Use Draft during preparation and Active once approved for operational use." />
-        </div>
+          </div>
           <div className="flex gap-2">
             <StatusButton selected={formData.status === "draft"} onClick={() => setFormData((prev) => ({ ...prev, status: "draft" }))}>
               Draft
@@ -304,9 +305,9 @@ export default function DocumentForm() {
         {isEditing && (
           <div className="form-field">
             <div className="flex items-center gap-2">
-            <Label htmlFor="revisionNote">Revision Note</Label>
+              <Label htmlFor="revisionNote">Revision Note</Label>
             <HelpHint content="Record what changed and why. Revision notes provide audit-ready change history." />
-          </div>
+            </div>
             <Input
               id="revisionNote"
               value={revisionNote}
