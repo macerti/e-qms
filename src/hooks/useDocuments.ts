@@ -66,6 +66,9 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
   return seedDocuments.map((document) => ({ ...document, processIds: mapByCode(document.code) }));
 }
 
+    if (text.includes("supplier") || text.includes("procurement") || text.includes("purchas")) {
+      return [processIdByKeyword.get("purchasing")].filter(Boolean) as string[];
+    }
 
 function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
   const linkedFromCode = attachDocumentsToProcesses(documents, processes);
