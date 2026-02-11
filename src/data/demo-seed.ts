@@ -1,11 +1,64 @@
 import { Action, ActionStatusChange, ContextIssue, Process, RiskVersion } from "@/types/management-system";
 
 function findProcessId(processes: Process[], nameIncludes: string, fallbackIndex = 0): string {
-  return (
-    processes.find((process) => process.name.toLowerCase().includes(nameIncludes.toLowerCase()))?.id ??
-    processes[fallbackIndex]?.id ??
-    ""
-  );
+  const query = nameIncludes.toLowerCase();
+
+  const byName = processes.find((process) => process.name.toLowerCase().includes(query));
+  if (byName) return byName.id;
+
+  const aliasMap: Record<string, string[]> = {
+    "human resources": ["human resources", "hr", "recruit", "talent", "pro-001"],
+    "management": ["management", "leadership", "governance", "pro-002"],
+    "quality": ["quality", "audit", "corrective", "continual improvement", "pro-003"],
+    "operational process 01": ["operational process 01", "operation 01", "operations 01", "pro-004"],
+    "operational process 02": ["operational process 02", "operation 02", "operations 02", "pro-005"],
+    "purchasing": ["purchasing", "procurement", "supplier", "pro-006"],
+    "it process": ["it process", "information technology", "infrastructure", "pro-007"],
+    "administration process": ["administration process", "administration", "admin", "pro-008"],
+    "sales process": ["sales process", "sales", "crm", "customer", "pro-009"],
+  };
+
+  const aliases = aliasMap[query] ?? [query];
+  const byAlias = processes.find((process) => {
+    const haystack = `${process.name} ${process.code}`.toLowerCase();
+    return aliases.some((alias) => haystack.includes(alias));
+  });
+
+  return byAlias?.id ?? processes[fallbackIndex]?.id ?? "";
+}
+
+export function inferProcessIdFromText(processes: Process[], text: string, fallbackIndex = 0): string {
+  const normalized = text.toLowerCase();
+
+  if (normalized.includes("supplier") || normalized.includes("procurement") || normalized.includes("purchas")) {
+    return findProcessId(processes, "purchasing", fallbackIndex);
+  }
+  if (normalized.includes("recruit") || normalized.includes("training") || normalized.includes("human resource") || normalized.includes("competence")) {
+    return findProcessId(processes, "human resources", fallbackIndex);
+  }
+  if (normalized.includes("management review") || normalized.includes("leadership") || normalized.includes("governance")) {
+    return findProcessId(processes, "management", fallbackIndex);
+  }
+  if (normalized.includes("audit") || normalized.includes("nonconform") || normalized.includes("corrective") || normalized.includes("improvement")) {
+    return findProcessId(processes, "quality", fallbackIndex);
+  }
+  if (normalized.includes("operational process 01") || normalized.includes("checklist") || normalized.includes("production")) {
+    return findProcessId(processes, "operational process 01", fallbackIndex);
+  }
+  if (normalized.includes("operational process 02") || normalized.includes("intervention")) {
+    return findProcessId(processes, "operational process 02", fallbackIndex);
+  }
+  if (/\bit\b/.test(normalized) || normalized.includes("information technology") || normalized.includes("infrastructure") || normalized.includes("monitoring")) {
+    return findProcessId(processes, "it process", fallbackIndex);
+  }
+  if (normalized.includes("admin") || normalized.includes("filing") || normalized.includes("archive")) {
+    return findProcessId(processes, "administration process", fallbackIndex);
+  }
+  if (normalized.includes("sales") || normalized.includes("crm") || normalized.includes("funnel")) {
+    return findProcessId(processes, "sales process", fallbackIndex);
+  }
+
+  return processes[fallbackIndex]?.id ?? "";
 }
 
 function mkRiskVersion(versionNumber: number, description: string, severity: number, probability: number, trigger: "initial" | "post_action_review"): RiskVersion {

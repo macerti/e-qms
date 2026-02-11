@@ -1,4 +1,4 @@
-import { ApplicableRegulation, ProcessType, ProcessActivity } from "@/types/management-system";
+import { ApplicableRegulation, Process, ProcessStatus, ProcessType, ProcessActivity } from "@/types/management-system";
 import { GOVERNANCE_ACTIVITY_NAME, GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/types/requirements";
 
 export interface DefaultProcessData {
@@ -189,3 +189,33 @@ export const DEFAULT_PROCESSES: DefaultProcessData[] = [
     pilotName: "Sales Manager",
   },
 ];
+
+export function createFallbackProcesses(now = new Date().toISOString()): Process[] {
+  return DEFAULT_PROCESSES.map((process) => {
+    const processId = `fallback-${process.code.toLowerCase()}`;
+    return {
+      id: processId,
+      code: process.code,
+      name: process.name,
+      type: process.type,
+      purpose: process.purpose,
+      inputs: process.inputs,
+      outputs: process.outputs,
+      activities: [createGovernanceActivity(processId), ...process.activities.map((activity) => ({ ...activity, sequence: activity.sequence + 1 }))],
+      regulations: process.regulations,
+      pilotName: process.pilotName,
+      status: "active" as ProcessStatus,
+      standard: "ISO_9001",
+      createdAt: now,
+      updatedAt: now,
+      version: 1,
+      revisionDate: now,
+      indicatorIds: [],
+      riskIds: [],
+      opportunityIds: [],
+      actionIds: [],
+      auditIds: [],
+      documentIds: [],
+    };
+  });
+}

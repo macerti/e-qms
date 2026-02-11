@@ -2,38 +2,14 @@ import { useState, useCallback, useEffect } from "react";
 import { Document, DocumentAttachment, Process } from "@/types/management-system";
 import { createRecord, deleteRecord, fetchRecords, updateRecord } from "@/lib/records";
 import { createSeedDocuments } from "@/data/qmsDocuments";
-import { DEFAULT_PROCESSES } from "@/data/default-processes";
+import { createFallbackProcesses } from "@/data/default-processes";
 
 type CreateDocumentData = Omit<Document, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate"> & {
   code?: string;
 };
 
 function buildFallbackProcesses(): Process[] {
-  const now = new Date().toISOString();
-  return DEFAULT_PROCESSES.map((process) => ({
-    id: crypto.randomUUID(),
-    code: process.code,
-    name: process.name,
-    type: process.type,
-    purpose: process.purpose,
-    inputs: process.inputs,
-    outputs: process.outputs,
-    activities: process.activities,
-    regulations: process.regulations,
-    pilotName: process.pilotName,
-    status: "active",
-    standard: "ISO_9001",
-    createdAt: now,
-    updatedAt: now,
-    version: 1,
-    revisionDate: now,
-    indicatorIds: [],
-    riskIds: [],
-    opportunityIds: [],
-    actionIds: [],
-    auditIds: [],
-    documentIds: [],
-  }));
+  return createFallbackProcesses();
 }
 
 function backfillMissingClauseReferences(documents: Document[]): Document[] {
@@ -93,11 +69,16 @@ function attachDocumentsToProcesses(seedDocuments: Document[], processes: Proces
 
 function backfillMissingProcessLinks(documents: Document[], processes: Process[]): Document[] {
   const linkedFromCode = attachDocumentsToProcesses(documents, processes);
+  const validProcessIds = new Set(processes.map((process) => process.id));
+
   return linkedFromCode.map((document, index) => {
     const current = documents[index];
-    if ((current.processIds?.length ?? 0) > 0) {
-      return current;
+    const existingValidIds = (current.processIds ?? []).filter((processId) => validProcessIds.has(processId));
+
+    if (existingValidIds.length > 0) {
+      return existingValidIds.length === current.processIds.length ? current : { ...current, processIds: existingValidIds };
     }
+
     return { ...current, processIds: document.processIds };
   });
 }
@@ -139,7 +120,7 @@ export function useDocuments() {
           // Persist inferred links for documents that were previously unlinked.
           await Promise.all(
             backfilled
-              .filter((document, index) => (remoteDocuments[index].processIds?.length ?? 0) === 0 && document.processIds.length > 0)
+              .filter((document, index) => (remoteDocuments[index].processIds ?? []).join("|") !== document.processIds.join("|") && document.processIds.length > 0)
               .map((document) => updateRecord("documents", document.id, document)),
           );
         }
