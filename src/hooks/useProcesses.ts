@@ -49,37 +49,9 @@ export function useProcesses() {
           return;
         }
 
-        // If the database is empty, seed it with the default processes.
-        const now = new Date().toISOString();
-        const defaultProcesses: Process[] = DEFAULT_PROCESSES.map((p) => {
-          const processId = crypto.randomUUID();
-          const activitiesWithGovernance = ensureGovernanceActivity(processId, p.activities);
-
-          return {
-            id: processId,
-            code: p.code,
-            name: p.name,
-            type: p.type,
-            purpose: p.purpose,
-            inputs: p.inputs,
-            outputs: p.outputs,
-            activities: activitiesWithGovernance,
-            regulations: p.regulations,
-            pilotName: p.pilotName,
-            status: "active" as ProcessStatus,
-            standard: "ISO_9001",
-            createdAt: now,
-            updatedAt: now,
-            version: 1,
-            revisionDate: now,
-            indicatorIds: [],
-            riskIds: [],
-            opportunityIds: [],
-            actionIds: [],
-            auditIds: [],
-            documentIds: [],
-          };
-        });
+        // If the database is empty, seed it with a deterministic fallback dataset
+        // so linked demo records can reliably reference process IDs.
+        const defaultProcesses = createFallbackProcesses();
 
         setProcesses(defaultProcesses);
         setInitialized(true);

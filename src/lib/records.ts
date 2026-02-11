@@ -22,27 +22,42 @@ export type RecordType =
  * Fetch all records for a type.
  */
 export async function fetchRecords<T>(type: RecordType): Promise<T[]> {
-  return fetchJson<T[]>(`/records/${type}`);
+  try {
+    return await fetchJson<T[]>(`/records/${type}`);
+  } catch (error) {
+    console.warn(`Records API unavailable for '${type}', using empty fallback dataset.`, error);
+    return [];
+  }
 }
 
 /**
  * Create a record for a type.
  */
 export async function createRecord<T>(type: RecordType, record: T): Promise<T> {
-  return fetchJson<T>(`/records/${type}`, {
-    method: "POST",
-    body: JSON.stringify(record),
-  });
+  try {
+    return await fetchJson<T>(`/records/${type}`, {
+      method: "POST",
+      body: JSON.stringify(record),
+    });
+  } catch (error) {
+    console.warn(`Create record fallback for '${type}'.`, error);
+    return record;
+  }
 }
 
 /**
  * Update a record for a type.
  */
 export async function updateRecord<T>(type: RecordType, id: string, record: T): Promise<T> {
-  return fetchJson<T>(`/records/${type}/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(record),
-  });
+  try {
+    return await fetchJson<T>(`/records/${type}/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(record),
+    });
+  } catch (error) {
+    console.warn(`Update record fallback for '${type}/${id}'.`, error);
+    return record;
+  }
 }
 
 /**
@@ -52,7 +67,12 @@ export async function deleteRecord(
   type: RecordType,
   id: string,
 ): Promise<{ status: string; id: string; type: RecordType }> {
-  return fetchJson<{ status: string; id: string; type: RecordType }>(`/records/${type}/${id}`, {
-    method: "DELETE",
-  });
+  try {
+    return await fetchJson<{ status: string; id: string; type: RecordType }>(`/records/${type}/${id}`, {
+      method: "DELETE",
+    });
+  } catch (error) {
+    console.warn(`Delete record fallback for '${type}/${id}'.`, error);
+    return { status: "fallback_deleted", id, type };
+  }
 }
