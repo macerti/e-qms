@@ -27,6 +27,7 @@ import { format } from "date-fns";
 import { Document, DocumentType, ISOClauseReference } from "@/types/management-system";
 import { cn } from "@/lib/utils";
 import { HelpHint } from "@/components/ui/help-hint";
+import { getDefaultStandard } from "@/application/standards/standardRegistry";
 
 const DOCUMENT_TYPE_CONFIG: Record<DocumentType, { label: string; icon: React.ElementType; color: string }> = {
   procedure: { label: "Procedure", icon: FileCheck, color: "text-blue-600" },
@@ -36,29 +37,10 @@ const DOCUMENT_TYPE_CONFIG: Record<DocumentType, { label: string; icon: React.El
   policy: { label: "Policy", icon: FileText, color: "text-red-600" },
 };
 
-const ISO_9001_CLAUSES: ISOClauseReference[] = [
-  { clauseNumber: "4.1", clauseTitle: "Understanding the organization and its context" },
-  { clauseNumber: "4.2", clauseTitle: "Interested parties" },
-  { clauseNumber: "4.3", clauseTitle: "QMS scope" },
-  { clauseNumber: "4.4", clauseTitle: "QMS processes" },
-  { clauseNumber: "5.1", clauseTitle: "Leadership and commitment" },
-  { clauseNumber: "5.2", clauseTitle: "Policy" },
-  { clauseNumber: "5.3", clauseTitle: "Roles and responsibilities" },
-  { clauseNumber: "6.1", clauseTitle: "Risks and opportunities" },
-  { clauseNumber: "6.2", clauseTitle: "Quality objectives" },
-  { clauseNumber: "7.5", clauseTitle: "Documented information" },
-  { clauseNumber: "8.1", clauseTitle: "Operational planning and control" },
-  { clauseNumber: "8.2", clauseTitle: "Customer requirements" },
-  { clauseNumber: "8.4", clauseTitle: "Supplier control" },
-  { clauseNumber: "8.5", clauseTitle: "Production / service" },
-  { clauseNumber: "9.1", clauseTitle: "Monitoring and measurement" },
-  { clauseNumber: "9.2", clauseTitle: "Internal audit" },
-  { clauseNumber: "9.3", clauseTitle: "Management review" },
-  { clauseNumber: "10.2", clauseTitle: "Corrective action" },
-  { clauseNumber: "10.3", clauseTitle: "Continual improvement" },
-];
 
 export default function DocumentDetail() {
+  const standardConfig = getDefaultStandard();
+  const standardClauses: ISOClauseReference[] = standardConfig.clauses;
   const { id } = useParams();
   const navigate = useNavigate();
   const {
@@ -263,7 +245,7 @@ export default function DocumentDetail() {
             <section className="mobile-card space-y-3">
               <h3 className="font-medium">Requirement clauses this document satisfies</h3>
               <div className="space-y-1 max-h-64 overflow-y-auto border border-border rounded-lg p-3">
-                {ISO_9001_CLAUSES.map((clause) => {
+                {standardClauses.map((clause) => {
                   const isSelected = currentDocument.isoClauseReferences.some((item) => item.clauseNumber === clause.clauseNumber);
                   return (
                     <label

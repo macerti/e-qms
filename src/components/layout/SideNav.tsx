@@ -2,9 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Workflow,
-  AlertTriangle,
-  CheckSquare,
   FileText,
+  ShieldCheck,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -21,8 +20,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
   { path: "/processes", label: "Processes", icon: Workflow },
-  { path: "/issues", label: "Issues", icon: AlertTriangle },
-  { path: "/actions", label: "Actions", icon: CheckSquare },
+  { path: "/tools", label: "Tools", icon: ShieldCheck },
   { path: "/documents", label: "Documents", icon: FileText },
 ];
 
@@ -51,13 +49,16 @@ export function SideNav() {
             {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
           </Button>
         </div>
-        {!collapsed && <p className="text-xs text-sidebar-foreground/70 mt-1">ISO 9001 Management</p>}
+        {!collapsed && <p className="text-xs text-sidebar-foreground/70 mt-1">Management System</p>}
       </div>
 
       {/* Navigation Links */}
       <nav className={cn("flex-1 space-y-1", collapsed ? "p-2" : "p-4")}>
         {navItems.map((item) => {
-          const isCurrentPath = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
+          const isToolsPath = ["/tools", "/issues", "/actions"].some((path) => location.pathname.startsWith(path));
+          const isCurrentPath = item.path === "/tools"
+            ? isToolsPath
+            : location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
           const Icon = item.icon;
 
           return (
@@ -83,7 +84,7 @@ export function SideNav() {
       {/* Footer */}
       <div className={cn("border-t border-sidebar-border", collapsed ? "p-2" : "p-4")}>
         {!collapsed ? (
-          <p className="text-xs text-sidebar-foreground/50 text-center">v1.0.0 • ISO 9001:2015</p>
+          <p className="text-xs text-sidebar-foreground/50 text-center">v1.0.0 • Multi-Standard</p>
         ) : (
           <p className="text-[10px] text-sidebar-foreground/50 text-center">v1</p>
         )}

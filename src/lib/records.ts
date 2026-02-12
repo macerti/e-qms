@@ -1,12 +1,3 @@
-/**
- * Record API helpers.
- *
- * The frontend stores everything through a generic "records" API.
- * Each record has a type (processes, issues, actions, documents, etc.)
- * and a JSON payload. This keeps the client flexible while the backend
- * stays simple.
- */
-
 import { fetchJson } from "@/lib/api";
 
 export type RecordType =
@@ -18,21 +9,18 @@ export type RecordType =
   | "objectives"
   | "kpis";
 
-/**
- * Fetch all records for a type.
- */
+function toError(type: string, operation: string, error: unknown): Error {
+  return new Error(`[records:${operation}] ${type}: ${error instanceof Error ? error.message : String(error)}`);
+}
+
 export async function fetchRecords<T>(type: RecordType): Promise<T[]> {
   try {
     return await fetchJson<T[]>(`/records/${type}`);
   } catch (error) {
-    console.warn(`Records API unavailable for '${type}', using empty fallback dataset.`, error);
-    return [];
+    throw toError(type, "fetch", error);
   }
 }
 
-/**
- * Create a record for a type.
- */
 export async function createRecord<T>(type: RecordType, record: T): Promise<T> {
   try {
     return await fetchJson<T>(`/records/${type}`, {
@@ -40,14 +28,10 @@ export async function createRecord<T>(type: RecordType, record: T): Promise<T> {
       body: JSON.stringify(record),
     });
   } catch (error) {
-    console.warn(`Create record fallback for '${type}'.`, error);
-    return record;
+    throw toError(type, "create", error);
   }
 }
 
-/**
- * Update a record for a type.
- */
 export async function updateRecord<T>(type: RecordType, id: string, record: T): Promise<T> {
   try {
     return await fetchJson<T>(`/records/${type}/${id}`, {
@@ -55,14 +39,10 @@ export async function updateRecord<T>(type: RecordType, id: string, record: T): 
       body: JSON.stringify(record),
     });
   } catch (error) {
-    console.warn(`Update record fallback for '${type}/${id}'.`, error);
-    return record;
+    throw toError(`${type}/${id}`, "update", error);
   }
 }
 
-/**
- * Delete a record for a type.
- */
 export async function deleteRecord(
   type: RecordType,
   id: string,
@@ -72,7 +52,6 @@ export async function deleteRecord(
       method: "DELETE",
     });
   } catch (error) {
-    console.warn(`Delete record fallback for '${type}/${id}'.`, error);
-    return { status: "fallback_deleted", id, type };
+    throw toError(`${type}/${id}`, "delete", error);
   }
 }

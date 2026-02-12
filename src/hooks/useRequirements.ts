@@ -5,12 +5,12 @@ import {
   RequirementFulfillment,
   GOVERNANCE_ACTIVITY_ID_PREFIX 
 } from "@/types/requirements";
-import { 
-  ISO9001_REQUIREMENTS, 
+import {
   getGenericRequirements,
   getDuplicableRequirements,
   getUniqueRequirements,
 } from "@/data/iso9001-requirements";
+import { getDefaultStandard } from "@/application/standards/standardRegistry";
 import { Process, ContextIssue, Action, Document } from "@/types/management-system";
 
 interface UseRequirementsProps {
@@ -28,7 +28,7 @@ export function useRequirements({ processes, issues, actions, documents }: UseRe
   }, []);
 
   // All available requirements (preloaded)
-  const allRequirements = useMemo(() => ISO9001_REQUIREMENTS, []);
+  const allRequirements = useMemo(() => getDefaultStandard().requirements, []);
 
   // Get the governance activity ID for a process
   const getGovernanceActivityId = useCallback((processId: string) => {
