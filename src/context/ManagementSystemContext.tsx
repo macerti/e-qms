@@ -8,6 +8,7 @@ import { useObjectives } from "@/hooks/useObjectives";
 import { useKPIs } from "@/hooks/useKPIs";
 import { useRequirements } from "@/hooks/useRequirements";
 import { ManagementStandard } from "@/types/management-system";
+import { getDefaultStandard } from "@/application/standards/standardRegistry";
 
 interface ManagementSystemContextType {
   // Current standard
@@ -105,6 +106,8 @@ interface ManagementSystemContextType {
   inferFulfillment: ReturnType<typeof useRequirements>["inferFulfillment"];
 }
 
+const defaultStandard = getDefaultStandard();
+
 const ManagementSystemContext = createContext<ManagementSystemContextType | null>(null);
 
 export function ManagementSystemProvider({ children }: { children: ReactNode }) {
@@ -123,7 +126,7 @@ export function ManagementSystemProvider({ children }: { children: ReactNode }) 
   });
 
   const value: ManagementSystemContextType = {
-    currentStandard: "ISO_9001",
+    currentStandard: defaultStandard.id,
     
     // Processes
     processes: processesHook.processes,

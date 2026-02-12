@@ -1,7 +1,7 @@
 // Management System Core Types
 // ISO 9001 aligned, extensible for other standards
 
-export type ManagementStandard = 'ISO_9001' | 'ISO_14001' | 'ISO_45001' | 'ISO_22000';
+export type ManagementStandard = string;
 
 export type ProcessStatus = 'draft' | 'active' | 'archived';
 export type ProcessType = 'management' | 'operational' | 'support';
@@ -101,10 +101,13 @@ export interface Versionable {
 // Base entity with audit trail and multi-tenant scoping
 export interface BaseEntity {
   id: string;
-  tenantId?: string;        // Multi-tenant scoping
-  organizationId?: string;  // Multi-organization scoping
-  createdAt: string;
-  updatedAt: string;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+  tenantId?: string;
+  organizationId?: string;
+  createdAt?: string;
+  updatedAt?: string;
   createdBy?: string;
 }
 

@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { DocumentType, ISOClauseReference } from "@/types/management-system";
+import { getDefaultStandard } from "@/application/standards/standardRegistry";
 import { FileCheck, ClipboardList, BookOpen, ScrollText, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -22,29 +23,10 @@ const DOCUMENT_TYPES: { value: DocumentType; label: string; description: string;
   { value: "policy", label: "Policy", description: "Top-level organizational intent", icon: FileText },
 ];
 
-const ISO_9001_CLAUSES: ISOClauseReference[] = [
-  { clauseNumber: "4.1", clauseTitle: "Understanding the organization and its context" },
-  { clauseNumber: "4.2", clauseTitle: "Interested parties" },
-  { clauseNumber: "4.3", clauseTitle: "QMS scope" },
-  { clauseNumber: "4.4", clauseTitle: "QMS processes" },
-  { clauseNumber: "5.1", clauseTitle: "Leadership and commitment" },
-  { clauseNumber: "5.2", clauseTitle: "Policy" },
-  { clauseNumber: "5.3", clauseTitle: "Roles and responsibilities" },
-  { clauseNumber: "6.1", clauseTitle: "Risks and opportunities" },
-  { clauseNumber: "6.2", clauseTitle: "Quality objectives" },
-  { clauseNumber: "7.5", clauseTitle: "Documented information" },
-  { clauseNumber: "8.1", clauseTitle: "Operational planning and control" },
-  { clauseNumber: "8.2", clauseTitle: "Customer requirements" },
-  { clauseNumber: "8.4", clauseTitle: "Supplier control" },
-  { clauseNumber: "8.5", clauseTitle: "Production / service" },
-  { clauseNumber: "9.1", clauseTitle: "Monitoring and measurement" },
-  { clauseNumber: "9.2", clauseTitle: "Internal audit" },
-  { clauseNumber: "9.3", clauseTitle: "Management review" },
-  { clauseNumber: "10.2", clauseTitle: "Corrective action" },
-  { clauseNumber: "10.3", clauseTitle: "Continual improvement" },
-];
 
 export default function DocumentForm() {
+  const standardConfig = getDefaultStandard();
+  const standardClauses: ISOClauseReference[] = standardConfig.clauses;
   const navigate = useNavigate();
   const { id } = useParams();
   const { createDocument, updateDocument, getDocumentById, processes, documents } = useManagementSystem();
@@ -87,7 +69,7 @@ export default function DocumentForm() {
       isoClauseReferences: formData.isoClauseReferences,
       parentProcedureId: formData.type === "procedure" || formData.parentProcedureId === "none" ? undefined : formData.parentProcedureId,
       status: formData.status,
-      standard: "ISO_9001" as const,
+      standard: standardConfig.id,
     };
 
     if (isEditing && existingDocument) {
@@ -266,11 +248,11 @@ export default function DocumentForm() {
 
         <div className="form-field">
           <div className="flex items-center gap-2">
-            <Label>ISO 9001 Requirements Satisfied</Label>
+            <Label>Requirements Satisfied</Label>
           <HelpHint content="Select clauses this document supports. These links feed compliance status at process/activity level." />
           </div>
           <div className="space-y-1 max-h-64 overflow-y-auto border border-border rounded-lg p-3">
-            {ISO_9001_CLAUSES.map((clause) => {
+            {standardClauses.map((clause) => {
               const isSelected = formData.isoClauseReferences.some((item) => item.clauseNumber === clause.clauseNumber);
               return (
                 <label
