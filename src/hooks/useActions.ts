@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Action, ActionStatus, ActionOrigin, EfficiencyEvaluation, EfficiencyResult, ActionStatusChange } from "@/domains/core/models";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
+import { getManagementDataProvider } from "@/application/data/managementDataProvider";
 import { createDemoActions, createDemoIssues, inferProcessIdFromText } from "@/data/demo-seed";
 import { ContextIssue, Process } from "@/domains/core/models";
 import { createFallbackProcesses } from "@/data/default-processes";

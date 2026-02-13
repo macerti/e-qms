@@ -1,5 +1,4 @@
-import { ISO9001_REQUIREMENTS } from "@/domains/standards/iso9001-requirements";
-import { ISO9001_STANDARD } from "@/domains/standards/iso9001-guidance";
+import { standardsEngineService } from "@/application/standards/standardsEngineService";
 
 export interface StandardRegistryItem {
   id: string;
