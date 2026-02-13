@@ -5,7 +5,12 @@ import {
   RequirementFulfillment,
   GOVERNANCE_ACTIVITY_ID_PREFIX 
 } from "@/domains/requirement/models";
-import { standardsEngineService } from "@/application/standards/standardsEngineService";
+import {
+  getGenericRequirements,
+  getDuplicableRequirements,
+  getUniqueRequirements,
+} from "@/data/iso9001-requirements";
+import { getDefaultStandard } from "@/application/standards/standardRegistry";
 import { Process, ContextIssue, Action, Document } from "@/domains/core/models";
 
 interface UseRequirementsProps {

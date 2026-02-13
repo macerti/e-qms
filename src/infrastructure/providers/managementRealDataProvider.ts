@@ -7,7 +7,7 @@ export const managementRealDataProvider = {
   createSeedIssues(_processes: Process[]): ContextIssue[] {
     return [];
   },
-  createSeedActions(_processes: Process[], _issues: ContextIssue[]): Action[] {
+  createSeedActions(_issues: ContextIssue[], _processes: Process[]): Action[] {
     return [];
   },
 };
