@@ -54,16 +54,18 @@ export function useActions() {
           return;
         }
 
-        const seededActions = createDemoActions(processes, issues);
+        const provider = await getManagementDataProvider();
+        const seededActions = provider.createSeedActions(processes, issues);
         setActions(seededActions);
         setInitialized(true);
 
         await Promise.all(seededActions.map((action) => createRecord("actions", action)));
       } catch (error) {
         console.error("Failed to load actions:", error);
-        const fallbackProcesses = createFallbackProcesses();
-        const fallbackIssues = createDemoIssues(fallbackProcesses);
-        const seededActions = createDemoActions(fallbackProcesses, fallbackIssues);
+        const provider = await getManagementDataProvider();
+        const fallbackProcesses = provider.getFallbackProcesses();
+        const fallbackIssues = provider.createSeedIssues(fallbackProcesses);
+        const seededActions = provider.createSeedActions(fallbackProcesses, fallbackIssues);
         setActions(seededActions);
         setInitialized(true);
       } finally {

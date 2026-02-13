@@ -6,6 +6,7 @@ import { ToolLayout } from "@/components/tools/shared/layouts/ToolLayout";
 import { type ScaffoldToolContract } from "@/api/contracts/tools";
 import { toolsApplicationService } from "@/application/tools/toolsApplicationService";
 import { TabLayout } from "@/ui/components/TabLayout";
+import { ManagementReviewWorkspace } from "@/components/tools/management-review/ManagementReviewWorkspace";
 
 export function ScaffoldedToolWorkspace({ tool }: { tool: ScaffoldToolContract }) {
   const { processes } = useManagementSystem();
@@ -20,6 +21,7 @@ export function ScaffoldedToolWorkspace({ tool }: { tool: ScaffoldToolContract }
   const tabs = toolsApplicationService.getScaffoldTabs(tool);
   const [activeTab, setActiveTab] = useState(tabs[0].key);
   const currentTab = tabs.find((tab) => tab.key === activeTab) || tabs[0];
+  const isManagementReview = tool === "management-review";
 
   return (
     <ToolLayout
@@ -33,8 +35,8 @@ export function ScaffoldedToolWorkspace({ tool }: { tool: ScaffoldToolContract }
           onLinkedProcessChange={setLinkedProcess}
         />
       }
-      tabBar={<TabLayout activeTab={activeTab} onTabChange={setActiveTab} tabs={tabs.map((tab) => ({ key: tab.key, label: tab.label }))}>{null}</TabLayout>}
-      workspace={<TabWorkspace tab={currentTab} />}
+      tabBar={isManagementReview ? null : <TabLayout activeTab={activeTab} onTabChange={setActiveTab} tabs={tabs.map((tab) => ({ key: tab.key, label: tab.label }))}>{null}</TabLayout>}
+      workspace={isManagementReview ? <ManagementReviewWorkspace /> : <TabWorkspace tab={currentTab} />}
     />
   );
 }
