@@ -51,7 +51,8 @@ export function useProcesses() {
 
         // If the database is empty, seed it with a deterministic fallback dataset
         // so linked demo records can reliably reference process IDs.
-        const defaultProcesses = createFallbackProcesses();
+        const provider = await getManagementDataProvider();
+        const defaultProcesses = provider.getFallbackProcesses();
 
         setProcesses(defaultProcesses);
         setInitialized(true);
@@ -64,7 +65,8 @@ export function useProcesses() {
         console.error("Failed to load processes:", error);
 
         // Fallback demo seed when API is unavailable.
-        const fallbackProcesses = createFallbackProcesses();
+        const provider = await getManagementDataProvider();
+        const fallbackProcesses = provider.getFallbackProcesses();
         setProcesses(fallbackProcesses);
         setInitialized(true);
       } finally {

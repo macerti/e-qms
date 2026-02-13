@@ -2,14 +2,15 @@ import { useState, useCallback, useEffect } from "react";
 import { Document, DocumentAttachment, Process } from "@/domains/core/models";
 import { createRecord, deleteRecord, fetchRecords, updateRecord } from "@/lib/records";
 import { createSeedDocuments } from "@/data/qmsDocuments";
-import { createFallbackProcesses } from "@/data/default-processes";
+import { getManagementDataProvider } from "@/application/data/managementDataProvider";
 
 type CreateDocumentData = Omit<Document, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate"> & {
   code?: string;
 };
 
-function buildFallbackProcesses(): Process[] {
-  return createFallbackProcesses();
+async function buildFallbackProcesses(): Promise<Process[]> {
+  const provider = await getManagementDataProvider();
+  return provider.getFallbackProcesses();
 }
 
 function backfillMissingClauseReferences(documents: Document[]): Document[] {
@@ -109,7 +110,7 @@ export function useDocuments() {
         }
 
         if (processes.length === 0) {
-          processes = buildFallbackProcesses();
+          processes = await buildFallbackProcesses();
         }
 
         if (remoteDocuments.length === 0) {
@@ -132,7 +133,8 @@ export function useDocuments() {
       } catch (error) {
         console.error("Failed to load documents:", error);
         // Fallback: expose scaffold with process and clause links even when APIs are unavailable.
-        const fallbackSeed = backfillMissingClauseReferences(attachDocumentsToProcesses(createSeedDocuments(), buildFallbackProcesses()));
+        const fallbackProcesses = await buildFallbackProcesses();
+        const fallbackSeed = backfillMissingClauseReferences(attachDocumentsToProcesses(createSeedDocuments(), fallbackProcesses));
         setDocuments(fallbackSeed);
       } finally {
         setIsLoading(false);

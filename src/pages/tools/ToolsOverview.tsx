@@ -22,10 +22,10 @@ export default function ToolsOverview() {
         <Section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {toolsApplicationService.getToolCatalog().map((tool) => (
             <ModuleCard
-              key={tool.key}
+              key={tool.id}
               title={tool.name}
               description={`${tool.codification} · ${tool.description}`}
-              icon={iconMap[tool.key]}
+              icon={iconMap[tool.id]}
               path={tool.route}
               isActive
               accentColor={tool.status === "active" ? "bg-primary" : "bg-blue-500"}

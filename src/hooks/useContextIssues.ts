@@ -75,7 +75,8 @@ export function useContextIssues() {
           return;
         }
 
-        const seededIssues = createDemoIssues(processes);
+        const provider = await getManagementDataProvider();
+        const seededIssues = provider.createSeedIssues(processes);
         setIssues(seededIssues);
         setInitialized(true);
 
@@ -83,8 +84,9 @@ export function useContextIssues() {
       } catch (error) {
         console.error("Failed to load issues:", error);
 
-        const fallbackProcesses = createFallbackProcesses();
-        const seededIssues = createDemoIssues(fallbackProcesses);
+        const provider = await getManagementDataProvider();
+        const fallbackProcesses = provider.getFallbackProcesses();
+        const seededIssues = provider.createSeedIssues(fallbackProcesses);
         setIssues(seededIssues);
         setInitialized(true);
       } finally {

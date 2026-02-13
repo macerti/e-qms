@@ -8,7 +8,7 @@ import {
 import { ComplianceCard } from "@/components/dashboard/ComplianceCard";
 import { ProcessHealthCard } from "@/components/dashboard/ProcessHealthCard";
 import { RiskActionCard } from "@/components/dashboard/RiskActionCard";
-import { ISO9001_REQUIREMENTS, getUniqueRequirements } from "@/data/iso9001-requirements";
+import { standardsEngineService } from "@/application/standards/standardsEngineService";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ModuleCard } from "@/components/ui/module-card";
 import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
@@ -58,9 +58,10 @@ export default function Dashboard() {
   const { processes, issues, actions, documents, getOverdueActions, allRequirements, getRequirementsOverview } = useManagementSystem();
 
   const overdueActions = getOverdueActions();
+  const activeStandard = standardsEngineService.getDefaultStandard();
 
   // Calculate compliance coverage
-  const totalRequirements = ISO9001_REQUIREMENTS.length;
+  const totalRequirements = standardsEngineService.getRequirements().length;
   
   // Count all allocated requirements across all processes
   const allocatedRequirementIds = new Set<string>();
@@ -77,7 +78,7 @@ export default function Dashboard() {
   const allocatedCount = allocatedRequirementIds.size;
 
   // Get unallocated unique requirements
-  const uniqueReqs = getUniqueRequirements();
+  const uniqueReqs = standardsEngineService.getUniqueRequirements();
   const unallocatedUniqueCount = uniqueReqs.filter(r => !allocatedRequirementIds.has(r.id)).length;
 
   const requirementsStats = processes.reduce(
@@ -102,7 +103,7 @@ export default function Dashboard() {
     <div className="min-h-screen">
       <PageHeader 
         title="Management System" 
-        subtitle="ISO 9001 Quality Management"
+        subtitle={`${activeStandard.code} ${activeStandard.version} ${activeStandard.name}`}
       />
       
       <AdaptiveContainer className="py-6 space-y-6 max-w-[var(--wide-max-width)]">

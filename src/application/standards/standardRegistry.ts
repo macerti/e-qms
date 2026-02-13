@@ -6,17 +6,17 @@ export interface StandardRegistryItem {
   name: string;
   version?: string;
   clauses: Array<{ clauseNumber: string; clauseTitle: string }>;
-  requirements: typeof ISO9001_REQUIREMENTS;
+  requirements: ReturnType<typeof standardsEngineService.getRequirements>;
 }
 
 const qualityStandard: StandardRegistryItem = {
-  id: "standard_quality_management",
-  name: ISO9001_STANDARD.name,
-  version: ISO9001_STANDARD.version,
-  clauses: ISO9001_STANDARD.clauseGroups.flatMap((group) =>
+  id: standardsEngineService.getDefaultStandard().id,
+  name: standardsEngineService.getDefaultStandard().name,
+  version: standardsEngineService.getDefaultStandard().version,
+  clauses: standardsEngineService.getDefaultStandard().clauseGroups.flatMap((group) =>
     group.requirements.map((req) => ({ clauseNumber: req.clauseNumber, clauseTitle: req.clauseTitle })),
   ),
-  requirements: ISO9001_REQUIREMENTS,
+  requirements: standardsEngineService.getRequirements(),
 };
 
 export const standardRegistry: StandardRegistryItem[] = [qualityStandard];
