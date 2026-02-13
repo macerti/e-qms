@@ -102,3 +102,23 @@ You can extend this contract as needed for auditing, users, or workflows.
 - TypeScript
 - Tailwind CSS
 - shadcn/ui
+
+## GitHub Actions: build + FTP deploy
+
+This repository includes a workflow at `.github/workflows/deploy-ftp.yml`.
+It builds the app and uploads `dist/` to your FTP hosting whenever you push to `main`
+(or run it manually with **Run workflow**).
+
+Set these repository secrets in **GitHub → Settings → Secrets and variables → Actions**:
+
+- `FTP_SERVER` (example: `ftp.macerti.com`)
+- `FTP_USERNAME` (example: `qms@macerti.com`)
+- `FTP_PASSWORD`
+- `FTP_SERVER_DIR` (recommended: `/public_html/qms/`)
+
+Notes:
+- The workflow builds with `VITE_BASE_PATH=/qms/`, so app assets resolve correctly when hosted under `https://your-domain.com/qms/`.
+- On Linux hosting, URL paths are case-sensitive. Use `/qms/` (lowercase), not `/QMS/`.
+- If your FTP account is chrooted, `/home/...` absolute paths may fail; prefer `/public_html/qms/`.
+
+> Security note: never commit FTP credentials directly in workflow files.
