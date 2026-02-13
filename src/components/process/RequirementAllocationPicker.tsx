@@ -11,7 +11,7 @@ import {
   X,
   Search,
 } from "lucide-react";
-import { Requirement } from "@/types/requirements";
+import { Requirement } from "@/api/contracts/viewModels";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import {
   Tooltip,

@@ -7,7 +7,7 @@ import { useLeadershipElements } from "@/hooks/useLeadershipElements";
 import { useObjectives } from "@/hooks/useObjectives";
 import { useKPIs } from "@/hooks/useKPIs";
 import { useRequirements } from "@/hooks/useRequirements";
-import { ManagementStandard } from "@/types/management-system";
+import { ManagementStandard } from "@/domains/core/models";
 import { getDefaultStandard } from "@/application/standards/standardRegistry";
 
 interface ManagementSystemContextType {

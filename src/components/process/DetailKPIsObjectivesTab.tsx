@@ -1,5 +1,5 @@
 import { Target, BarChart3 } from "lucide-react";
-import { ProcessObjective, ProcessKPI, KPIValueRecord } from "@/types/objectives";
+import { ProcessObjective, ProcessKPI, KPIValueRecord } from "@/api/contracts/viewModels";
 import { cn } from "@/lib/utils";
 
 interface DetailKPIsObjectivesTabProps {

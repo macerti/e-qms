@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
-import { Action, ActionStatus, ActionOrigin, EfficiencyEvaluation, EfficiencyResult, ActionStatusChange } from "@/types/management-system";
+import { Action, ActionStatus, ActionOrigin, EfficiencyEvaluation, EfficiencyResult, ActionStatusChange } from "@/domains/core/models";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
-import { createDemoActions, createDemoIssues, inferProcessIdFromText } from "@/data/demo-seed";
-import { ContextIssue, Process } from "@/types/management-system";
-import { createFallbackProcesses } from "@/data/default-processes";
+import { inferProcessIdFromText } from "@/data/demo-seed";
+import { getManagementDataProvider } from "@/application/data/managementDataProvider";
+import { ContextIssue, Process } from "@/domains/core/models";
 
 type CreateActionData = Omit<Action, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate" | "efficiencyEvaluation" | "completedDate" | "statusHistory"> & { 
   code?: string;

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
-import { DocumentType, ISOClauseReference } from "@/types/management-system";
+import { DocumentType, ISOClauseReference } from "@/api/contracts/viewModels";
 import { getDefaultStandard } from "@/application/standards/standardRegistry";
 import { FileCheck, ClipboardList, BookOpen, ScrollText, FileText } from "lucide-react";
 import { toast } from "sonner";

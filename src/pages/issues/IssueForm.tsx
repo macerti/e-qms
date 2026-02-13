@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { issueApplicationService } from "@/application/issues/issueApplicationService";
-import { IssueType, SwotQuadrant, ContextNature } from "@/types/management-system";
+import { IssueType, SwotQuadrant, ContextNature } from "@/api/contracts/viewModels";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { RiskEvaluation, getPriorityFromCriticity } from "@/components/risk/RiskEvaluation";
