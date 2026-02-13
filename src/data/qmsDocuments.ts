@@ -1,4 +1,4 @@
-import { Document, DocumentType, ISOClauseReference } from "@/types/management-system";
+import { Document, DocumentType, ISOClauseReference } from "@/domains/core/models";
 
 type SeedRow = {
   code: string;

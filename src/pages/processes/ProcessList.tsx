@@ -10,7 +10,7 @@ import { Fab } from "@/components/ui/fab";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { cn } from "@/lib/utils";
-import { ProcessType } from "@/types/management-system";
+import { ProcessType } from "@/api/contracts/viewModels";
 import { CreateProcessDialog } from "@/components/process/CreateProcessDialog";
 
 const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.ElementType; color: string; bgColor: string }> = {

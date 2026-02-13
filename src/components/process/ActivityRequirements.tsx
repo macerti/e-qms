@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck, CheckCircle2, Circle } from "lucide-react";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
-import { Requirement, RequirementFulfillment } from "@/types/requirements";
+import { Requirement, RequirementFulfillment } from "@/api/contracts/viewModels";
 import {
   Tooltip,
   TooltipContent,

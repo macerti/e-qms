@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Settings, Cog, Wrench } from "lucide-react";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
-import { ProcessType } from "@/types/management-system";
+import { ProcessType } from "@/api/contracts/viewModels";
 import { toast } from "sonner";
 
 interface CreateProcessDialogProps {

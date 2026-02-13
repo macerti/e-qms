@@ -1,7 +1,7 @@
  import { Workflow, AlertTriangle } from "lucide-react";
  import { cn } from "@/lib/utils";
  import { useNavigate } from "react-router-dom";
- import { Process } from "@/types/management-system";
+ import { Process } from "@/api/contracts/viewModels";
  
  interface ProcessHealthCardProps {
    processes: Process[];

@@ -1,5 +1,5 @@
-import { ApplicableRegulation, Process, ProcessStatus, ProcessType, ProcessActivity } from "@/types/management-system";
-import { GOVERNANCE_ACTIVITY_NAME, GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/types/requirements";
+import { ApplicableRegulation, Process, ProcessStatus, ProcessType, ProcessActivity } from "@/domains/core/models";
+import { GOVERNANCE_ACTIVITY_NAME, GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/domains/requirement/models";
 
 export interface DefaultProcessData {
   code: string;
