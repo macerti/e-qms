@@ -3,7 +3,7 @@ import { Action, ActionStatusChange, ContextIssue, Process, RiskVersion } from "
 function findProcessId(processes: Process[], nameIncludes: string, fallbackIndex = 0): string {
   const query = nameIncludes.toLowerCase();
 
-  const byName = processes.find((process) => process.name.toLowerCase().includes(query));
+  const byName = processes.find((process) => (process.name ?? "").toLowerCase().includes(query));
   if (byName) return byName.id;
 
   const aliasMap: Record<string, string[]> = {
@@ -20,7 +20,7 @@ function findProcessId(processes: Process[], nameIncludes: string, fallbackIndex
 
   const aliases = aliasMap[query] ?? [query];
   const byAlias = processes.find((process) => {
-    const haystack = `${process.name} ${process.code}`.toLowerCase();
+    const haystack = `${process.name ?? ""} ${process.code ?? ""}`.toLowerCase();
     return aliases.some((alias) => haystack.includes(alias));
   });
 
