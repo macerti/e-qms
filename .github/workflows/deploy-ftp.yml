@@ -23,8 +23,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build app
+      - name: Build app for /qms/
+        env:
+          VITE_BASE_PATH: /qms/
         run: npm run build
+
+      - name: Verify build output contains index.html
+        run: |
+          ls -lah dist
+          test -f dist/index.html
 
       - name: Deploy dist/ to FTP server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
