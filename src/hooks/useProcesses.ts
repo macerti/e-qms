@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Process, ProcessStatus, ProcessActivity } from "@/domains/core/models";
-import { createGovernanceActivity } from "@/data/default-processes";
-import { getManagementDataProvider } from "@/application/data/managementDataProvider";
+import { DEFAULT_PROCESSES, createFallbackProcesses, createGovernanceActivity } from "@/data/default-processes";
 import { GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/domains/requirement/models";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
 
