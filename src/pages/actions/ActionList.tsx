@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
- import { ActionStatus } from "@/types/management-system";
+ import { ActionStatus } from "@/api/contracts/viewModels";
 import { format, isPast, isToday } from "date-fns";
 
 const originLabels: Record<string, string> = {

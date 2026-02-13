@@ -10,7 +10,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { ProcessKPI, KPIFrequency } from "@/types/objectives";
+import { ProcessKPI, KPIFrequency } from "@/api/contracts/viewModels";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { toast } from "sonner";
 import { format } from "date-fns";

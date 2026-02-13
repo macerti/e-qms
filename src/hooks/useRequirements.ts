@@ -4,14 +4,9 @@ import {
   RequirementAllocation, 
   RequirementFulfillment,
   GOVERNANCE_ACTIVITY_ID_PREFIX 
-} from "@/types/requirements";
-import {
-  getGenericRequirements,
-  getDuplicableRequirements,
-  getUniqueRequirements,
-} from "@/data/iso9001-requirements";
-import { getDefaultStandard } from "@/application/standards/standardRegistry";
-import { Process, ContextIssue, Action, Document } from "@/types/management-system";
+} from "@/domains/requirement/models";
+import { standardsEngineService } from "@/application/standards/standardsEngineService";
+import { Process, ContextIssue, Action, Document } from "@/domains/core/models";
 
 interface UseRequirementsProps {
   processes: Process[];
@@ -28,7 +23,7 @@ export function useRequirements({ processes, issues, actions, documents }: UseRe
   }, []);
 
   // All available requirements (preloaded)
-  const allRequirements = useMemo(() => getDefaultStandard().requirements, []);
+  const allRequirements = useMemo(() => standardsEngineService.getRequirements(), []);
 
   // Get the governance activity ID for a process
   const getGovernanceActivityId = useCallback((processId: string) => {
@@ -42,8 +37,8 @@ export function useRequirements({ processes, issues, actions, documents }: UseRe
 
   // Get requirements allocated to the governance activity (generic requirements)
   const getGenericRequirementsForProcess = useCallback((): Requirement[] => {
-    return getGenericRequirements();
-  }, []);
+    return allRequirements.filter((r) => r.type === "generic");
+  }, [allRequirements]);
 
   // Get all allocations for a process (system-generated + manual)
   const getAllocationsForProcess = useCallback((processId: string): RequirementAllocation[] => {
@@ -51,7 +46,7 @@ export function useRequirements({ processes, issues, actions, documents }: UseRe
     const now = new Date().toISOString();
     
     // Start with generic requirements auto-allocated to the governance activity
-    const allocations: RequirementAllocation[] = getGenericRequirements().map(req => ({
+    const allocations: RequirementAllocation[] = getGenericRequirementsForProcess().map(req => ({
       requirementId: req.id,
       processId,
       activityId: governanceActivityId,
@@ -78,12 +73,12 @@ export function useRequirements({ processes, issues, actions, documents }: UseRe
     }
 
     return allocations;
-  }, [getGovernanceActivityId, processes]);
+  }, [getGovernanceActivityId, getGenericRequirementsForProcess, processes]);
 
   // Get requirements for a specific activity
   const getRequirementsForActivity = useCallback((processId: string, activityId: string): Requirement[] => {
     if (isGovernanceActivity(activityId)) {
-      return getGenericRequirements();
+      return allRequirements.filter((r) => r.type === "generic");
     }
     
     // For other activities, check for manually allocated requirements
@@ -191,9 +186,9 @@ export function useRequirements({ processes, issues, actions, documents }: UseRe
     const fulfillments = getFulfillmentForProcess(processId);
     
     // Group by type
-    const generic = getGenericRequirements();
-    const duplicable = getDuplicableRequirements();
-    const unique = getUniqueRequirements();
+    const generic = getGenericRequirementsForProcess();
+    const duplicable = allRequirements.filter((r) => r.type === "duplicable");
+    const unique = allRequirements.filter((r) => r.type === "unique");
     
     // Get allocated requirement IDs
     const allocatedIds = new Set(allocations.map(a => a.requirementId));
@@ -217,23 +212,23 @@ export function useRequirements({ processes, issues, actions, documents }: UseRe
         fulfillment: fulfillments.get(req.id),
       })),
     };
-  }, [getFulfillmentForProcess, getAllocationsForProcess, allRequirements]);
+  }, [allRequirements, getFulfillmentForProcess, getAllocationsForProcess, getGenericRequirementsForProcess]);
 
   // Get unallocated unique requirements (system-wide, not yet assigned to any process)
   const getUnallocatedUniqueRequirements = useCallback((): Requirement[] => {
     const allAllocations = processes.flatMap(p => getAllocationsForProcess(p.id));
     const allocatedIds = new Set(allAllocations.map(a => a.requirementId));
     
-    return getUniqueRequirements().filter(r => !allocatedIds.has(r.id));
-  }, [processes, getAllocationsForProcess]);
+    return allRequirements.filter((r) => r.type === "unique").filter(r => !allocatedIds.has(r.id));
+  }, [allRequirements, processes, getAllocationsForProcess]);
 
   // Get duplicable requirements not used in a specific process
   const getUnusedDuplicableRequirements = useCallback((processId: string): Requirement[] => {
     const allocations = getAllocationsForProcess(processId);
     const allocatedIds = new Set(allocations.map(a => a.requirementId));
     
-    return getDuplicableRequirements().filter(r => !allocatedIds.has(r.id));
-  }, [getAllocationsForProcess]);
+    return allRequirements.filter((r) => r.type === "duplicable").filter(r => !allocatedIds.has(r.id));
+  }, [allRequirements, getAllocationsForProcess]);
 
   // Get all requirements available for allocation to a specific activity
   const getAvailableForAllocation = useCallback((processId: string, activityId: string): Requirement[] => {

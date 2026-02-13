@@ -7,11 +7,11 @@ import {
   RiskPriority, 
   RiskVersion,
   RiskTrigger 
-} from "@/types/management-system";
+} from "@/domains/core/models";
 import { createRecord, fetchRecords, updateRecord, deleteRecord as deleteDbRecord } from "@/lib/records";
-import { createDemoIssues, inferProcessIdFromText } from "@/data/demo-seed";
-import { Process } from "@/types/management-system";
-import { createFallbackProcesses } from "@/data/default-processes";
+import { inferProcessIdFromText } from "@/data/demo-seed";
+import { getManagementDataProvider } from "@/application/data/managementDataProvider";
+import { Process } from "@/domains/core/models";
 
 type CreateIssueData = {
   code?: string;
@@ -75,7 +75,8 @@ export function useContextIssues() {
           return;
         }
 
-        const seededIssues = createDemoIssues(processes);
+        const provider = await getManagementDataProvider();
+        const seededIssues = provider.createSeedIssues(processes);
         setIssues(seededIssues);
         setInitialized(true);
 
@@ -83,8 +84,9 @@ export function useContextIssues() {
       } catch (error) {
         console.error("Failed to load issues:", error);
 
-        const fallbackProcesses = createFallbackProcesses();
-        const seededIssues = createDemoIssues(fallbackProcesses);
+        const provider = await getManagementDataProvider();
+        const fallbackProcesses = provider.getFallbackProcesses();
+        const seededIssues = provider.createSeedIssues(fallbackProcesses);
         setIssues(seededIssues);
         setInitialized(true);
       } finally {

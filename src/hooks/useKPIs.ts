@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { ProcessKPI, CreateKPIData, KPIValueRecord } from "@/types/objectives";
+import { ProcessKPI, CreateKPIData, KPIValueRecord } from "@/domains/objectives/models";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
 
 export function useKPIs() {

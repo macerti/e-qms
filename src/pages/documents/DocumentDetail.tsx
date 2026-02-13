@@ -24,7 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Document, DocumentType, ISOClauseReference } from "@/types/management-system";
+import { Document, DocumentType, ISOClauseReference } from "@/api/contracts/viewModels";
 import { cn } from "@/lib/utils";
 import { HelpHint } from "@/components/ui/help-hint";
 import { getDefaultStandard } from "@/application/standards/standardRegistry";

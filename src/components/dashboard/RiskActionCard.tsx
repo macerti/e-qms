@@ -1,6 +1,6 @@
  import { AlertTriangle, CheckSquare, Clock, Link2Off } from "lucide-react";
  import { useNavigate } from "react-router-dom";
- import { ContextIssue, Action } from "@/types/management-system";
+ import { ContextIssue, Action } from "@/api/contracts/viewModels";
  
  interface RiskActionCardProps {
    issues: ContextIssue[];

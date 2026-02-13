@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { 
   QualityPolicyData, 
   ManagementReviewData 
-} from "@/types/leadership-elements";
+} from "@/domains/leadership/models";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
 
 type LeadershipRecord =

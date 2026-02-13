@@ -1,4 +1,4 @@
-import type { ContextIssue, SwotQuadrant, IssueType, ContextNature } from "@/types/management-system";
+import type { ContextIssue, SwotQuadrant, IssueType, ContextNature } from "@/domains/core/models";
 
 export interface IssueCreationInput {
   type: IssueType;

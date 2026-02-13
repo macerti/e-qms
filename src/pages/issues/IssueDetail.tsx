@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { RiskMatrix } from "@/components/risk/RiskMatrix";
 import { getPriorityFromCriticity } from "@/components/risk/RiskEvaluation";
-import { SwotQuadrant } from "@/types/management-system";
+import { SwotQuadrant } from "@/api/contracts/viewModels";
 
 const quadrantConfig: Record<SwotQuadrant, { label: string; color: string; bgColor: string }> = {
   strength: { label: "Strength", color: "text-swot-strength", bgColor: "bg-swot-strength/10" },
