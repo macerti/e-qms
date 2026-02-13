@@ -1,8 +1,8 @@
 import { Navigate, useParams } from "react-router-dom";
 import { ScaffoldedToolWorkspace } from "@/pages/tools/ScaffoldedToolWorkspace";
-import type { ScaffoldTool } from "@/domains/tools/toolWorkspace";
+import type { ScaffoldToolContract } from "@/api/contracts/tools";
 
-const scaffoldTools = new Set<ScaffoldTool>([
+const scaffoldTools = new Set<ScaffoldToolContract>([
   "internal-audit",
   "management-review",
   "supplier-evaluation",
@@ -12,9 +12,9 @@ const scaffoldTools = new Set<ScaffoldTool>([
 export default function ToolWorkspacePage() {
   const { toolKey } = useParams();
 
-  if (!toolKey || !scaffoldTools.has(toolKey as ScaffoldTool)) {
+  if (!toolKey || !scaffoldTools.has(toolKey as ScaffoldToolContract)) {
     return <Navigate to="/tools" replace />;
   }
 
-  return <ScaffoldedToolWorkspace tool={toolKey as ScaffoldTool} />;
+  return <ScaffoldedToolWorkspace tool={toolKey as ScaffoldToolContract} />;
 }

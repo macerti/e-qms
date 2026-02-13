@@ -19,8 +19,8 @@ import {
   Save,
   AlertCircle,
 } from "lucide-react";
-import { ProcessActivity } from "@/types/management-system";
-import { Requirement, GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/types/requirements";
+import { ProcessActivity } from "@/api/contracts/viewModels";
+import { Requirement, GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/api/contracts/viewModels";
 import { RequirementAllocationPicker } from "./RequirementAllocationPicker";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { cn } from "@/lib/utils";

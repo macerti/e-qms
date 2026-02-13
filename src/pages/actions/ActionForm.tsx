@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
-import { ActionOrigin, ActionStatus } from "@/types/management-system";
+import { ActionOrigin, ActionStatus } from "@/api/contracts/viewModels";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, addDays } from "date-fns";

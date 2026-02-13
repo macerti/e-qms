@@ -1,6 +1,6 @@
-import { guidanceRegistry } from "@/application/help/guidanceRegistry";
+import { getGuidanceEntry } from "@/application/help/guidanceRegistry";
 
 export const helpConfig = {
-  linkedProcess: guidanceRegistry.linkedProcess.text,
-  scaffoldTable: guidanceRegistry.scaffoldTable.text,
+  linkedProcess: getGuidanceEntry("linkedProcess").explanation,
+  scaffoldTable: getGuidanceEntry("scaffoldTable").explanation,
 };

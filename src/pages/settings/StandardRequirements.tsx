@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
-import { ISO9001_STANDARD, type RequirementGuidance } from "@/data/iso9001-guidance";
+import { standardsEngineService } from "@/application/standards/standardsEngineService";
+import type { RequirementGuidance } from "@/api/contracts/viewModels";
 import {
   Accordion,
   AccordionContent,
@@ -99,7 +100,7 @@ function RequirementDetail({ req }: { req: RequirementGuidance }) {
 }
 
 export default function StandardRequirements() {
-  const standard = ISO9001_STANDARD;
+  const standard = standardsEngineService.getDefaultStandard();
 
   return (
     <div className="min-h-screen">

@@ -23,4 +23,26 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    files: ["src/components/**/*.{ts,tsx}", "src/pages/**/*.{ts,tsx}", "src/ui/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: ["@/domains/*"],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/domains/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: ["react", "react-*", "@/components/*", "@/pages/*", "@/ui/*"],
+        },
+      ],
+    },
+  },
 );

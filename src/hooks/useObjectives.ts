@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { ProcessObjective, CreateObjectiveData } from "@/types/objectives";
+import { ProcessObjective, CreateObjectiveData } from "@/domains/objectives/models";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
 
 export function useObjectives() {
