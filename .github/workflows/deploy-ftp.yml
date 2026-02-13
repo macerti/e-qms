@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - master
   workflow_dispatch:
 
 jobs:
@@ -24,13 +23,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build app for /qms/ base path
-        env:
-          VITE_BASE_PATH: /qms/
+      - name: Build app
         run: npm run build
-
-      - name: Verify build output exists
-        run: test -f dist/index.html
 
       - name: Deploy dist/ to FTP server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -40,6 +34,4 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
           local-dir: dist/
-          server-dir: ${{ secrets.FTP_SERVER_DIR || '/public_html/qms/' }}
-          dangerous-clean-slate: false
-          log-level: verbose
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}

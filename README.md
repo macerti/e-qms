@@ -114,11 +114,6 @@ Set these repository secrets in **GitHub → Settings → Secrets and variables 
 - `FTP_SERVER` (example: `ftp.macerti.com`)
 - `FTP_USERNAME` (example: `qms@macerti.com`)
 - `FTP_PASSWORD`
-- `FTP_SERVER_DIR` (recommended: `/public_html/qms/`)
-
-Notes:
-- The workflow builds with `VITE_BASE_PATH=/qms/`, so app assets resolve correctly when hosted under `https://your-domain.com/qms/`.
-- On Linux hosting, URL paths are case-sensitive. Use `/qms/` (lowercase), not `/QMS/`.
-- If your FTP account is chrooted, `/home/...` absolute paths may fail; prefer `/public_html/qms/`.
+- `FTP_SERVER_DIR` (example: `/home/macerti/public_html/qms/`)
 
 > Security note: never commit FTP credentials directly in workflow files.
