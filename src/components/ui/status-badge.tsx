@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { ProcessStatus, ActionStatus, RiskLevel } from "@/types/management-system";
+import { ProcessStatus, ActionStatus, RiskLevel } from "@/api/contracts/viewModels";
 
 type StatusType = ProcessStatus | ActionStatus | RiskLevel | 'achieved' | 'not_achieved' | 'at_risk';
 

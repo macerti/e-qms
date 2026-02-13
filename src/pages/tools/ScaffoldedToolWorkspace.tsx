@@ -3,11 +3,11 @@ import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { TabWorkspace } from "@/components/tools/shared/components/TabWorkspace";
 import { ToolHeader } from "@/components/tools/shared/components/ToolHeader";
 import { ToolLayout } from "@/components/tools/shared/layouts/ToolLayout";
-import { type ScaffoldTool } from "@/domains/tools/toolWorkspace";
+import { type ScaffoldToolContract } from "@/api/contracts/tools";
 import { toolsApplicationService } from "@/application/tools/toolsApplicationService";
 import { TabLayout } from "@/ui/components/TabLayout";
 
-export function ScaffoldedToolWorkspace({ tool }: { tool: ScaffoldTool }) {
+export function ScaffoldedToolWorkspace({ tool }: { tool: ScaffoldToolContract }) {
   const { processes } = useManagementSystem();
   const [linkedProcess, setLinkedProcess] = useState("not_assigned");
 

@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
-import { Process, ProcessType, Document } from "@/types/management-system";
+import { Process, ProcessType, Document } from "@/api/contracts/viewModels";
 import { cn } from "@/lib/utils";
 import { RevisionHistory } from "./RevisionHistory";
 import { useManagementSystem } from "@/context/ManagementSystemContext";

@@ -7,10 +7,10 @@ import {
   RiskPriority, 
   RiskVersion,
   RiskTrigger 
-} from "@/types/management-system";
+} from "@/domains/core/models";
 import { createRecord, fetchRecords, updateRecord, deleteRecord as deleteDbRecord } from "@/lib/records";
 import { createDemoIssues, inferProcessIdFromText } from "@/data/demo-seed";
-import { Process } from "@/types/management-system";
+import { Process } from "@/domains/core/models";
 import { createFallbackProcesses } from "@/data/default-processes";
 
 type CreateIssueData = {

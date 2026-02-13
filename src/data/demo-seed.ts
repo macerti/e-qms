@@ -1,4 +1,4 @@
-import { Action, ActionStatusChange, ContextIssue, Process, RiskVersion } from "@/types/management-system";
+import { Action, ActionStatusChange, ContextIssue, Process, RiskVersion } from "@/domains/core/models";
 
 function findProcessId(processes: Process[], nameIncludes: string, fallbackIndex = 0): string {
   const query = nameIncludes.toLowerCase();

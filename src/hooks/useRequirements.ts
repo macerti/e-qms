@@ -4,14 +4,14 @@ import {
   RequirementAllocation, 
   RequirementFulfillment,
   GOVERNANCE_ACTIVITY_ID_PREFIX 
-} from "@/types/requirements";
+} from "@/domains/requirement/models";
 import {
   getGenericRequirements,
   getDuplicableRequirements,
   getUniqueRequirements,
 } from "@/data/iso9001-requirements";
 import { getDefaultStandard } from "@/application/standards/standardRegistry";
-import { Process, ContextIssue, Action, Document } from "@/types/management-system";
+import { Process, ContextIssue, Action, Document } from "@/domains/core/models";
 
 interface UseRequirementsProps {
   processes: Process[];

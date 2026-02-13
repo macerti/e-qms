@@ -1,6 +1,6 @@
 import { History, User } from "lucide-react";
 import { format } from "date-fns";
-import { RevisionEntry } from "@/types/management-system";
+import { RevisionEntry } from "@/api/contracts/viewModels";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface RevisionHistoryProps {

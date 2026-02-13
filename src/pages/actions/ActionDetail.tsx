@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { cn } from "@/lib/utils";
 import { format, isPast, isToday } from "date-fns";
-import { ActionStatus } from "@/types/management-system";
+import { ActionStatus } from "@/api/contracts/viewModels";
 
 const originLabels: Record<string, string> = {
   issue: "Issue",

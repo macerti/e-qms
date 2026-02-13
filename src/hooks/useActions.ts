@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { Action, ActionStatus, ActionOrigin, EfficiencyEvaluation, EfficiencyResult, ActionStatusChange } from "@/types/management-system";
+import { Action, ActionStatus, ActionOrigin, EfficiencyEvaluation, EfficiencyResult, ActionStatusChange } from "@/domains/core/models";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
 import { createDemoActions, createDemoIssues, inferProcessIdFromText } from "@/data/demo-seed";
-import { ContextIssue, Process } from "@/types/management-system";
+import { ContextIssue, Process } from "@/domains/core/models";
 import { createFallbackProcesses } from "@/data/default-processes";
 
 type CreateActionData = Omit<Action, "id" | "createdAt" | "updatedAt" | "code" | "version" | "revisionDate" | "efficiencyEvaluation" | "completedDate" | "statusHistory"> & { 
