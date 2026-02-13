@@ -3,6 +3,7 @@ import { Process, ProcessStatus, ProcessActivity } from "@/domains/core/models";
 import { DEFAULT_PROCESSES, createFallbackProcesses, createGovernanceActivity } from "@/data/default-processes";
 import { GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/domains/requirement/models";
 import { createRecord, fetchRecords, updateRecord } from "@/lib/records";
+import { getManagementDataProvider } from "@/application/data/managementDataProvider";
 
 // Local state management for processes
 // In production, this would connect to a backend data store.
