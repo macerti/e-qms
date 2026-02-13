@@ -41,6 +41,4 @@ jobs:
           password: Azerty123456
           protocol: ftp
           local-dir: dist/
-          server-dir: ./
-          dangerous-clean-slate: true
-          log-level: verbose
+          server-dir: /home/macerti/public_html/qms/
