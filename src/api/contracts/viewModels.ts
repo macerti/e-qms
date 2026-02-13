@@ -21,5 +21,3 @@ export type { Requirement, RequirementFulfillment } from "@/domains/requirement/
 export { GOVERNANCE_ACTIVITY_ID_PREFIX } from "@/domains/requirement/models";
 
 export type { KPIValueRecord, KPIFrequency, ProcessKPI, ProcessObjective } from "@/domains/objectives/models";
-
-export type { RequirementGuidance } from "@/domains/standards/iso9001-guidance";
