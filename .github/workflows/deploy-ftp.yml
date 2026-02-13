@@ -29,9 +29,9 @@ jobs:
       - name: Deploy dist/ to FTP server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          server: ftp.macerti.com
+          username: qms@macerti.com
+          password: Azerty123456
           protocol: ftp
           local-dir: dist/
-          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          server-dir: /home/macerti/public_html/qms/
