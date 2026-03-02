@@ -1,8 +1,8 @@
 import { ClipboardCheck, ShieldAlert, CheckSquare, Building2, GraduationCap, Users } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ModuleCard } from "@/components/ui/module-card";
-import { Page } from "@/ui/layout/Page";
-import { Section } from "@/ui/layout/Section";
+import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
+import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
 import { toolsApplicationService } from "@/application/tools/toolsApplicationService";
 
 const iconMap = {
@@ -18,21 +18,22 @@ export default function ToolsOverview() {
   return (
     <div className="min-h-screen">
       <PageHeader title="Compliance Tools" subtitle="Standard-oriented tool workspaces linked to your processes" />
-      <Page className="pt-0">
-        <Section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {toolsApplicationService.getToolCatalog().map((tool) => (
-            <ModuleCard
-              key={tool.id}
-              title={tool.name}
-              description={`${tool.codification} · ${tool.description}`}
-              icon={iconMap[tool.id]}
-              path={tool.route}
-              isActive
-              accentColor={tool.status === "active" ? "bg-primary" : "bg-blue-500"}
-            />
+      <AdaptiveContainer className="py-6">
+        <AdaptiveGrid cols="1-2-3" gap="md">
+          {toolsApplicationService.getToolCatalog().map((tool, index) => (
+            <div key={tool.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+              <ModuleCard
+                title={tool.name}
+                description={`${tool.codification} · ${tool.description}`}
+                icon={iconMap[tool.id]}
+                path={tool.route}
+                isActive
+                accentColor={tool.status === "active" ? "bg-primary" : "bg-info"}
+              />
+            </div>
           ))}
-        </Section>
-      </Page>
+        </AdaptiveGrid>
+      </AdaptiveContainer>
     </div>
   );
 }

@@ -106,10 +106,10 @@ export default function Dashboard() {
         subtitle={`${activeStandard.code} ${activeStandard.version} ${activeStandard.name}`}
       />
       
-      <AdaptiveContainer className="py-6 space-y-6 max-w-[var(--wide-max-width)]">
+      <AdaptiveContainer className="py-6 space-y-8 max-w-[var(--wide-max-width)]">
         {/* Signal Cards */}
-        <section>
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
+        <section className="animate-fade-in">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4 px-1">
             System Signals
           </h2>
           <AdaptiveGrid cols="1-2-3" gap="md">
@@ -128,9 +128,12 @@ export default function Dashboard() {
         </section>
 
         {/* Modules Grid */}
-        <section>
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-            Modules (Demo dataset loaded)
+        <section className="animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4 px-1">
+            Modules
+            <span className="ml-2 text-[10px] font-normal tracking-normal normal-case bg-muted px-2 py-0.5 rounded-full">
+              Demo dataset loaded
+            </span>
           </h2>
           <AdaptiveGrid cols="1-2-3" gap="md">
             {modules.map((module) => (
@@ -154,40 +157,52 @@ export default function Dashboard() {
           </AdaptiveGrid>
         </section>
 
-        {/* Standard Info */}
-        <section>
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">
-            Requirements fulfillment (allocated set)
+        {/* Requirements fulfillment */}
+        <section className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4 px-1">
+            Requirements Fulfillment
+            <span className="ml-2 text-[10px] font-normal tracking-normal normal-case">(allocated set)</span>
           </h2>
           <AdaptiveGrid cols="1-2-3" gap="md">
-            <div className="mobile-card">
-              <p className="text-xs text-muted-foreground">Allocated requirements</p>
-              <p className="text-2xl font-semibold mt-1">{requirementsStats.allocated}</p>
-              <p className="text-xs text-muted-foreground mt-2">Across all process activities</p>
+            <div className="signal-card">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Allocated</p>
+              <p className="text-3xl font-bold mt-2 font-mono leading-none">{requirementsStats.allocated}</p>
+              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">Across all process activities</p>
             </div>
-            <div className="mobile-card border-green-200 bg-green-50/60">
-              <p className="text-xs text-green-700">Satisfied</p>
-              <p className="text-2xl font-semibold mt-1 text-green-700">{requirementsStats.satisfied} ({satisfactionRate}%)</p>
-              <p className="text-xs text-green-700 mt-2">Evidence inferred from linked documents, issues and actions</p>
+            <div className="signal-card border-success/20">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-success/40 rounded-t-xl" />
+              <p className="text-xs font-medium text-success uppercase tracking-wide">Satisfied</p>
+              <p className="text-3xl font-bold mt-2 text-success font-mono leading-none">
+                {requirementsStats.satisfied}
+                <span className="text-base font-semibold ml-1.5 opacity-70">({satisfactionRate}%)</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">Evidence inferred from linked documents, issues and actions</p>
             </div>
-            <div className="mobile-card border-amber-200 bg-amber-50/60">
-              <p className="text-xs text-amber-700">Allocated but not yet satisfied</p>
-              <p className="text-2xl font-semibold mt-1 text-amber-700">{requirementsStats.notSatisfied} ({pendingRate}%)</p>
-              <p className="text-xs text-amber-700 mt-2">Needs stronger evidence (docs, evaluated actions, or issue traceability)</p>
+            <div className="signal-card border-warning/20">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-warning/40 rounded-t-xl" />
+              <p className="text-xs font-medium text-warning uppercase tracking-wide">Pending</p>
+              <p className="text-3xl font-bold mt-2 text-warning font-mono leading-none">
+                {requirementsStats.notSatisfied}
+                <span className="text-base font-semibold ml-1.5 opacity-70">({pendingRate}%)</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">Needs stronger evidence (docs, evaluated actions, or issue traceability)</p>
             </div>
           </AdaptiveGrid>
         </section>
 
-        <section className="max-w-md">
-          <div className="mobile-card bg-primary text-primary-foreground">
-            <div className="flex items-start gap-3">
-              <FileText className="w-5 h-5 mt-0.5 shrink-0 opacity-80" />
+        {/* Standard Info */}
+        <section className="max-w-md animate-fade-in" style={{ animationDelay: '300ms' }}>
+          <div className="signal-card bg-primary text-primary-foreground border-primary/20">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary-foreground/10 flex items-center justify-center shrink-0">
+                <FileText className="w-5 h-5 opacity-80" />
+              </div>
               <div>
-                <h3 className="font-semibold">ISO 9001:2015</h3>
-                <p className="text-sm opacity-80 mt-1">
+                <h3 className="font-semibold text-base">ISO 9001:2015</h3>
+                <p className="text-sm opacity-80 mt-1 leading-relaxed">
                   Quality management systems — Requirements
                 </p>
-                <p className="text-xs opacity-60 mt-2 font-mono">
+                <p className="text-xs opacity-50 mt-2 font-mono">
                   Active standard for this system
                 </p>
               </div>

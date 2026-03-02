@@ -223,8 +223,22 @@
 @layer components {
   /* Mobile card component */
   .mobile-card {
-    @apply bg-card rounded-xl border border-border p-4 shadow-sm;
-    @apply active:scale-[0.98] transition-transform duration-150;
+    @apply bg-card rounded-xl border border-border p-5 shadow-card;
+    @apply active:scale-[0.98] transition-all duration-200;
+    @apply hover:shadow-card-hover hover:border-border/80;
+  }
+
+  /* Signal card – dashboard metric cards */
+  .signal-card {
+    @apply bg-card rounded-xl border border-border p-5 shadow-card;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:shadow-card-elevated hover:border-border/60;
+    @apply relative overflow-hidden;
+  }
+
+  .signal-card::before {
+    content: "";
+    @apply absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent pointer-events-none rounded-xl;
   }
 
   /* Status indicator */
@@ -240,21 +254,25 @@
   /* Process card */
   .process-card {
     @apply mobile-card border-l-4 border-l-process;
+    @apply hover:bg-process/[0.02];
   }
 
   /* Risk card */
   .risk-card {
     @apply mobile-card border-l-4 border-l-risk;
+    @apply hover:bg-risk/[0.02];
   }
 
   /* Opportunity card */
   .opportunity-card {
     @apply mobile-card border-l-4 border-l-opportunity;
+    @apply hover:bg-opportunity/[0.02];
   }
 
   /* Action card */
   .action-card {
     @apply mobile-card border-l-4 border-l-action;
+    @apply hover:bg-action/[0.02];
   }
 
   /* Empty state */
@@ -278,11 +296,16 @@
 
   /* Form field with helper */
   .form-field {
-    @apply space-y-2;
+    @apply space-y-2.5;
   }
 
   .form-helper {
-    @apply text-xs text-muted-foreground;
+    @apply text-xs text-muted-foreground leading-relaxed;
+  }
+
+  /* Form section grouping */
+  .form-section {
+    @apply rounded-xl border border-border bg-card p-5 space-y-5 shadow-card;
   }
 
   /* Section header */
