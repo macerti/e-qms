@@ -24,7 +24,8 @@ export default function ToolsOverview() {
             <div key={tool.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
               <ModuleCard
                 title={tool.name}
-                description={`${tool.codification} · ${tool.description}`}
+                description={tool.description}
+                codification={tool.codification}
                 icon={iconMap[tool.id]}
                 path={tool.route}
                 isActive

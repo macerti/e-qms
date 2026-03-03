@@ -16,6 +16,7 @@ interface ModuleCardProps {
   isActive?: boolean;
   plannedMessage?: string;
   accentColor?: string;
+  codification?: string;
 }
 
 export function ModuleCard({
@@ -27,54 +28,71 @@ export function ModuleCard({
   isActive = true,
   plannedMessage,
   accentColor,
+  codification,
 }: ModuleCardProps) {
   const cardContent = (
     <div
       className={cn(
-        "signal-card group relative overflow-hidden",
-        isActive 
-          ? "cursor-pointer" 
+        "group relative overflow-hidden rounded-xl border border-border/60 bg-card p-5 transition-all duration-200",
+        isActive
+          ? "cursor-pointer hover:shadow-card-hover hover:border-border active:scale-[0.99]"
           : "opacity-50 cursor-not-allowed"
       )}
     >
       {/* Accent bar */}
-      <div 
+      <div
         className={cn(
-          "absolute top-0 left-0 right-0 h-1 rounded-t-xl transition-all duration-300",
+          "absolute top-0 left-0 right-0 h-1 transition-all duration-300",
           accentColor || "bg-primary",
           isActive && "group-hover:h-1.5"
         )}
       />
-      
-      <div className="flex items-start gap-4 pt-2">
-        <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200",
-          isActive ? "bg-primary/8 group-hover:bg-primary/12 group-hover:shadow-metric" : "bg-muted"
-        )}>
-          <Icon className={cn(
-            "w-6 h-6 transition-colors duration-200",
-            isActive ? "text-primary" : "text-muted-foreground"
-          )} />
+
+      <div className="flex items-start gap-4 pt-1">
+        {/* Icon */}
+        <div
+          className={cn(
+            "w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
+            isActive
+              ? "bg-primary/8 group-hover:bg-primary/12"
+              : "bg-muted"
+          )}
+        >
+          <Icon
+            className={cn(
+              "w-5 h-5 transition-colors duration-200",
+              isActive ? "text-primary" : "text-muted-foreground"
+            )}
+          />
         </div>
-        
-        <div className="flex-1 min-w-0">
+
+        {/* Content */}
+        <div className="flex-1 min-w-0 space-y-1.5">
+          {/* Title row */}
           <div className="flex items-center justify-between gap-2">
-            <h3 className="font-semibold truncate">{title}</h3>
+            <h3 className="font-semibold text-[0.95rem] leading-snug">{title}</h3>
             <div className="flex items-center gap-2 shrink-0">
               {isActive && count !== undefined && (
-                <span className="font-mono text-sm text-muted-foreground bg-muted/80 px-2.5 py-1 rounded-lg font-medium">
+                <span className="font-mono text-sm text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md font-medium">
                   {count}
                 </span>
               )}
-              {!isActive && (
-                <Lock className="w-4 h-4 text-muted-foreground" />
-              )}
+              {!isActive && <Lock className="w-4 h-4 text-muted-foreground" />}
               {isActive && (
-                <ChevronRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-200" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-200" />
               )}
             </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
+
+          {/* Codification */}
+          {codification && (
+            <span className="inline-block font-mono text-[0.65rem] text-muted-foreground border border-border/50 rounded px-1.5 py-px">
+              {codification}
+            </span>
+          )}
+
+          {/* Description */}
+          <p className="text-sm text-muted-foreground leading-relaxed">
             {description}
           </p>
         </div>
