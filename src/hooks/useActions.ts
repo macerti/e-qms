@@ -56,7 +56,7 @@ export function useActions() {
         }
 
         const provider = await getManagementDataProvider();
-        const seededActions = provider.createSeedActions(processes, issues);
+        const seededActions = provider.createSeedActions(issues, processes);
         setActions(seededActions);
         setInitialized(true);
 
@@ -66,7 +66,7 @@ export function useActions() {
         const provider = await getManagementDataProvider();
         const fallbackProcesses = provider.getFallbackProcesses();
         const fallbackIssues = provider.createSeedIssues(fallbackProcesses);
-        const seededActions = provider.createSeedActions(fallbackProcesses, fallbackIssues);
+        const seededActions = provider.createSeedActions(fallbackIssues, fallbackProcesses);
         setActions(seededActions);
         setInitialized(true);
       } finally {

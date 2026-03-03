@@ -13,7 +13,7 @@ import { managementReviewWorkspaceService } from "@/application/tools/management
 export function ManagementReviewWorkspace() {
   const { processes } = useManagementSystem();
   const tabs = managementReviewWorkspaceService.getTabs();
-  const [activeTab, setActiveTab] = useState(tabs[0].key);
+  const [activeTab, setActiveTab] = useState<string>(tabs[0].key);
   const [linkedProcess, setLinkedProcess] = useState("not_assigned");
   const [periodDate, setPeriodDate] = useState("");
   const [periodTime, setPeriodTime] = useState("");

@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
 import { standardsEngineService } from "@/application/standards/standardsEngineService";
-import type { RequirementGuidance } from "@/api/contracts/viewModels";
+import type { RequirementGuidance } from "@/domains/standards/iso9001-guidance";
 import {
   Accordion,
   AccordionContent,

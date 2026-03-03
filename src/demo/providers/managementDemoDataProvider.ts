@@ -9,7 +9,7 @@ export const managementDemoDataProvider = {
   createSeedIssues(processes: Process[]): ContextIssue[] {
     return createDemoIssues(processes);
   },
-  createSeedActions(issues: ContextIssue[], processes: Process[]): Action[] {
-    return createDemoActions(issues, processes);
+  createSeedActions(_issues: ContextIssue[], _processes: Process[]): Action[] {
+    return createDemoActions(_processes, _issues);
   },
 };

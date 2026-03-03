@@ -101,9 +101,9 @@ export interface Versionable {
 // Base entity with audit trail and multi-tenant scoping
 export interface BaseEntity {
   id: string;
-  organization_id: string;
-  created_at: string;
-  updated_at: string;
+  organization_id?: string;
+  created_at?: string;
+  updated_at?: string;
   tenantId?: string;
   organizationId?: string;
   createdAt?: string;
