@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { ToolLayout } from "@/components/tools/shared/layouts/ToolLayout";
 import { ToolHeader } from "@/components/tools/shared/components/ToolHeader";
@@ -36,15 +36,13 @@ export default function CBWorkspacePage() {
   const meta = cbToolMeta[toolKey];
   const tabs = cbWorkspaceTabs[toolKey];
 
-  return <CBWorkspaceContent toolKey={toolKey} meta={meta} tabs={tabs} />;
+  return <CBWorkspaceContent meta={meta} tabs={tabs} />;
 }
 
 function CBWorkspaceContent({
-  toolKey,
   meta,
   tabs,
 }: {
-  toolKey: string;
   meta: { title: string; codification: string; description: string };
   tabs: typeof cbWorkspaceTabs[string];
 }) {

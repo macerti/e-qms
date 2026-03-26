@@ -1,14 +1,8 @@
-import { useMemo } from "react";
-import { Link } from "react-router-dom";
 import { Page } from "@/ui/layout/Page";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
 import { ModuleCard } from "@/components/ui/module-card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Building2, CalendarRange, ClipboardCheck, Award,
-  Scale, GraduationCap, MessageSquareWarning, Shield,
-} from "lucide-react";
+import { Shield, Building2, CalendarRange, ClipboardCheck, Award, Scale, GraduationCap, MessageSquareWarning } from "lucide-react";
 import { cbToolCatalog } from "@/domains/certification-body/cbToolCatalog";
 import type { LucideIcon } from "lucide-react";
 
@@ -38,7 +32,7 @@ export default function CBOverview() {
           </div>
         </div>
 
-        <AdaptiveGrid minWidth={280}>
+        <AdaptiveGrid cols="1-2-3">
           {cbToolCatalog.map((tool) => {
             const Icon = iconMap[tool.iconName] ?? Shield;
             return (
