@@ -1,5 +1,6 @@
 import iso9001Meta from "@/standards-engine/standards/iso9001.json";
 import iso14001Meta from "@/standards-engine/standards/iso14001.json";
+import iso17021Meta from "@/standards-engine/standards/iso17021.json";
 import { ISO9001_REQUIREMENTS } from "@/domains/standards/iso9001-requirements";
 import { ISO9001_STANDARD } from "@/domains/standards/iso9001-guidance";
 import type { StandardDefinition } from "@/standards-engine/schemas";
@@ -12,6 +13,11 @@ const standards: StandardDefinition[] = [
   },
   {
     ...iso14001Meta,
+    requirements: [],
+    clauseGroups: [],
+  },
+  {
+    ...iso17021Meta,
     requirements: [],
     clauseGroups: [],
   },
