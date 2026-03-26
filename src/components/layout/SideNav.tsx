@@ -4,6 +4,7 @@ import {
   Workflow,
   FileText,
   ShieldCheck,
+  Shield,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -21,6 +22,7 @@ const navItems: NavItem[] = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
   { path: "/processes", label: "Processes", icon: Workflow },
   { path: "/tools", label: "Tools", icon: ShieldCheck },
+  { path: "/cb", label: "Certification Body", icon: Shield },
   { path: "/documents", label: "Documents", icon: FileText },
 ];
 
@@ -56,8 +58,11 @@ export function SideNav() {
       <nav className={cn("flex-1 space-y-1", collapsed ? "p-2" : "p-4")}>
         {navItems.map((item) => {
           const isToolsPath = ["/tools", "/issues", "/actions"].some((path) => location.pathname.startsWith(path));
+          const isCBPath = location.pathname.startsWith("/cb");
           const isCurrentPath = item.path === "/tools"
             ? isToolsPath
+            : item.path === "/cb"
+            ? isCBPath
             : location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
           const Icon = item.icon;
 
