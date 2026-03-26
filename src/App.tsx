@@ -26,6 +26,8 @@ import DocumentForm from "./pages/documents/DocumentForm";
 import DocumentDetail from "./pages/documents/DocumentDetail";
 import ToolsOverview from "@/pages/tools/ToolsOverview";
 import ToolWorkspacePage from "@/pages/tools/ToolWorkspacePage";
+import CBOverview from "@/pages/certification-body/CBOverview";
+import CBWorkspacePage from "@/pages/certification-body/CBWorkspacePage";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -45,6 +47,9 @@ const App = () => (
 
               <Route path="/tools" element={<ToolsOverview />} />
               <Route path="/tools/:toolKey" element={<ToolWorkspacePage />} />
+
+              <Route path="/cb" element={<CBOverview />} />
+              <Route path="/cb/:toolKey" element={<CBWorkspacePage />} />
 
               <Route path="/issues" element={<IssueList />} />
               <Route path="/issues/new" element={<IssueForm />} />

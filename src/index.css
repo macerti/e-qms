@@ -1,13 +1,25 @@
 @tailwind base;
 
-/* Hide scrollbar for horizontal tab scroll */
-.scrollbar-hide {
+/* Hide scrollbar for horizontal tab/pill scroll */
+.scrollbar-hide,
+.no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.scrollbar-hide::-webkit-scrollbar {
+.scrollbar-hide::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Touch-optimized horizontal scroll */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+.touch-scroll > * {
+  scroll-snap-align: start;
+}
+
 @tailwind components;
 @tailwind utilities;
 
