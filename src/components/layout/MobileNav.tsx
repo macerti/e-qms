@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Workflow, FileText, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Workflow, FileText, ShieldCheck, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -12,7 +12,8 @@ const navItems: NavItem[] = [
   { path: "/", label: "Dashboard", icon: LayoutDashboard },
   { path: "/processes", label: "Processes", icon: Workflow },
   { path: "/tools", label: "Tools", icon: ShieldCheck },
-  { path: "/documents", label: "Documents", icon: FileText },
+  { path: "/cb", label: "CB", icon: Shield },
+  { path: "/documents", label: "Docs", icon: FileText },
 ];
 
 export function MobileNav() {
@@ -23,9 +24,12 @@ export function MobileNav() {
       <div className="flex items-center justify-around max-w-lg mx-auto" style={{ paddingBottom: "var(--safe-area-bottom)" }}>
         {navItems.map((item) => {
           const isToolsPath = ["/tools", "/issues", "/actions"].some((path) => location.pathname.startsWith(path));
+          const isCBPath = location.pathname.startsWith("/cb");
           const isCurrentPath =
             item.path === "/tools"
               ? isToolsPath
+              : item.path === "/cb"
+              ? isCBPath
               : location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
           const Icon = item.icon;
 
