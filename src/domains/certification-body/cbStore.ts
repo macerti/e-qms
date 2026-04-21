@@ -29,6 +29,15 @@ export interface CBStoreShape {
   complaints: any[];
   appeals: any[];
   resolutions: any[];
+  // Scheduling, technical areas, finance
+  technicalAreas: any[];          // editable IAF/technical area catalog
+  allocations: any[];             // auditor ↔ audit assignments (with day-by-day)
+  feeNotes: any[];                // subcontractor fee notes (notes d'honoraires)
+  invoices: any[];                // client invoices
+  accreditationFees: any[];       // accred body fees: cost vs sell
+  overheadCosts: any[];           // monthly/annual overhead lines
+  quotations: any[];              // quotations w/ margin estimator
+  financeSettings: any[];         // singleton-ish list (currency, default rates)
 }
 
 const EMPTY: CBStoreShape = {
@@ -38,6 +47,8 @@ const EMPTY: CBStoreShape = {
   auditors: [], competences: [], witnessAudits: [], trainings: [],
   impartialityRisks: [], conflictDeclarations: [], committeeMinutes: [],
   complaints: [], appeals: [], resolutions: [],
+  technicalAreas: [], allocations: [], feeNotes: [], invoices: [],
+  accreditationFees: [], overheadCosts: [], quotations: [], financeSettings: [],
 };
 
 let memory: CBStoreShape | null = null;

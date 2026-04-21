@@ -1,19 +1,17 @@
 /**
  * ISO/IEC 17021-1 Certification Body Tool Catalog
- *
- * Extends the tool system with CB-specific workspaces.
- * These are separate from QMS tools and render under /cb/* routes.
  */
-
-import type { LucideIcon } from "lucide-react";
 
 export type CBToolId =
   | "cb-clients"
   | "cb-audit-programs"
   | "cb-audits"
+  | "cb-scheduling"
+  | "cb-technical-areas"
   | "cb-certificates"
   | "cb-impartiality"
   | "cb-competence"
+  | "cb-finance"
   | "cb-complaints-appeals";
 
 export interface CBToolDefinition {
@@ -38,12 +36,12 @@ export const cbToolCatalog: CBToolDefinition[] = [
   },
   {
     id: "cb-audit-programs",
-    name: "Audit Programs",
+    name: "Audit Programmes",
     codification: "17021-1 · Clause 9.1",
-    description: "Plan 3-year audit cycles, define objectives, allocate resources, and manage program schedules.",
+    description: "Plan 3-year audit cycles, define manday rates, allocate resources and manage programme schedules.",
     route: "/cb/audit-programs",
     iconName: "CalendarRange",
-    capabilities: ["program.plan", "program.schedule", "program.resource"],
+    capabilities: ["program.plan", "program.rate", "program.resource"],
   },
   {
     id: "cb-audits",
@@ -53,6 +51,24 @@ export const cbToolCatalog: CBToolDefinition[] = [
     route: "/cb/audits",
     iconName: "ClipboardCheck",
     capabilities: ["audit.stage1", "audit.stage2", "audit.surveillance", "audit.recertification"],
+  },
+  {
+    id: "cb-scheduling",
+    name: "Scheduling",
+    codification: "17021-1 · Clause 9.1.9",
+    description: "Visual auditor calendar, allocations and automatic conflict detection.",
+    route: "/cb/scheduling",
+    iconName: "CalendarDays",
+    capabilities: ["schedule.calendar", "schedule.allocate", "schedule.conflict"],
+  },
+  {
+    id: "cb-technical-areas",
+    name: "Technical Areas",
+    codification: "IAF MD 5 · 17021-1 §7",
+    description: "Manage IAF sectors and technical areas; map to qualified auditors and client scopes.",
+    route: "/cb/technical-areas",
+    iconName: "Layers",
+    capabilities: ["technical.area", "technical.matrix"],
   },
   {
     id: "cb-certificates",
@@ -76,10 +92,19 @@ export const cbToolCatalog: CBToolDefinition[] = [
     id: "cb-competence",
     name: "Competence",
     codification: "17021-1 · Clause 7",
-    description: "Track auditor qualifications, competence matrices, witness audits, and sector authorizations.",
+    description: "Track auditor qualifications, competence matrices, witness audits, and sector authorisations.",
     route: "/cb/competence",
     iconName: "GraduationCap",
     capabilities: ["competence.matrix", "competence.witness", "competence.assignment"],
+  },
+  {
+    id: "cb-finance",
+    name: "Finance & P&L",
+    codification: "Commercial · Subcontractor management",
+    description: "Quotations with margin estimator, client invoices, auditor fee notes, accreditation cost vs sell, overheads and P&L analytics.",
+    route: "/cb/finance",
+    iconName: "Coins",
+    capabilities: ["finance.quote", "finance.invoice", "finance.feenote", "finance.pnl"],
   },
   {
     id: "cb-complaints-appeals",

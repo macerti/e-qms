@@ -2,13 +2,14 @@ import { Page } from "@/ui/layout/Page";
 import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
 import { ModuleCard } from "@/components/ui/module-card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Building2, CalendarRange, ClipboardCheck, Award, Scale, GraduationCap, MessageSquareWarning } from "lucide-react";
+import { Shield, Building2, CalendarRange, ClipboardCheck, Award, Scale, GraduationCap, MessageSquareWarning, CalendarDays, Layers, Coins } from "lucide-react";
 import { cbToolCatalog } from "@/domains/certification-body/cbToolCatalog";
 import type { LucideIcon } from "lucide-react";
 
 const iconMap: Record<string, LucideIcon> = {
   Building2, CalendarRange, ClipboardCheck, Award,
   Scale, GraduationCap, MessageSquareWarning,
+  CalendarDays, Layers, Coins,
 };
 
 export default function CBOverview() {

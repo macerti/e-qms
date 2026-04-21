@@ -69,7 +69,8 @@ function ProgramsTab({ programs }: { programs: ReturnType<typeof useCBCollection
     { key: "client", header: "Client", render: (r) => <span className="font-medium text-sm">{r.client}</span> },
     { key: "scope", header: "Scope/Standard", render: (r) => <span className="text-sm">{r.standardId || "—"}</span> },
     { key: "cycle", header: "Cycle", render: (r) => <span className="text-xs tabular-nums">{r.cycleStart} → {r.cycleEnd}</span> },
-    { key: "audits", header: "Audits planned", render: (r) => <span className="text-sm tabular-nums">{r.auditCount ?? 0}</span> },
+    { key: "audits", header: "Audits", render: (r) => <span className="text-sm tabular-nums">{r.auditCount ?? 0}</span> },
+    { key: "rate", header: "Manday rate", render: (r) => <span className="text-sm tabular-nums">{r.mandayRate ? `${r.currency || "EUR"} ${r.mandayRate}` : "—"}</span> },
     { key: "status", header: "Status", render: (r) => <CBStatusPill label={r.status || "draft"} tone={r.status === "active" ? "success" : "info"} /> },
   ];
 
@@ -112,6 +113,13 @@ function ProgramsTab({ programs }: { programs: ReturnType<typeof useCBCollection
           <CBFormField label="Justification of audit time" hint="Explain reductions/increases vs MD 5 baseline.">
             <Textarea rows={3} value={form.justification ?? ""} onChange={(e) => setForm({ ...form, justification: e.target.value })} />
           </CBFormField>
+        </CBFormSection>
+        <CBFormSection title="Commercial — manday rate" description="Default rate billed to the client per audit day. Used as the sell rate when creating quotations and invoices.">
+          <div className="grid grid-cols-3 gap-3">
+            <CBFormField label="Manday rate (sell)"><Input type="number" min={0} step="10" value={form.mandayRate ?? ""} onChange={(e) => setForm({ ...form, mandayRate: Number(e.target.value) })} /></CBFormField>
+            <CBFormField label="Auditor cost rate"><Input type="number" min={0} step="10" value={form.auditorCostRate ?? ""} onChange={(e) => setForm({ ...form, auditorCostRate: Number(e.target.value) })} /></CBFormField>
+            <CBFormField label="Currency"><Input value={form.currency ?? "EUR"} onChange={(e) => setForm({ ...form, currency: e.target.value.toUpperCase() })} /></CBFormField>
+          </div>
         </CBFormSection>
       </CBRecordDrawer>
     </>
