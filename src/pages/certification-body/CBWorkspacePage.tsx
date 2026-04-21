@@ -6,6 +6,9 @@ import CBCertificatesModule from "./modules/CBCertificatesModule";
 import CBImpartialityModule from "./modules/CBImpartialityModule";
 import CBCompetenceModule from "./modules/CBCompetenceModule";
 import CBComplaintsModule from "./modules/CBComplaintsModule";
+import CBSchedulingModule from "./modules/CBSchedulingModule";
+import CBTechnicalAreasModule from "./modules/CBTechnicalAreasModule";
+import CBFinanceModule from "./modules/CBFinanceModule";
 
 const MODULES: Record<string, () => JSX.Element> = {
   "cb-clients": CBClientsModule,
@@ -22,6 +25,12 @@ const MODULES: Record<string, () => JSX.Element> = {
   competence: CBCompetenceModule,
   "cb-complaints-appeals": CBComplaintsModule,
   "complaints-appeals": CBComplaintsModule,
+  "cb-scheduling": CBSchedulingModule,
+  scheduling: CBSchedulingModule,
+  "cb-technical-areas": CBTechnicalAreasModule,
+  "technical-areas": CBTechnicalAreasModule,
+  "cb-finance": CBFinanceModule,
+  finance: CBFinanceModule,
 };
 
 export default function CBWorkspacePage() {
