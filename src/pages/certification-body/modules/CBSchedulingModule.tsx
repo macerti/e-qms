@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, AlertTriangle, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, AlertTriangle, Users, ChevronLeft, ChevronRight, FileDown } from "lucide-react";
 import { CBPageShell } from "@/components/certification-body/CBPageShell";
 import { CBRecordList, type CBColumn } from "@/components/certification-body/CBRecordList";
 import { CBRecordDrawer } from "@/components/certification-body/CBRecordDrawer";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCBCollection } from "@/domains/certification-body/cbStore";
 import { rangesOverlap, listDatesInRange } from "@/domains/certification-body/cbFinance";
+import { ImportFromProgrammeDrawer } from "./scheduling/ImportFromProgrammeDrawer";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -208,6 +209,7 @@ function AllocationsTab({
   audits: any[];
 }) {
   const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
   const [form, setForm] = useState<any>({});
 
@@ -272,7 +274,14 @@ function AllocationsTab({
         onCreate={() => launch(null)}
         onEdit={(r) => launch(r)}
         onDelete={(r) => allocations.remove(r.id)}
+        rightSlot={
+          <Button variant="outline" size="sm" className="h-10" onClick={() => setImportOpen(true)}>
+            <FileDown className="mr-1.5 h-4 w-4" />
+            Import from programme
+          </Button>
+        }
       />
+      <ImportFromProgrammeDrawer open={importOpen} onOpenChange={setImportOpen} />
       <CBRecordDrawer
         open={open}
         onOpenChange={setOpen}
