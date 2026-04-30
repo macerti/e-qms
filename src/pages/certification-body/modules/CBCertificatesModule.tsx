@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Award, ShieldAlert, Scale, Globe } from "lucide-react";
+import { Award, ShieldAlert, Scale, Globe, CalendarClock } from "lucide-react";
 import { CBPageShell } from "@/components/certification-body/CBPageShell";
+import { CBStatTile, CBStatGrid } from "@/components/certification-body/CBStatTile";
 import { CBRecordList, type CBColumn } from "@/components/certification-body/CBRecordList";
 import { CBRecordDrawer } from "@/components/certification-body/CBRecordDrawer";
 import { CBFormField, CBFormSection } from "@/components/certification-body/CBFormField";
@@ -53,6 +54,24 @@ export default function CBCertificatesModule() {
       toolDescription="Issue, suspend, withdraw and renew certificates. The independent decision is logged here, certificates are generated and the public directory is kept up to date."
       clauseCodes={["8.2", "8.4", "8.5", "9.5"]}
     >
+      {(() => {
+        const expiringSoon = certs.data.filter((c: any) => {
+          if (!c.expiryDate || c.status !== "active") return false;
+          const d = new Date(c.expiryDate); const now = new Date();
+          const days = (d.getTime() - now.getTime()) / 86400000;
+          return days >= 0 && days <= 90;
+        }).length;
+        const withdrawn = certs.data.filter((c: any) => c.status === "withdrawn").length;
+        return (
+          <CBStatGrid className="mb-5">
+            <CBStatTile label="Active" value={active.length} icon={Award} tone="success" hint="Currently certified" />
+            <CBStatTile label="Suspended" value={certs.data.filter((c: any) => c.status === "suspended").length} icon={ShieldAlert} tone="warning" />
+            <CBStatTile label="Withdrawn" value={withdrawn} icon={ShieldAlert} tone="danger" />
+            <CBStatTile label="Expiring (90 days)" value={expiringSoon} icon={CalendarClock} tone={expiringSoon > 0 ? "warning" : "neutral"} hint="Renewal window" />
+            <CBStatTile label="Decisions logged" value={decisions.data.length} icon={Scale} tone="violet" hint="Independent reviews" />
+          </CBStatGrid>
+        );
+      })()}
       <TabLayout activeTab={activeTab} onTabChange={(k) => setActiveTab(k as any)} tabs={tabs} />
       <div className="mt-5">
         {activeTab === "active" && <CertificatesTab certs={certs} filter={(c) => c.status === "active"} title="active" />}

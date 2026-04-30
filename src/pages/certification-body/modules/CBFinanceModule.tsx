@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { Calculator, Receipt, FileText, Award, Settings2, BarChart3 } from "lucide-react";
+import { Calculator, Receipt, FileText, Award, Settings2, BarChart3, TrendingUp, Wallet } from "lucide-react";
 import { CBPageShell } from "@/components/certification-body/CBPageShell";
+import { CBStatTile, CBStatGrid } from "@/components/certification-body/CBStatTile";
 import { CBRecordList, type CBColumn } from "@/components/certification-body/CBRecordList";
 import { CBRecordDrawer } from "@/components/certification-body/CBRecordDrawer";
 import { CBFormField, CBFormSection } from "@/components/certification-body/CBFormField";
@@ -46,6 +47,23 @@ export default function CBFinanceModule() {
       toolDescription="Quotations with margin & profit estimator, client invoices, auditor fee notes (notes d'honoraires), accreditation fee cost vs sell, overheads, and full P&L analytics."
       clauseCodes={[]}
     >
+      {(() => {
+        const revenue = invoices.data.filter((i: any) => i.status !== "cancelled").reduce((s: number, i: any) => s + (Number(i.total) || 0), 0);
+        const subcontractor = feeNotes.data.filter((f: any) => f.status !== "rejected").reduce((s: number, f: any) => s + (Number(f.total) || 0), 0);
+        const accCost = accreditationFees.data.reduce((s: number, a: any) => s + (Number(a.cost) || 0), 0);
+        const overhead = annualOverheadTotal(overheadCosts.data);
+        const grossMargin = revenue - subcontractor - accCost;
+        const netProfit = grossMargin - overhead;
+        return (
+          <CBStatGrid className="mb-5">
+            <CBStatTile label="Revenue" value={fmtMoney(revenue, "EUR")} icon={Wallet} tone="success" hint={`${invoices.data.length} invoices`} />
+            <CBStatTile label="Subcontractor cost" value={fmtMoney(subcontractor, "EUR")} icon={FileText} tone="warning" hint={`${feeNotes.data.length} fee notes`} />
+            <CBStatTile label="Accreditation cost" value={fmtMoney(accCost, "EUR")} icon={Award} tone="info" hint="Accred body fees" />
+            <CBStatTile label="Annual overhead" value={fmtMoney(overhead, "EUR")} icon={Settings2} tone="neutral" hint="Salaries, rent, etc." />
+            <CBStatTile label="Net profit" value={fmtMoney(netProfit, "EUR")} icon={TrendingUp} tone={netProfit >= 0 ? "success" : "danger"} hint="Revenue − all costs" />
+          </CBStatGrid>
+        );
+      })()}
       <TabLayout activeTab={activeTab} onTabChange={(k) => setActiveTab(k as TabKey)} tabs={tabs} />
       <div className="mt-5">
         {activeTab === "quotations" && (
