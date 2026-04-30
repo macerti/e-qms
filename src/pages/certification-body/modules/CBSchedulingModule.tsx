@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, AlertTriangle, Users, ChevronLeft, ChevronRight, FileDown } from "lucide-react";
+import { CalendarDays, AlertTriangle, Users, ChevronLeft, ChevronRight, FileDown, Briefcase } from "lucide-react";
 import { CBPageShell } from "@/components/certification-body/CBPageShell";
+import { CBStatTile, CBStatGrid } from "@/components/certification-body/CBStatTile";
 import { CBRecordList, type CBColumn } from "@/components/certification-body/CBRecordList";
 import { CBRecordDrawer } from "@/components/certification-body/CBRecordDrawer";
 import { CBFormField, CBFormSection } from "@/components/certification-body/CBFormField";
@@ -35,6 +36,21 @@ export default function CBSchedulingModule() {
       toolDescription="Allocate competent auditors to scheduled audits. The system automatically detects double-bookings and flags missing competence."
       clauseCodes={["9.1.9", "7.2"]}
     >
+      {(() => {
+        const now = new Date();
+        const upcoming = allocations.data.filter((a: any) => a.startDate && new Date(a.startDate) >= now).length;
+        const totalMandays = allocations.data.reduce((s: number, a: any) => s + (Number(a.mandays) || 0), 0);
+        const utilisedAuditors = new Set(allocations.data.map((a: any) => a.auditorId).filter(Boolean)).size;
+        return (
+          <CBStatGrid className="mb-5">
+            <CBStatTile label="Allocations" value={allocations.data.length} icon={Users} tone="primary" hint="All assignments" />
+            <CBStatTile label="Upcoming" value={upcoming} icon={CalendarDays} tone="info" hint="Future scheduled" />
+            <CBStatTile label="Total mandays" value={totalMandays} icon={Briefcase} tone="violet" hint="Across allocations" />
+            <CBStatTile label="Auditors used" value={`${utilisedAuditors}/${auditors.data.length}`} icon={Users} tone="success" hint="Pool utilisation" />
+            <CBStatTile label="Conflicts" value={conflicts.length} icon={AlertTriangle} tone={conflicts.length > 0 ? "danger" : "neutral"} hint="Double-bookings" />
+          </CBStatGrid>
+        );
+      })()}
       <TabLayout activeTab={activeTab} onTabChange={(k) => setActiveTab(k as any)} tabs={tabs} />
       <div className="mt-5">
         {activeTab === "calendar" && <CalendarTab allocations={allocations.data} auditors={auditors.data} />}

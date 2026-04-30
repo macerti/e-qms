@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { Calculator, Receipt, FileText, Award, Settings2, BarChart3 } from "lucide-react";
+import { Calculator, Receipt, FileText, Award, Settings2, BarChart3, TrendingUp, Wallet } from "lucide-react";
 import { CBPageShell } from "@/components/certification-body/CBPageShell";
+import { CBStatTile, CBStatGrid } from "@/components/certification-body/CBStatTile";
 import { CBRecordList, type CBColumn } from "@/components/certification-body/CBRecordList";
 import { CBRecordDrawer } from "@/components/certification-body/CBRecordDrawer";
 import { CBFormField, CBFormSection } from "@/components/certification-body/CBFormField";

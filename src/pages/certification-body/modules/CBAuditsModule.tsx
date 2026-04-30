@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { ClipboardList, FileCheck, AlertTriangle, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ClipboardList, FileCheck, AlertTriangle, Search, ShieldCheck, Activity } from "lucide-react";
 import { CBPageShell } from "@/components/certification-body/CBPageShell";
+import { CBStatTile, CBStatGrid } from "@/components/certification-body/CBStatTile";
 import { CBRecordList, type CBColumn } from "@/components/certification-body/CBRecordList";
 import { CBRecordDrawer } from "@/components/certification-body/CBRecordDrawer";
 import { CBFormField, CBFormSection } from "@/components/certification-body/CBFormField";
@@ -50,6 +51,15 @@ export default function CBAuditsModule() {
       clauseCodes={["9.2", "9.3", "9.4", "9.5"]}
     >
       <CBLifecycleStepper current="stage2_audit" className="mb-5" />
+
+      <CBStatGrid className="mb-5">
+        <CBStatTile label="In progress" value={audits.data.filter((a: any) => a.stage === "in_progress").length} icon={Activity} tone="primary" hint="Active fieldwork" />
+        <CBStatTile label="Planned" value={audits.data.filter((a: any) => a.stage === "planned").length} icon={ClipboardList} tone="info" hint="Awaiting kickoff" />
+        <CBStatTile label="Completed" value={audits.data.filter((a: any) => a.stage === "completed").length} icon={ShieldCheck} tone="success" hint="Closed audits" />
+        <CBStatTile label="Open NCs" value={ncs.data.filter((n: any) => n.status !== "verified_closed").length} icon={AlertTriangle} tone="warning" hint="Need verification" />
+        <CBStatTile label="Reports filed" value={reports.data.length} icon={FileCheck} tone="violet" hint="Drafted & reviewed" />
+      </CBStatGrid>
+
       <TabLayout activeTab={activeTab} onTabChange={(k) => setActiveTab(k as any)} tabs={tabs} />
       <div className="mt-5">
         {activeTab === "active" && <ActiveAuditsTab audits={audits} />}
