@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ClipboardList, FileCheck, AlertTriangle, Search, ShieldCheck, Activity } from "lucide-react";
 import { CBPageShell } from "@/components/certification-body/CBPageShell";
 import { CBStatTile, CBStatGrid } from "@/components/certification-body/CBStatTile";
