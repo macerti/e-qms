@@ -14,12 +14,29 @@ import {
   UserCog, Users, FileCheck, GraduationCap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import {
+  AuditSignature, ReviewSignature, SupplierSignature, CompetencySignature,
+} from "@/components/tools/signatures/ToolSignatures";
 
 const iconMap: Record<string, LucideIcon> = {
   CalendarRange, ClipboardList, ListChecks, Footprints, AlertTriangle,
   ArrowDownToLine, ArrowUpFromLine, Scale, ListTodo,
   SlidersHorizontal, Building2, ClipboardCheck, RefreshCw,
   UserCog, Users, FileCheck, GraduationCap,
+};
+
+type Tone = "risk" | "primary" | "info" | "accent" | "success" | "violet";
+
+const TOOL_VISUAL: Record<ScaffoldToolContract, {
+  tone: Tone;
+  icon: LucideIcon;
+  pattern: "dots" | "grid" | "diagonal" | "radial";
+  signature: React.ReactNode;
+}> = {
+  "internal-audit":      { tone: "info",    icon: ClipboardCheck, pattern: "radial",   signature: <AuditSignature /> },
+  "management-review":   { tone: "accent",  icon: Users,          pattern: "dots",     signature: <ReviewSignature /> },
+  "supplier-evaluation": { tone: "success", icon: Building2,      pattern: "grid",     signature: <SupplierSignature className="h-12" /> },
+  "competency-evaluation": { tone: "violet", icon: GraduationCap, pattern: "dots",     signature: <CompetencySignature /> },
 };
 
 export function ScaffoldedToolWorkspace({ tool }: { tool: ScaffoldToolContract }) {
@@ -54,6 +71,10 @@ export function ScaffoldedToolWorkspace({ tool }: { tool: ScaffoldToolContract }
           linkedProcess={linkedProcess}
           processOptions={processOptions}
           onLinkedProcessChange={setLinkedProcess}
+          tone={TOOL_VISUAL[tool].tone}
+          icon={TOOL_VISUAL[tool].icon}
+          signature={TOOL_VISUAL[tool].signature}
+          pattern={TOOL_VISUAL[tool].pattern}
         />
       }
       tabBar={isManagementReview ? null : <TabLayout activeTab={activeTab} onTabChange={setActiveTab} tabs={tabItems}>{null}</TabLayout>}
