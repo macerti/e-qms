@@ -36,7 +36,10 @@ export function ProcessHealthCard({ processes }: ProcessHealthCardProps) {
   }
 
   return (
-    <div className="signal-card space-y-4">
+    <div
+      className="tile-depth tile-depth-hover aura-radial p-5 space-y-4 animate-fade-in"
+      style={{ ["--aura" as never]: "var(--success)" }}
+    >
       <div className="flex items-center gap-2.5">
         <div className="w-9 h-9 rounded-lg bg-process/10 flex items-center justify-center">
           <Workflow className="w-4.5 h-4.5 text-process" />

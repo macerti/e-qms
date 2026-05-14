@@ -31,7 +31,10 @@ export function RiskActionCard({ issues, actions, overdueActions }: RiskActionCa
   ).length;
 
   return (
-    <div className="signal-card space-y-4">
+    <div
+      className="tile-depth tile-depth-hover aura-radial p-5 space-y-4 animate-fade-in"
+      style={{ ["--aura" as never]: "var(--risk)" }}
+    >
       {/* Risks Section */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">

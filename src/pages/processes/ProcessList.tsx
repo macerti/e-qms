@@ -1,23 +1,16 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Workflow, ArrowRight, Settings, Cog, Wrench, Scale } from "lucide-react";
+import { Workflow, Settings, Cog, Wrench } from "lucide-react";
 import { FilterBar, FilterConfig } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
 import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
-import { cn } from "@/lib/utils";
-import { ProcessType } from "@/api/contracts/viewModels";
 import { CreateProcessDialog } from "@/components/process/CreateProcessDialog";
-
-const PROCESS_TYPE_CONFIG: Record<ProcessType, { label: string; icon: React.ElementType; color: string; bgColor: string }> = {
-  management: { label: "Mgmt", icon: Settings, color: "text-purple-600", bgColor: "bg-purple-100" },
-  operational: { label: "Oper", icon: Cog, color: "text-process", bgColor: "bg-blue-100" },
-  support: { label: "Supp", icon: Wrench, color: "text-amber-600", bgColor: "bg-amber-100" },
-};
+import { ProcessHero } from "@/components/processes/ProcessHero";
+import { ProcessCard } from "@/components/processes/ProcessCard";
 
 export default function ProcessList() {
   const navigate = useNavigate();
@@ -28,6 +21,7 @@ export default function ProcessList() {
   const statusParam = searchParams.get("status") || "all";
   const typeParam = searchParams.get("type") || "all";
   const searchParam = searchParams.get("q") || "";
+  const viewParam = (searchParams.get("view") as "grid" | "table") || "grid";
 
   const [filterValues, setFilterValues] = useState<Record<string, string>>({
     status: statusParam,
@@ -67,8 +61,21 @@ export default function ProcessList() {
   const handleClearAll = useCallback(() => {
     setFilterValues({ status: "all", type: "all" });
     setSearchValue("");
-    setSearchParams({});
-  }, [setSearchParams]);
+    setSearchParams(viewParam !== "grid" ? { view: viewParam } : {});
+  }, [setSearchParams, viewParam]);
+
+  const setView = useCallback((v: "grid" | "table") => {
+    const next = new URLSearchParams(searchParams);
+    if (v === "grid") next.delete("view"); else next.set("view", v);
+    setSearchParams(next);
+  }, [searchParams, setSearchParams]);
+
+  const totals = useMemo(() => ({
+    total: processes.length,
+    active: processes.filter(p => p.status === "active").length,
+    draft: processes.filter(p => p.status === "draft").length,
+    archived: processes.filter(p => p.status === "archived").length,
+  }), [processes]);
 
   const filteredProcesses = useMemo(() => {
     return processes.filter((p) => {
@@ -86,9 +93,15 @@ export default function ProcessList() {
 
   return (
     <div className="min-h-screen">
-      <PageHeader 
-        title="Processes" 
-        subtitle="Fiche Processus — ISO 9001"
+      <PageHeader title="Processes" subtitle="Fiche Processus — ISO 9001" />
+
+      <ProcessHero
+        total={totals.total}
+        active={totals.active}
+        draft={totals.draft}
+        archived={totals.archived}
+        view={viewParam}
+        onViewChange={setView}
       />
 
       <FilterBar
@@ -111,71 +124,22 @@ export default function ProcessList() {
             onAction={() => setShowCreateDialog(true)}
             helperText="Each process will have inputs, outputs, a pilot, and linked indicators, risks, and actions."
           />
+        ) : viewParam === "table" ? (
+          <ProcessTableView processes={filteredProcesses} onOpen={(id) => navigate(`/processes/${id}`)} />
         ) : (
           <AdaptiveGrid cols="1-2-3-4" gap="md">
-            {filteredProcesses.map((process, index) => {
-              const typeConfig = PROCESS_TYPE_CONFIG[process.type];
-              const TypeIcon = typeConfig.icon;
-              const regulationsCount = process.regulations?.length || 0;
-              const risksCount = issues.filter((issue) => issue.processId === process.id && issue.type === "risk").length;
-              const opportunitiesCount = issues.filter((issue) => issue.processId === process.id && issue.type === "opportunity").length;
-              const actionsCount = actions.filter((action) => action.processId === process.id).length;
-              const documentsCount = documents.filter((document) => document.processIds.includes(process.id) && document.status !== "archived").length;
-              
-              return (
-                <button
-                  key={process.id}
-                  onClick={() => navigate(`/processes/${process.id}`)}
-                  className="process-card w-full text-left group animate-fade-in"
-                  style={{ animationDelay: `${index * 30}ms` }}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                        <span className="font-mono text-xs text-process font-semibold bg-process/8 px-2 py-0.5 rounded-md">
-                          {process.code}
-                        </span>
-                        <StatusBadge status={process.status} />
-                        <div className={cn(
-                          "flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs",
-                          typeConfig.bgColor,
-                          typeConfig.color
-                        )}>
-                          <TypeIcon className="w-3 h-3" />
-                          <span className="font-medium">{typeConfig.label}</span>
-                        </div>
-                      </div>
-                      <h3 className="font-semibold truncate text-[15px]">{process.name}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1.5 leading-relaxed">
-                        {process.purpose}
-                      </p>
-                      {process.pilotName && (
-                        <p className="text-xs text-muted-foreground mt-2.5 flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
-                          Pilot: {process.pilotName}
-                        </p>
-                      )}
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-muted-foreground/40 shrink-0 mt-1 group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-200" />
-                  </div>
-                  
-                  <div className="flex items-center gap-3 mt-4 pt-3 border-t border-border/60 flex-wrap">
-                    <StatChip label="Activities" value={process.activities?.length || 0} />
-                    <StatChip label="Risks" value={risksCount} highlight={risksCount > 0} />
-                    <StatChip label="Opps" value={opportunitiesCount} />
-                    <StatChip label="Actions" value={actionsCount} />
-                    <StatChip label="Docs" value={documentsCount} />
-                    {regulationsCount > 0 && (
-                      <div className="flex items-center gap-1.5">
-                        <Scale className="w-3.5 h-3.5 text-amber-600" />
-                        <span className="font-mono text-sm font-semibold">{regulationsCount}</span>
-                        <span className="text-[11px] text-muted-foreground">Regs</span>
-                      </div>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+            {filteredProcesses.map((process, index) => (
+              <ProcessCard
+                key={process.id}
+                process={process}
+                index={index}
+                risks={issues.filter((i) => i.processId === process.id && i.type === "risk").length}
+                opportunities={issues.filter((i) => i.processId === process.id && i.type === "opportunity").length}
+                actions={actions.filter((a) => a.processId === process.id).length}
+                documents={documents.filter((d) => d.processIds.includes(process.id) && d.status !== "archived").length}
+                onClick={() => navigate(`/processes/${process.id}`)}
+              />
+            ))}
           </AdaptiveGrid>
         )}
       </AdaptiveContainer>
@@ -190,17 +154,39 @@ export default function ProcessList() {
   );
 }
 
-function StatChip({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+function ProcessTableView({ processes, onOpen }: { processes: ReturnType<typeof useManagementSystem>["processes"]; onOpen: (id: string) => void }) {
   return (
-    <div className={cn(
-      "flex items-center gap-1.5 px-2 py-0.5 rounded-md",
-      highlight && value > 0 && "bg-risk/5"
-    )}>
-      <span className={cn(
-        "font-mono text-sm font-semibold",
-        highlight && value > 0 && "text-risk"
-      )}>{value}</span>
-      <span className="text-[11px] text-muted-foreground">{label}</span>
+    <div className="tile-depth overflow-hidden animate-fade-in">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-[10px] uppercase tracking-widest text-muted-foreground">
+            <tr>
+              <th className="text-left font-semibold px-4 py-3">Code</th>
+              <th className="text-left font-semibold px-4 py-3">Name</th>
+              <th className="text-left font-semibold px-4 py-3">Type</th>
+              <th className="text-left font-semibold px-4 py-3">Status</th>
+              <th className="text-left font-semibold px-4 py-3">Pilot</th>
+              <th className="text-right font-semibold px-4 py-3">Activities</th>
+            </tr>
+          </thead>
+          <tbody>
+            {processes.map((p) => (
+              <tr
+                key={p.id}
+                onClick={() => onOpen(p.id)}
+                className="border-t border-border/60 hover:bg-muted/40 cursor-pointer transition-colors"
+              >
+                <td className="px-4 py-3 font-mono text-xs font-semibold text-process">{p.code}</td>
+                <td className="px-4 py-3 font-medium">{p.name}</td>
+                <td className="px-4 py-3 text-muted-foreground capitalize">{p.type}</td>
+                <td className="px-4 py-3 capitalize">{p.status}</td>
+                <td className="px-4 py-3 text-muted-foreground">{p.pilotName || "—"}</td>
+                <td className="px-4 py-3 text-right font-mono tabular-nums">{p.activities?.length || 0}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

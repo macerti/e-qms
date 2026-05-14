@@ -18,7 +18,10 @@ export function ComplianceCard({
     : 0;
 
   return (
-    <div className="signal-card space-y-4">
+    <div
+      className="tile-depth tile-depth-hover aura-radial p-5 space-y-4 animate-fade-in"
+      style={{ ["--aura" as never]: "var(--process)" }}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-lg bg-process/10 flex items-center justify-center">

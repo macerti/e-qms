@@ -367,4 +367,72 @@
   .wide-container {
     @apply w-full max-w-[1200px] mx-auto px-4 lg:px-6;
   }
+
+  /* 2026 visual utilities — semantic, HSL-based */
+  .tile-depth {
+    @apply relative overflow-hidden rounded-2xl border border-border/60 bg-card;
+    box-shadow:
+      0 1px 0 0 hsl(var(--foreground) / 0.04) inset,
+      0 1px 2px 0 hsl(var(--foreground) / 0.04),
+      0 8px 24px -12px hsl(var(--foreground) / 0.08);
+  }
+
+  .tile-depth-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+  .tile-depth-hover:hover {
+    box-shadow:
+      0 1px 0 0 hsl(var(--foreground) / 0.05) inset,
+      0 2px 4px 0 hsl(var(--foreground) / 0.05),
+      0 16px 40px -16px hsl(var(--foreground) / 0.14);
+    transform: translateY(-1px);
+  }
+
+  /* Aura — soft radial tint behind a tile. Set --aura to an HSL triple, e.g. var(--process). */
+  .aura-radial {
+    position: relative;
+    isolation: isolate;
+  }
+  .aura-radial::before {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    z-index: -1;
+    background:
+      radial-gradient(60% 60% at 20% 0%, hsl(var(--aura, var(--primary)) / 0.16), transparent 60%),
+      radial-gradient(50% 50% at 100% 100%, hsl(var(--aura, var(--primary)) / 0.10), transparent 70%);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* Faint dot pattern overlay */
+  .pattern-dots {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.06) 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+  .pattern-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--foreground) / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--foreground) / 0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Sweep shimmer — single-pass on mount */
+  @keyframes tile-sweep {
+    0% { transform: translateX(-120%); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateX(220%); opacity: 0; }
+  }
+  .tile-sweep::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 35%;
+    background: linear-gradient(100deg, transparent, hsl(var(--foreground) / 0.06), transparent);
+    transform: translateX(-120%);
+    animation: tile-sweep 1.6s ease-out 0.2s 1 both;
+    pointer-events: none;
+  }
+
+  .tabular-nums { font-variant-numeric: tabular-nums; }
 }
