@@ -1,15 +1,15 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { FileText, ArrowRight, FileCheck, Archive } from "lucide-react";
+import { FileText, Archive, Plus } from "lucide-react";
 import { FilterBar, FilterConfig } from "@/components/ui/filter-bar";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { AdaptiveContainer } from "@/components/layout/AdaptiveContainer";
 import { AdaptiveGrid } from "@/components/layout/AdaptiveGrid";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fab } from "@/components/ui/fab";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { useManagementSystem } from "@/context/ManagementSystemContext";
 import { Button } from "@/components/ui/button";
+import { DocumentsHero } from "@/components/documents/DocumentsHero";
+import { DocumentCard } from "@/components/documents/DocumentCard";
 
 function compareDocumentCodes(aCode: string, bCode: string): number {
   const tokenize = (code: string) =>
