@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import {
   FileText, Target, CheckCircle2, Archive, BookOpen, Search,
   Compass, Users, Lightbulb, Settings2, BarChart3, Sparkles, ShieldCheck,
+  Table2, PenLine, ShieldOff, Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
