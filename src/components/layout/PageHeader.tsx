@@ -120,7 +120,7 @@ export function PageHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
+      <header data-tour="page-header" className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="flex items-center justify-between px-4 lg:px-6 py-3">
           <div className="flex items-center gap-3 min-w-0">
             {showBack && (
@@ -191,8 +191,8 @@ export function PageHeader({
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <NotificationsBell />
-            <UserMenu />
+            <span data-tour="notifications"><NotificationsBell /></span>
+            <span data-tour="user-menu"><UserMenu /></span>
           </div>
         </div>
       </header>

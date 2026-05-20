@@ -34,6 +34,7 @@ export function SideNav() {
 
   return (
     <aside
+      data-tour="sidenav"
       className={cn(
         "hidden lg:flex flex-col shrink-0 self-stretch min-h-dvh bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-[width] duration-200",
         collapsed ? "w-16" : "w-64",

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
-import { HelpCircle, Settings, Activity, User, BookOpen, LogOut, ShieldCheck } from "lucide-react";
+import { HelpCircle, Settings, Activity, User, BookOpen, LogOut, ShieldCheck, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTour } from "@/context/TourContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -25,6 +26,7 @@ const ROLE_LABEL: Record<string, string> = {
 export function UserMenu() {
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
+  const { start } = useTour();
 
   const initials = (profile?.display_name ?? "?")
     .split(" ")
@@ -75,6 +77,10 @@ export function UserMenu() {
             <Activity className="h-4 w-4" />
             Activity log
           </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => start()} className="gap-2">
+          <Compass className="h-4 w-4" />
+          Take a tour of this page
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/help" className="flex items-center gap-2">

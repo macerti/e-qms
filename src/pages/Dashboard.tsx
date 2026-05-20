@@ -102,6 +102,7 @@ export default function Dashboard() {
       />
       
       <AdaptiveContainer className="py-6 space-y-8 max-w-[var(--wide-max-width)]">
+        <div data-tour="hero">
         <HeroBand
           standardCode={activeStandard.code}
           standardVersion={activeStandard.version}
@@ -111,9 +112,10 @@ export default function Dashboard() {
           openRisks={openRisks}
           overdueActions={overdueActions.length}
         />
+        </div>
 
         {/* Bento Signals */}
-        <section className="animate-fade-in" style={{ animationDelay: '60ms' }}>
+        <section data-tour="signals" className="animate-fade-in" style={{ animationDelay: '60ms' }}>
           <SectionLabel>System Signals</SectionLabel>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4">
             <div className="lg:col-span-1">
@@ -133,7 +135,7 @@ export default function Dashboard() {
         </section>
 
         {/* Modules */}
-        <section className="animate-fade-in" style={{ animationDelay: '120ms' }}>
+        <section data-tour="modules" className="animate-fade-in" style={{ animationDelay: '120ms' }}>
           <SectionLabel>
             Modules
             <span className="ml-2 text-[10px] font-normal tracking-normal normal-case bg-muted px-2 py-0.5 rounded-full">
