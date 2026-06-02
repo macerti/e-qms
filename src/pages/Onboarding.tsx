@@ -164,7 +164,13 @@ export default function Onboarding() {
 
           {step === 2 && (
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">Describe the scope of your Quality Management System (ISO 9001 clause 4.3).</p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm text-muted-foreground flex-1">Describe the scope of your Quality Management System (ISO 9001 clause 4.3).</p>
+                <Button type="button" variant="outline" size="sm" onClick={suggestScope} disabled={aiBusy}>
+                  {aiBusy ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1" />}
+                  Suggest with AI
+                </Button>
+              </div>
               <Textarea
                 rows={6}
                 value={scopeStatement}
