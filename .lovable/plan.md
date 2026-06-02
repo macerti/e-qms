@@ -1,189 +1,117 @@
+# AI Integration Across the QMS — Full Plan
 
-# Foundation Overhaul — Auth, Persistence, Signatures, Audits, Notifications
+Goal: turn AI from a Help-only chat into an embedded coach that drafts content, explains compliance, and answers questions over the user's own data. All routed through Lovable AI Gateway (no extra keys).
 
-This replaces the in-memory mock layer with a real backend while preserving the existing UI, design system, and service-interface architecture. Mock adapters stay for tests; runtime switches to Cloud adapters.
+## Architecture (shared across all phases)
 
-## 1. Lovable Cloud + Authentication
+- **One edge function per use case** under `supabase/functions/ai-*`, each with its own system prompt grounded in ISO 9001 + app features.
+- **Shared backend helpers**: `supabase/functions/_shared/aiClient.ts` (gateway call + 429/402 handling), `_shared/promptContext.ts` (builds compact JSON context for a given org/process).
+- **Frontend hooks**: `useAICoach(scope)`, `useAIDraft(kind)`, `useAIChat(scope)` — all wrap `supabase.functions.invoke` with streaming where useful.
+- **Coach UI primitive**: `<AICoachCard />` — dismissible suggestion card, slot-based (title, rationale, CTA button, ISO clause tag). Lives next to existing dashboard signal cards and process tabs. Dismissal stored in `localStorage` keyed by user + suggestion hash.
+- **AI draft pattern**: every "Generate draft" button opens a side sheet with the streamed draft + Accept / Edit / Discard. Accepted drafts go through the same persistence path as manual creation, never bypassing validation.
 
-- Enable Lovable Cloud (provisions Postgres, Auth, Storage, Edge Functions).
-- Auth methods: email/password, Google OAuth, plus invite-only flow (admin creates user via edge function; user sets password on first login).
-- `/auth` page (sign-in + sign-up tabs, Google button).
-- `/reset-password` page (required for password reset flow).
-- `AuthProvider` with `onAuthStateChange` listener set up **before** `getSession()`.
-- All app routes wrapped in `<RequireAuth>`; `/auth` and `/reset-password` are public.
-- `emailRedirectTo: window.location.origin` on every signup.
-
-## 2. Roles & Profiles (minimal)
-
-Following the project's security rule — roles live in a dedicated table, never on profiles.
-
-```sql
-create type app_role as enum (
-  'rmq',              -- super-admin
-  'top_management',
-  'process_owner',
-  'auditor_internal',
-  'auditor_external', -- read-only scoped
-  'contributor'
-);
-
-create table profiles (
-  id uuid primary key references auth.users on delete cascade,
-  display_name text not null,
-  job_title text,
-  organization_id uuid references organizations,
-  created_at timestamptz default now()
-);
-
-create table user_roles (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users on delete cascade not null,
-  role app_role not null,
-  scope_process_id uuid,   -- optional: scoped to one process
-  unique (user_id, role, scope_process_id)
-);
-
--- SECURITY DEFINER function to avoid RLS recursion
-create function has_role(_user_id uuid, _role app_role) returns boolean ...
-create function is_rmq(_user_id uuid) returns boolean ...
+```text
+ ┌─ frontend ─────────────────┐    ┌─ edge functions (gateway) ──┐
+ │ AICoachCard, AIDraftSheet │ →  │ ai-coach, ai-draft-*,       │
+ │ AIChatPanel, hooks         │    │ ai-explain, ai-rag-query    │
+ └────────────────────────────┘    └─────────────────────────────┘
+                                              │
+                                   Lovable AI Gateway
+                                   (gemini-3-flash for chat,
+                                    gemini-embedding-001 for RAG)
 ```
 
-- Trigger on `auth.users` insert → auto-create `profiles` row.
-- First user in an org auto-gets `rmq` role.
+## Phase 1 — Proactive Coach + Generative Drafting + Smarter Onboarding
 
-## 3. Persistence Layer — Database Schema
+**1.1 Proactive Coach (dismissible inline cards)**
+- New `ai-coach` edge function. Input: `{ scope: "dashboard" | "process" | "audit" | "managementReview" | "risk" | "kpi", contextSummary }`. `promptContext.ts` queries only the IDs/counts needed (e.g. dashboard → counts of unlinked failed KPIs, risks without actions, open findings past SLA).
+- Returns 1–3 structured suggestions via tool calling: `{ title, rationale, isoClause, ctaLabel, ctaRoute, suggestionKey }`.
+- Surfaces:
+  - Dashboard: row of `<AICoachCard />` under HeroBand.
+  - Process detail Overview tab: one card under header.
+  - Audit detail: card above findings list.
+  - Management Review workspace: card at top.
+  - Risk list: card when matrix has gaps.
 
-Tables (all with `tenant_id`, `created_at`, `updated_at`, `created_by`, `archived_at`, RLS enabled):
+**1.2 Generative Drafting (one per draft kind, all share `AIDraftSheet`)**
+- `ai-draft-quality-policy` — inputs: sector, scope, top context issues. Output: 4-axis policy text.
+- `ai-draft-process` — input: short description + typology. Output: purpose, activities[], suggested KPIs[], suggested risks[].
+- `ai-draft-risks` — input: process id (server fetches process + sector). Output: risk register starter (title, description, severity, probability, suggested priority).
+- `ai-draft-swot` — input: org profile. Output: internal/external issues.
+- `ai-draft-audit-checklist` — inputs: scope clauses + process ids. Output: checklist items grouped by clause.
+- `ai-draft-action-from-finding` — input: finding id. Output: root cause hypothesis, containment, corrective, efficiency criteria.
+- `ai-draft-mgmt-review` — input: period. Output: minutes pre-fill from KPI values, audits, actions, risks of the period.
+- UI: "✦ Draft with AI" button added next to existing "+ New" buttons on Quality Policy, Process create dialog, Risk list (per process), Issues list, Audit checklist editor, Action form (from a finding), Management Review workspace.
 
-| Table | Purpose |
-|---|---|
-| `organizations` | Multi-tenant root |
-| `processes` | Process register |
-| `process_activities` | Sequenced activities incl. immutable governance |
-| `risks` | Risk register with 3×3 matrix |
-| `risk_evaluations` | Append-only versions |
-| `actions` | Action plans (universal improvement object) |
-| `kpis` | KPI definitions (immutable config) |
-| `kpi_values` | Append-only measurements |
-| `documents` | Procedures, forms, instructions |
-| `document_versions` | Versioned binaries in Storage |
-| `iso_clauses` | Reference data (seeded) |
-| `process_clause_links` | Fulfillment mapping |
-| `signatures` | E-signature audit trail |
-| `audit_log` | Append-only system audit |
-| `notifications` | In-app inbox items |
-| `audits` | Internal audit plans |
-| `audit_checklist_items` | Checklist per audit |
-| `audit_findings` | NCs, observations, OFIs |
-| `audit_evidence` | Evidence file refs |
+**1.3 Smarter Onboarding**
+- After the existing onboarding completes (sector + country + scope captured), show a new optional step "Want a starter workspace?" → calls a new `ai-onboarding-seed` function that returns:
+  - Suggested process map (3–6 typical processes for sector)
+  - Draft Quality Policy
+  - 1 starter risk per process
+  - 1 starter KPI per process
+- All items shown as a reviewable checklist; user accepts/edits before persistence. All persisted records tagged in `audit_log` with `payload.ai_seeded = true` for traceability.
 
-### RLS strategy
-- `tenant_id = current_org()` for all reads.
-- Writes gated by `has_role()` per entity (e.g., only `process_owner` of that process or `rmq` can edit a process).
-- External auditors get `SELECT`-only policies scoped via `user_roles.scope_process_id`.
+## Phase 2 — RAG Q&A over the user's own data
 
-### Service-adapter refactor
-- Existing `*Service` interfaces in `src/domains/*` keep their contracts.
-- Add `src/integrations/cloud/adapters/*.ts` implementing each interface against Supabase client.
-- `src/services/index.ts` switches the default export from mock → cloud adapter behind a `USE_CLOUD` flag (default true).
+**2.1 Embeddings infrastructure**
+- DB migration:
+  - `create extension if not exists vector;`
+  - `qms_embeddings(id, organization_id, source_type, source_id, content, embedding vector(3072), updated_at)` with HNSW cosine index and RLS scoped to `organization_id = current_org()`.
+  - `match_qms_embeddings(query_embedding, match_count, org_id)` SQL function (security definer, org-scoped).
+- Edge function `ai-embed-record`: called from a Postgres trigger via `pg_net` (or simpler: from the existing app save paths) whenever a process, issue, risk, action, document, audit, finding, KPI, or management review item is created/updated. Chunks text, embeds via gateway, upserts into `qms_embeddings`. Source content kept in the embedding row to avoid extra joins at query time.
+- Backfill script edge function `ai-embed-backfill` (admin-only) to embed existing records once.
 
-## 4. E-Signature Workflow
+**2.2 RAG chat extension to Help page**
+- New `ai-rag-query` edge function: embeds the user question, calls `match_qms_embeddings` for top-K (default 8), passes retrieved snippets + question to chat model with a citation-aware system prompt.
+- Help page gets a toggle "Answer from my system" vs "General ISO guidance" (current behavior). When on, responses include source chips (`Risk RISK/26/004`, clickable to detail route).
 
-When a record requires approval (per existing `recordTemplate.approval` metadata):
+**2.3 Smart analysis helpers**
+- `ai-explain-fulfillment` — for a requirement showing "not yet satisfied": returns *why* (which linked-record types are missing) + concrete next steps.
+- `ai-suggest-root-cause` — on a finding or failed KPI: 5-Whys + Ishikawa categories. Surfaced as a button in finding/KPI detail.
+- `ai-narrate-trend` — for a KPI's history: short narrative + correlation hints.
 
-```sql
-create table signatures (
-  id uuid primary key default gen_random_uuid(),
-  tenant_id uuid not null,
-  entity_type text not null,        -- 'action' | 'document' | 'audit_finding' | ...
-  entity_id uuid not null,
-  entity_version int not null,      -- snapshot version signed
-  signer_id uuid references auth.users not null,
-  signer_role app_role not null,
-  signer_display_name text not null,
-  signed_at timestamptz default now() not null,
-  intent text not null,             -- 'approve' | 'review' | 'reject'
-  comment text,
-  payload_hash text not null,       -- SHA-256 of entity snapshot
-  ip_address inet,
-  user_agent text
-);
-```
+## Phase 3 — Document Intelligence + Audit Companion
 
-- Edge function `sign-record`: validates user has required role, hashes the canonical JSON of the entity at the current version, inserts the signature, writes to `audit_log`, marks entity `approved_at`.
-- UI: `<SignaturePad>` dialog — re-enters password OR types full name + ticks affirmation, shows hash preview, posts to function.
-- Signed records become immutable for that version; further edits create a new version requiring re-signature.
-- Surfaces in: Action plans (approval-required), Documents (release/approval), Audit findings (closure), Management Review minutes.
+**3.1 Document Intelligence**
+- On document upload (existing `qms-documents` bucket), call `ai-analyze-document`:
+  - Extracts text (PDF/Word) via gateway multimodal model.
+  - Returns suggested clause tags, suggested linked process, extracted activity list, summary.
+  - Shown in document detail as a "AI analysis" panel with Accept buttons that write to existing fields.
+- `ai-diff-document-versions` — given two versions, summarize material changes for revision history.
 
-## 5. Internal Audit Module
+**3.2 External audit report → findings**
+- Upload action on audit detail: "Import findings from report". Calls `ai-extract-findings` → returns array of `{statement, clauseCode, processGuess, severity}`. User reviews then bulk-creates real `audit_findings`.
 
-New top-level module at `/audits`.
+**3.3 Audit Companion (live capture)**
+- New mode on audit detail: text input (voice optional via browser Web Speech API in a follow-up) → `ai-structure-audit-note` streams a structured finding card the auditor can confirm.
 
-- **Audit Plan**: scope (processes + ISO clauses), period, lead auditor, team, dates.
-- **Checklist**: auto-generated from selected clauses (pulls from `iso9001-guidance`); editable.
-- **Conduct**: per-item result (Conform / Minor NC / Major NC / OFI / Observation), evidence (file upload via Storage), notes.
-- **Findings**: auto-spawned from non-conform checklist items; converts to `actions` with `source = 'internal_audit'` and back-link.
-- **Follow-up**: re-audit cycle; finding closure requires e-signature from auditor + process owner.
-- **Report**: printable view (existing print-friendly pattern); future PDF export hook.
+## Cross-cutting concerns
 
-## 6. Notifications + In-App Inbox
+- **Cost control**: every coach call cached per `(user, scope, contextHash)` for 10 minutes in `localStorage`; backend dedupes via the same hash. Embeddings only re-computed when content actually changes (compare `updated_at`).
+- **Privacy**: prompt context never includes auth tokens or other users' data; everything queried server-side under `current_org()` RLS using the caller's JWT.
+- **Traceability**: every persisted record originating from AI gets an `audit_log` entry with `action = "ai_generated"` and the prompt/model recorded in `payload`.
+- **Failure modes**: 429 and 402 from gateway shown as inline non-blocking banners on the coach card / draft sheet — never block the user from manual creation.
+- **No new dependencies** required beyond what's already in the project (`react-markdown` is already installed for the Help chat).
 
-```sql
-create table notifications (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users not null,
-  tenant_id uuid not null,
-  kind text not null,              -- 'action_due' | 'review_due' | 'audit_scheduled' | 'signature_requested' | 'kpi_failed'
-  title text not null,
-  body text,
-  entity_type text,
-  entity_id uuid,
-  read_at timestamptz,
-  created_at timestamptz default now()
-);
-```
+## Files (high-level)
 
-- Edge function `dispatch-notifications` runs on cron (pg_cron, hourly):
-  - Actions with `due_date <= now() + 7d` and no recent notification.
-  - Management reviews / KPI reviews due.
-  - Scheduled audits starting within 14 days.
-  - KPI value below target → notify process owner.
-- UI: bell icon in header with unread badge; `<InboxPanel>` slide-out grouped by kind, with deep links to records.
-- Mark-as-read on click; mark-all-read action.
-- Email delivery is a Phase 2 follow-up (the table + dispatcher are ready for it).
+New edge functions:
+`ai-coach`, `ai-draft-quality-policy`, `ai-draft-process`, `ai-draft-risks`, `ai-draft-swot`, `ai-draft-audit-checklist`, `ai-draft-action-from-finding`, `ai-draft-mgmt-review`, `ai-onboarding-seed`, `ai-embed-record`, `ai-embed-backfill`, `ai-rag-query`, `ai-explain-fulfillment`, `ai-suggest-root-cause`, `ai-narrate-trend`, `ai-analyze-document`, `ai-diff-document-versions`, `ai-extract-findings`, `ai-structure-audit-note`, plus `_shared/aiClient.ts` and `_shared/promptContext.ts`.
 
-## 7. Onboarding Wizard
+New frontend:
+`src/components/ai/AICoachCard.tsx`, `AIDraftSheet.tsx`, `AICoachRow.tsx`, `AIRagToggle.tsx`, `useAICoach.ts`, `useAIDraft.ts`, `useAIRag.ts`.
 
-Triggered on first login when org is empty:
+Touched frontend (small additions only — "Draft with AI" buttons + coach mount points):
+Dashboard, ProcessDetail, ProcessList, IssueList, RiskList (per process), AuditDetail, AuditList, ActionForm, ManagementReviewWorkspace, Onboarding, Help, DocumentDetail.
 
-1. **Profile** — confirm name + job title.
-2. **Organization** — name, sector, country.
-3. **Standard** — ISO 9001 (only option for now; UI ready for more).
-4. **Scope** — text (the QMS scope statement).
-5. **First Process** — minimal creation (name + typology + owner).
-6. **Done** — lands on Dashboard.
+One DB migration for `vector` extension + `qms_embeddings` + `match_qms_embeddings` (Phase 2).
 
-## 8. UI & Routing Changes
+## Rollout order inside the plan
 
-- Header: replaces user-icon explanation with real **profile menu** (display name, role pill, settings, sign out) + notifications bell.
-- `<RequireAuth>` + `<RequireRole roles={[...]}>` guards.
-- "Approve" / "Sign" buttons render based on role + record state.
-- Empty-state copy across list views ("No processes yet — Create your first") replaces seeded demo data.
-- All entity reads scroll-reset (existing pattern preserved).
+1. Shared backend helpers + `AICoachCard` primitive
+2. Phase 1 coach + the 3 highest-value drafts (Quality Policy, Process, Action from finding) + Onboarding seed
+3. Remaining Phase 1 drafts
+4. Phase 2 embeddings migration + backfill + RAG Help toggle + explain/root-cause/trend helpers
+5. Phase 3 document analysis, findings import, audit companion
 
-## 9. Files Touched (approx.)
-
-- **New**: ~12 migration SQL blocks, 4 edge functions (`sign-record`, `dispatch-notifications`, `invite-user`, `auth-helpers`), `AuthProvider`, `RequireAuth`, `RequireRole`, `/auth` + `/reset-password` pages, `OnboardingWizard`, `SignaturePad`, `InboxPanel`, `NotificationsBell`, `AuditList`, `AuditDetail`, `AuditChecklist`, `FindingCard`, ~12 cloud adapters in `src/integrations/cloud/adapters/`.
-- **Edited**: `src/App.tsx` (routing + providers), `src/components/layout/Header.tsx` (profile menu + bell), `src/services/index.ts` (adapter switch), each existing service interface caller (typed-safe — most won't need changes thanks to the abstract interface).
-
-## 10. Out of Scope (deliberately, to keep this shippable)
-
-- Email delivery of notifications (table ready; cron hook ready; SMTP wiring later).
-- PDF report exports.
-- i18n.
-- Test suite.
-- Document file viewer/preview (uploads work; preview is link-only for now).
-
----
-
-After your approval I will: enable Cloud → apply migrations → write edge functions → build auth + onboarding → swap service adapters → build signatures, audits, inbox in that order, then verify with a build check.
+If at any step you want to pause and ship, each phase is independently usable.
