@@ -565,12 +565,114 @@
     transition: transform 0.2s ease-out;
   }
 
+  /* ── Skeleton → Content morph ─────────────────────────── */
+  .morph-skeleton {
+    position: absolute;
+    inset: 0;
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+    transition:
+      opacity 0.45s cubic-bezier(0.22,1,0.36,1),
+      transform 0.45s cubic-bezier(0.22,1,0.36,1),
+      filter   0.45s cubic-bezier(0.22,1,0.36,1);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .morph-skeleton-out {
+    opacity: 0;
+    transform: scale(1.02);
+    filter: blur(6px);
+  }
+  .morph-content {
+    transition:
+      opacity 0.5s cubic-bezier(0.22,1,0.36,1) 0.08s,
+      transform 0.5s cubic-bezier(0.22,1,0.36,1) 0.08s,
+      filter   0.5s cubic-bezier(0.22,1,0.36,1) 0.08s;
+  }
+  .morph-content-pending {
+    opacity: 0;
+    transform: scale(0.985);
+    filter: blur(6px);
+  }
+  .morph-content-in {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+
+  /* ── List / menu stagger (pure CSS, no JS needed) ─────── */
+  @keyframes list-item-in {
+    0%   { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .list-stagger > * {
+    animation: list-item-in 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .list-stagger > *:nth-child(1)  { animation-delay: 20ms; }
+  .list-stagger > *:nth-child(2)  { animation-delay: 60ms; }
+  .list-stagger > *:nth-child(3)  { animation-delay: 100ms; }
+  .list-stagger > *:nth-child(4)  { animation-delay: 140ms; }
+  .list-stagger > *:nth-child(5)  { animation-delay: 180ms; }
+  .list-stagger > *:nth-child(6)  { animation-delay: 220ms; }
+  .list-stagger > *:nth-child(7)  { animation-delay: 260ms; }
+  .list-stagger > *:nth-child(8)  { animation-delay: 300ms; }
+  .list-stagger > *:nth-child(9)  { animation-delay: 340ms; }
+  .list-stagger > *:nth-child(10) { animation-delay: 380ms; }
+  .list-stagger > *:nth-child(n+11) { animation-delay: 420ms; }
+
+  @keyframes menu-item-in {
+    0%   { opacity: 0; transform: translateX(-6px); }
+    100% { opacity: 1; transform: translateX(0); }
+  }
+  .menu-stagger > * {
+    animation: menu-item-in 0.32s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .menu-stagger > *:nth-child(1)  { animation-delay: 30ms; }
+  .menu-stagger > *:nth-child(2)  { animation-delay: 70ms; }
+  .menu-stagger > *:nth-child(3)  { animation-delay: 110ms; }
+  .menu-stagger > *:nth-child(4)  { animation-delay: 150ms; }
+  .menu-stagger > *:nth-child(5)  { animation-delay: 190ms; }
+  .menu-stagger > *:nth-child(6)  { animation-delay: 230ms; }
+  .menu-stagger > *:nth-child(7)  { animation-delay: 270ms; }
+  .menu-stagger > *:nth-child(8)  { animation-delay: 310ms; }
+  .menu-stagger > *:nth-child(n+9) { animation-delay: 350ms; }
+
+  /* Joyful nav-item interactions */
+  .nav-pop {
+    position: relative;
+    transition: transform 0.25s cubic-bezier(0.22,1,0.36,1),
+                background-color 0.2s ease-out, color 0.2s ease-out;
+  }
+  .nav-pop:hover { transform: translateX(2px); }
+  .nav-pop:active { transform: scale(0.97); }
+  .nav-pop > svg {
+    transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+  }
+  .nav-pop:hover > svg { transform: translateY(-1px) rotate(-3deg) scale(1.08); }
+
+  /* Animated active dot for nav items */
+  .nav-active-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 9999px;
+    background: hsl(var(--sidebar-primary));
+    box-shadow: 0 0 0 0 hsl(var(--sidebar-primary) / 0.5);
+    animation: orbit-glow 2.4s ease-in-out infinite;
+  }
+
+  /* Joyful press for buttons globally (opt-in via .joy) */
+  .joy { transition: transform 0.18s cubic-bezier(0.22,1,0.36,1); }
+  .joy:active { transform: scale(0.95); }
+
   @media (prefers-reduced-motion: reduce) {
     .anim-float, .anim-breathe, .anim-spin-slow, .anim-glow,
     .anim-drift, .anim-blink, .anim-gradient,
-    .view-transition { animation: none !important; }
+    .view-transition,
+    .list-stagger > *, .menu-stagger > * { animation: none !important; }
     .skeleton-shimmer::after { animation: none !important; }
     [data-reveal] { opacity: 1 !important; transform: none !important; }
+    .morph-skeleton, .morph-content { transition: none !important; }
   }
 }
 
