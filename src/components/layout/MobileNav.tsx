@@ -21,7 +21,7 @@ export function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border lg:hidden">
-      <div className="flex items-center justify-around max-w-lg mx-auto" style={{ paddingBottom: "var(--safe-area-bottom)" }}>
+      <div className="flex items-center justify-around max-w-lg mx-auto list-stagger" style={{ paddingBottom: "var(--safe-area-bottom)" }}>
         {navItems.map((item) => {
           const isToolsPath = ["/tools", "/issues", "/actions"].some((path) => location.pathname.startsWith(path));
           const isCBPath = location.pathname.startsWith("/cb");
@@ -38,12 +38,18 @@ export function MobileNav() {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-3 min-h-[4.5rem] flex-1 transition-colors no-select",
+                "joy relative flex flex-col items-center justify-center py-2 px-3 min-h-[4.5rem] flex-1 transition-colors no-select",
                 isCurrentPath ? "text-accent" : "text-muted-foreground active:text-foreground",
               )}
             >
-              <Icon className={cn("h-5 w-5 mb-1 transition-transform", isCurrentPath && "scale-110")} />
+              <Icon className={cn("h-5 w-5 mb-1 transition-transform duration-300", isCurrentPath ? "scale-110 anim-breathe" : "")} />
               <span className="text-xs font-medium">{item.label}</span>
+              {isCurrentPath && (
+                <span
+                  aria-hidden
+                  className="absolute top-1 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-accent anim-glow"
+                />
+              )}
             </Link>
           );
         })}

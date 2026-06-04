@@ -58,7 +58,7 @@ export function SideNav() {
       </div>
 
       {/* Navigation Links */}
-      <nav className={cn("flex-1 space-y-1", collapsed ? "p-2" : "p-4")}>
+      <nav className={cn("flex-1 space-y-1 list-stagger", collapsed ? "p-2" : "p-4")}>
         {navItems.map((item) => {
           const isToolsPath = ["/tools", "/issues", "/actions"].some((path) => location.pathname.startsWith(path));
           const isCBPath = location.pathname.startsWith("/cb");
@@ -75,15 +75,16 @@ export function SideNav() {
               to={item.path}
               title={collapsed ? item.label : undefined}
               className={cn(
-                "flex items-center rounded-lg transition-colors",
+                "nav-pop flex items-center rounded-lg",
                 collapsed ? "justify-center px-2 py-3" : "gap-3 px-4 py-3",
                 isCurrentPath
                   ? "bg-sidebar-accent text-sidebar-primary"
                   : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
               )}
             >
-              <Icon className={cn("h-5 w-5 shrink-0", isCurrentPath && "text-sidebar-primary")} />
+              <Icon className={cn("h-5 w-5 shrink-0", isCurrentPath && "text-sidebar-primary anim-breathe")} />
               {!collapsed && <span className="font-medium truncate">{item.label}</span>}
+              {!collapsed && isCurrentPath && <span className="nav-active-dot ml-auto" aria-hidden />}
             </Link>
           );
         })}
