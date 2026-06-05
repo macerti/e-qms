@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { MorphIn } from "@/components/animation/MorphIn";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Notification {
   id: string;
@@ -33,6 +35,7 @@ const KIND_LABEL: Record<string, string> = {
 export function NotificationsBell() {
   const { user } = useAuth();
   const [items, setItems] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
   const load = async () => {
@@ -43,6 +46,7 @@ export function NotificationsBell() {
       .order("created_at", { ascending: false })
       .limit(50);
     setItems((data ?? []) as Notification[]);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -104,54 +108,72 @@ export function NotificationsBell() {
           </div>
         </SheetHeader>
         <ScrollArea className="flex-1">
-          {items.length === 0 ? (
-            <div className="p-12 text-center text-sm text-muted-foreground">
-              <Inbox className="h-8 w-8 mx-auto mb-3 opacity-40" />
-              You're all caught up
-            </div>
-          ) : (
-            <ul className="divide-y">
-              {items.map((n) => {
-                const content = (
-                  <div className={`p-3 ${!n.read_at ? "bg-primary/[0.03]" : ""}`}>
+          <MorphIn
+            loading={loading}
+            skeleton={
+              <ul className="divide-y">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <li key={i} className="p-3 space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                        {KIND_LABEL[n.kind] ?? n.kind}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground shrink-0">
-                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                      </div>
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-3 w-12" />
                     </div>
-                    <div className="font-medium text-sm mt-0.5">{n.title}</div>
-                    {n.body && <div className="text-xs text-muted-foreground mt-1">{n.body}</div>}
-                  </div>
-                );
-                return (
-                  <li key={n.id}>
-                    {n.link_path ? (
-                      <Link
-                        to={n.link_path}
-                        onClick={() => {
-                          markRead(n.id);
-                          setOpen(false);
-                        }}
-                        className="block hover:bg-muted/40 transition"
-                      >
-                        {content}
-                      </Link>
-                    ) : (
-                      <button
-                        onClick={() => markRead(n.id)}
-                        className="block w-full text-left hover:bg-muted/40 transition"
-                      >
-                        {content}
-                      </button>
-                    )}
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-2/3" />
                   </li>
-                );
-              })}
-            </ul>
-          )}
+                ))}
+              </ul>
+            }
+          >
+            {items.length === 0 ? (
+              <div className="p-12 text-center text-sm text-muted-foreground morph-fade-in">
+                <Inbox className="h-8 w-8 mx-auto mb-3 opacity-40" />
+                You're all caught up
+              </div>
+            ) : (
+              <ul className="divide-y list-stagger">
+                {items.map((n) => {
+                  const content = (
+                    <div className={`p-3 ${!n.read_at ? "bg-primary/[0.03]" : ""}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                          {KIND_LABEL[n.kind] ?? n.kind}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground shrink-0">
+                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                        </div>
+                      </div>
+                      <div className="font-medium text-sm mt-0.5">{n.title}</div>
+                      {n.body && <div className="text-xs text-muted-foreground mt-1">{n.body}</div>}
+                    </div>
+                  );
+                  return (
+                    <li key={n.id}>
+                      {n.link_path ? (
+                        <Link
+                          to={n.link_path}
+                          onClick={() => {
+                            markRead(n.id);
+                            setOpen(false);
+                          }}
+                          className="block hover:bg-muted/40 transition-all duration-200"
+                        >
+                          {content}
+                        </Link>
+                      ) : (
+                        <button
+                          onClick={() => markRead(n.id)}
+                          className="block w-full text-left hover:bg-muted/40 transition-all duration-200"
+                        >
+                          {content}
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </MorphIn>
         </ScrollArea>
       </SheetContent>
     </Sheet>

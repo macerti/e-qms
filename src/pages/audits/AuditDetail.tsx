@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { ArrowLeft, Plus, Loader2, AlertTriangle, CheckCircle2, ClipboardList, FileWarning, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { SignaturePad } from "@/components/signatures/SignaturePad";
+import { MorphIn } from "@/components/animation/MorphIn";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Audit {
   id: string;
@@ -177,8 +179,25 @@ export default function AuditDetail() {
 
   if (loading || !audit) {
     return (
-      <div className="grid place-items-center py-20">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <div className="px-4 lg:px-6 py-6 space-y-6 max-w-6xl mx-auto w-full">
+        <div className="space-y-3">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-7 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="morph-card-skeleton">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-7 w-16" />
+            </div>
+          ))}
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
       </div>
     );
   }
@@ -191,7 +210,7 @@ export default function AuditDetail() {
   };
 
   return (
-    <div className="px-4 lg:px-6 py-6 space-y-6 max-w-6xl mx-auto w-full">
+    <div className="px-4 lg:px-6 py-6 space-y-6 max-w-6xl mx-auto w-full morph-fade-in">
       <div className="space-y-3">
         <Link to="/audits" className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1">
           <ArrowLeft className="h-3.5 w-3.5" /> All audits

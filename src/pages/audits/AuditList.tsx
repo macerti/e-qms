@@ -13,6 +13,8 @@ import { Plus, ClipboardCheck, Calendar, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { MorphIn } from "@/components/animation/MorphIn";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Audit {
   id: string;
@@ -137,41 +139,59 @@ export default function AuditList() {
         }
       />
 
-      {loading ? (
-        <div className="grid place-items-center py-20">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
-      ) : audits.length === 0 ? (
-        <Card className="p-12 text-center">
-          <ClipboardCheck className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
-          <h3 className="font-medium mb-1">No audits yet</h3>
-          <p className="text-sm text-muted-foreground">{canCreate ? "Plan your first internal audit to get started." : "Audits will appear here once planned."}</p>
-        </Card>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {audits.map((a) => (
-            <Link key={a.id} to={`/audits/${a.id}`}>
-              <Card className="p-4 hover:shadow-md transition group cursor-pointer h-full">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="text-[11px] font-mono text-muted-foreground">{a.reference_code}</div>
-                  <Badge variant={STATUS_VARIANT[a.status] ?? "outline"} className="capitalize">{a.status.replace("_", " ")}</Badge>
+      <MorphIn
+        loading={loading}
+        skeleton={
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="morph-card-skeleton">
+                <div className="flex items-start justify-between">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
                 </div>
-                <h3 className="font-medium leading-snug group-hover:text-primary transition">{a.title}</h3>
-                {a.scope_description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1.5">{a.scope_description}</p>
-                )}
-                {a.planned_start && (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-3 pt-3 border-t">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(a.planned_start), "MMM d")}
-                    {a.planned_end && ` → ${format(new Date(a.planned_end), "MMM d, yyyy")}`}
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-2/3" />
+                <div className="pt-3 border-t border-border/60">
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+      >
+        {audits.length === 0 ? (
+          <Card className="p-12 text-center morph-fade-in">
+            <ClipboardCheck className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
+            <h3 className="font-medium mb-1">No audits yet</h3>
+            <p className="text-sm text-muted-foreground">{canCreate ? "Plan your first internal audit to get started." : "Audits will appear here once planned."}</p>
+          </Card>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 list-stagger">
+            {audits.map((a) => (
+              <Link key={a.id} to={`/audits/${a.id}`}>
+                <Card className="p-4 hover:shadow-md transition-all duration-300 group cursor-pointer h-full hover:-translate-y-0.5">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="text-[11px] font-mono text-muted-foreground">{a.reference_code}</div>
+                    <Badge variant={STATUS_VARIANT[a.status] ?? "outline"} className="capitalize">{a.status.replace("_", " ")}</Badge>
                   </div>
-                )}
-              </Card>
-            </Link>
-          ))}
-        </div>
-      )}
+                  <h3 className="font-medium leading-snug group-hover:text-primary transition-colors">{a.title}</h3>
+                  {a.scope_description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1.5">{a.scope_description}</p>
+                  )}
+                  {a.planned_start && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-3 pt-3 border-t">
+                      <Calendar className="h-3 w-3" />
+                      {format(new Date(a.planned_start), "MMM d")}
+                      {a.planned_end && ` → ${format(new Date(a.planned_end), "MMM d, yyyy")}`}
+                    </div>
+                  )}
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </MorphIn>
     </div>
   );
 }

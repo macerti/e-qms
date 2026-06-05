@@ -4,6 +4,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MorphIn } from "@/components/animation/MorphIn";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props<T> {
   open: boolean;
@@ -77,12 +79,23 @@ export function AIDraftSheet<T = unknown>({
         </SheetHeader>
 
         <div className="py-6 space-y-4">
-          {loading && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Drafting…
-            </div>
-          )}
-          {draft && renderDraft(draft)}
+          <MorphIn
+            loading={loading || !draft}
+            skeleton={
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Drafting…
+                </div>
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-24 w-full rounded-md" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            }
+          >
+            {draft && renderDraft(draft)}
+          </MorphIn>
         </div>
 
         <div className="flex items-center gap-2 sticky bottom-0 bg-background pt-4 border-t border-border">

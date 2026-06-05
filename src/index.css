@@ -665,14 +665,37 @@
   .joy { transition: transform 0.18s cubic-bezier(0.22,1,0.36,1); }
   .joy:active { transform: scale(0.95); }
 
+  /* ── iPhone-like global easing ─────────────────────────── *
+   * Standardize every transition to a smooth Apple-style spring curve.
+   */
+  * {
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Slow + smooth radix overlay/content animations */
+  [role="dialog"][data-state="open"],
+  [role="dialog"][data-state="closed"] {
+    animation-duration: 380ms !important;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+
+  /* Generic morph-in for fresh content blocks */
+  .morph-fade-in {
+    animation: view-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .morph-card-skeleton {
+    @apply rounded-xl border border-border/60 bg-card p-4 space-y-3;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .anim-float, .anim-breathe, .anim-spin-slow, .anim-glow,
     .anim-drift, .anim-blink, .anim-gradient,
-    .view-transition,
+    .view-transition, .morph-fade-in,
     .list-stagger > *, .menu-stagger > * { animation: none !important; }
     .skeleton-shimmer::after { animation: none !important; }
     [data-reveal] { opacity: 1 !important; transform: none !important; }
     .morph-skeleton, .morph-content { transition: none !important; }
   }
 }
+
 
