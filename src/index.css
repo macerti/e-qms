@@ -687,14 +687,248 @@
     @apply rounded-xl border border-border/60 bg-card p-4 space-y-3;
   }
 
+  /* ============================================================
+   *  ✦ Phase 2 — even cooler global animations
+   * ============================================================ */
+
+  /* Pulse ring — emits an expanding ring behind an element */
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 hsl(var(--accent) / 0.55); }
+    70%  { box-shadow: 0 0 0 14px hsl(var(--accent) / 0); }
+    100% { box-shadow: 0 0 0 0 hsl(var(--accent) / 0); }
+  }
+  .anim-pulse-ring { animation: pulse-ring 2.2s cubic-bezier(0.22,1,0.36,1) infinite; }
+
+  /* Jelly wobble on press/appear */
+  @keyframes jelly {
+    0%   { transform: scale(1, 1); }
+    25%  { transform: scale(0.96, 1.06); }
+    50%  { transform: scale(1.04, 0.96); }
+    70%  { transform: scale(0.98, 1.02); }
+    100% { transform: scale(1, 1); }
+  }
+  .anim-jelly { animation: jelly 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+  .joy:active { animation: jelly 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+
+  /* Sheen sweep — diagonal light pass on hover */
+  .sheen { position: relative; overflow: hidden; isolation: isolate; }
+  .sheen::after {
+    content: "";
+    position: absolute;
+    top: -50%; bottom: -50%; left: -60%;
+    width: 40%;
+    background: linear-gradient(115deg,
+      transparent 0%,
+      hsl(var(--foreground) / 0.08) 45%,
+      hsl(var(--foreground) / 0.18) 50%,
+      hsl(var(--foreground) / 0.08) 55%,
+      transparent 100%);
+    transform: translateX(-30%) skewX(-18deg);
+    transition: transform 0.9s cubic-bezier(0.22,1,0.36,1);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .sheen:hover::after { transform: translateX(420%) skewX(-18deg); }
+  .sheen > * { position: relative; z-index: 1; }
+
+  /* Auto-loop sheen (subtle, infinite) */
+  @keyframes sheen-loop {
+    0%   { transform: translateX(-30%) skewX(-18deg); }
+    60%, 100% { transform: translateX(420%) skewX(-18deg); }
+  }
+  .sheen-loop::after { animation: sheen-loop 5.5s cubic-bezier(0.22,1,0.36,1) infinite; }
+
+  /* Tilt-on-hover (subtle 3D) */
+  .tilt-hover { transition: transform 0.4s cubic-bezier(0.22,1,0.36,1); transform-style: preserve-3d; }
+  .tilt-hover:hover {
+    transform: perspective(900px) rotateX(2deg) rotateY(-2deg) translateY(-2px);
+  }
+
+  /* Sparkle (small twinkle dot) */
+  @keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.6) rotate(0deg); }
+    50%      { opacity: 1; transform: scale(1)   rotate(180deg); }
+  }
+  .anim-sparkle { animation: sparkle 2.4s ease-in-out infinite; }
+
+  /* Ticker / marquee for inline rolling content */
+  @keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .anim-marquee {
+    display: inline-flex;
+    animation: marquee 22s linear infinite;
+    white-space: nowrap;
+  }
+
+  /* Count-up "tick" — apply momentarily when value changes */
+  @keyframes count-tick {
+    0%   { transform: translateY(0)    scale(1);    color: inherit; }
+    35%  { transform: translateY(-3px) scale(1.08); color: hsl(var(--accent)); }
+    100% { transform: translateY(0)    scale(1);    color: inherit; }
+  }
+  .anim-tick { animation: count-tick 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+
+  /* Ambient conic-gradient glow border (for hero cards) */
+  @keyframes conic-spin { to { transform: rotate(360deg); } }
+  .glow-border {
+    position: relative;
+    isolation: isolate;
+  }
+  .glow-border::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+      from 0deg,
+      hsl(var(--accent) / 0.7),
+      hsl(var(--info) / 0.6),
+      hsl(var(--success) / 0.5),
+      hsl(var(--accent) / 0.7));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    animation: conic-spin 8s linear infinite;
+    pointer-events: none;
+    opacity: 0.55;
+    z-index: -1;
+  }
+
+  /* Button ripple — pure CSS (uses :active) */
+  .btn-ripple { position: relative; overflow: hidden; isolation: isolate; }
+  .btn-ripple::before {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 0; height: 0;
+    border-radius: 9999px;
+    background: hsl(var(--foreground) / 0.18);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s cubic-bezier(0.22,1,0.36,1),
+                height 0.5s cubic-bezier(0.22,1,0.36,1),
+                opacity 0.6s cubic-bezier(0.22,1,0.36,1);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .btn-ripple:active::before {
+    width: 260%; height: 260%; opacity: 1;
+    transition: width 0.05s linear, height 0.05s linear, opacity 0.05s linear;
+  }
+  .btn-ripple > * { position: relative; z-index: 1; }
+
+  /* Magnet hover for icon buttons */
+  .magnet { transition: transform 0.35s cubic-bezier(0.22,1,0.36,1); }
+  .magnet:hover { transform: translateY(-2px) scale(1.06); }
+  .magnet:active { transform: translateY(0) scale(0.94); }
+
+  /* Card tilt + sheen wrapper used by Card component */
+  .card-aurora {
+    position: relative;
+    transition: transform 0.5s cubic-bezier(0.22,1,0.36,1),
+                box-shadow 0.5s cubic-bezier(0.22,1,0.36,1),
+                border-color 0.3s ease-out;
+  }
+  .card-aurora:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 1px 0 0 hsl(var(--foreground) / 0.04) inset,
+      0 24px 48px -24px hsl(var(--foreground) / 0.22),
+      0 0 0 1px hsl(var(--accent) / 0.18);
+  }
+
+  /* Tabs — animated active glow */
+  [role="tab"][data-state="active"] {
+    animation: tab-pop 0.35s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes tab-pop {
+    0%   { transform: translateY(2px) scale(0.97); }
+    60%  { transform: translateY(-1px) scale(1.02); }
+    100% { transform: translateY(0)   scale(1); }
+  }
+  [role="tabpanel"][data-state="active"] {
+    animation: view-in 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  /* Dialog content — overshoot spring */
+  @keyframes dialog-spring-in {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.92) translateY(8px); filter: blur(6px); }
+    60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.012) translateY(-2px); filter: blur(0); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1) translateY(0); filter: blur(0); }
+  }
+  [role="dialog"][data-state="open"][class*="fixed"] {
+    animation: dialog-spring-in 0.42s cubic-bezier(0.22,1,0.36,1) both !important;
+  }
+
+  /* Inputs / textareas — focus glow */
+  input:focus-visible, textarea:focus-visible, [role="combobox"]:focus-visible {
+    transition: box-shadow 0.25s cubic-bezier(0.22,1,0.36,1),
+                border-color 0.25s cubic-bezier(0.22,1,0.36,1) !important;
+    box-shadow: 0 0 0 4px hsl(var(--ring) / 0.12) !important;
+  }
+
+  /* Toast / popover slide-up */
+  @keyframes toast-rise {
+    0%   { opacity: 0; transform: translateY(12px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0)   scale(1); }
+  }
+  [data-sonner-toast], [role="status"][data-state="open"] {
+    animation: toast-rise 0.42s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  /* Accordion content — smooth height + fade */
+  [data-state="open"][data-radix-collapsible-content],
+  [data-state="open"][data-radix-accordion-content] {
+    animation: view-in 0.35s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  /* Badge pop on mount */
+  @keyframes badge-pop {
+    0%   { transform: scale(0.7); opacity: 0; }
+    70%  { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .badge-pop { animation: badge-pop 0.42s cubic-bezier(0.22,1,0.36,1) both; }
+
+  /* Soft hue rotation on hero gradients */
+  @keyframes hue-shift {
+    0%, 100% { filter: hue-rotate(0deg); }
+    50%      { filter: hue-rotate(12deg); }
+  }
+  .anim-hue { animation: hue-shift 10s ease-in-out infinite; }
+
+  /* Caret/dot blink */
+  @keyframes caret { 50% { opacity: 0; } }
+  .anim-caret { animation: caret 1s steps(2) infinite; }
+
+  /* Underline grow on links */
+  a:not(.no-underline-anim):not([class*="btn"]):not([role="tab"]):not([role="menuitem"]) {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    transition: background-size 0.3s cubic-bezier(0.22,1,0.36,1);
+  }
+  a:not(.no-underline-anim):not([class*="btn"]):not([role="tab"]):not([role="menuitem"]):hover {
+    background-size: 100% 1px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .anim-float, .anim-breathe, .anim-spin-slow, .anim-glow,
-    .anim-drift, .anim-blink, .anim-gradient,
-    .view-transition, .morph-fade-in,
+    .anim-drift, .anim-blink, .anim-gradient, .anim-pulse-ring,
+    .anim-jelly, .anim-sparkle, .anim-marquee, .anim-tick,
+    .anim-hue, .anim-caret, .sheen-loop::after,
+    .view-transition, .morph-fade-in, .badge-pop,
     .list-stagger > *, .menu-stagger > * { animation: none !important; }
     .skeleton-shimmer::after { animation: none !important; }
     [data-reveal] { opacity: 1 !important; transform: none !important; }
     .morph-skeleton, .morph-content { transition: none !important; }
+    .sheen::after, .tilt-hover, .card-aurora,
+    .magnet, .glow-border::before { transition: none !important; animation: none !important; }
+    [role="dialog"][data-state="open"][class*="fixed"] { animation: none !important; }
   }
 }
 
