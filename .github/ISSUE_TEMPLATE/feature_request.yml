@@ -1,0 +1,48 @@
+name: Feature request
+description: Propose a new feature or enhancement.
+title: "[Feature] "
+labels: ["feature"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What need does this address? Who is it for (tenant admin, auditor, certification body, etc.)?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - "P1 - High value / high urgency"
+        - "P2 - High value / not urgent"
+        - "P3 - Nice to have"
+    validations:
+      required: true
+  - type: checkboxes
+    id: layer
+    attributes:
+      label: Layers touched (check all that apply)
+      options:
+        - label: Frontend UI (src/pages, src/components, src/ui)
+        - label: Domain layer (src/domains)
+        - label: Application/use-case layer (src/application)
+        - label: Infrastructure/repositories (src/infrastructure)
+        - label: PHP API (public/api)
+        - label: Database schema (database/migrations)
+        - label: Supabase edge functions (supabase/functions)
+        - label: CI/CD (.github/workflows)
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mockups, related issues, standards/clauses this maps to (ISO 9001, etc.)
+    validations:
+      required: false

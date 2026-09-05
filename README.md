@@ -2,6 +2,11 @@
 
 Quality management system frontend built with Vite, React, TypeScript, Tailwind, and MariaDB (via PHP API).
 
+> **Contributing?** Read [`docs/DEV_LOG.md`](docs/DEV_LOG.md) (what the
+> last session found/tested) and [`docs/PRIORITIES.md`](docs/PRIORITIES.md)
+> (current priority order) before starting work. See
+> [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow.
+
 ## Getting started
 
 ```sh
@@ -103,17 +108,37 @@ You can extend this contract as needed for auditing, users, or workflows.
 - Tailwind CSS
 - shadcn/ui
 
-## GitHub Actions: build + FTP deploy
+## GitHub Actions: migrate, build, test + FTP deploy
 
-This repository includes a workflow at `.github/workflows/deploy-ftp.yml`.
-It builds the app and uploads `dist/` to your FTP hosting whenever you push to `main`
-(or run it manually with **Run workflow**).
+Two workflows:
+
+- `.github/workflows/db-migrate.yml` — runs pending SQL files from
+  `database/migrations/` against your MariaDB database
+  (`scripts/migrate.sh`). Reusable (`workflow_call`) and also runnable
+  manually.
+- `.github/workflows/deploy-ftp.yml` ("Build, Test, Migrate & Deploy") —
+  runs the migration workflow first, then installs deps, lints
+  (non-blocking for now — see `docs/PRIORITIES.md`), runs the
+  architecture boundary check (blocking), builds the app, and uploads
+  `dist/` to FTP. Triggers on push to `main` or manually via
+  **Run workflow**.
 
 Set these repository secrets in **GitHub → Settings → Secrets and variables → Actions**:
 
+FTP deploy:
 - `FTP_SERVER` (example: `ftp.macerti.com`)
 - `FTP_USERNAME` (example: `qms@macerti.com`)
 - `FTP_PASSWORD`
 - `FTP_SERVER_DIR` (example: `/home/macerti/public_html/qms/`)
 
-> Security note: never commit FTP credentials directly in workflow files.
+Database migrations:
+- `DB_HOST`
+- `DB_PORT` (example: `3306`)
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+
+> Security note: never commit credentials directly in workflow files —
+> an earlier version of this workflow did exactly that with the FTP
+> password; if you're reusing that same password, rotate it on the
+> hosting provider first, since it's still visible in git history.

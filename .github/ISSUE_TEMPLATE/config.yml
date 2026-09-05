@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Priorities board
+    url: https://github.com/macerti/e-qms/blob/main/docs/PRIORITIES.md
+    about: See current bug/feature/tech-debt priority order before filing.
+  - name: Dev continuity log
+    url: https://github.com/macerti/e-qms/blob/main/docs/DEV_LOG.md
+    about: Read this first — what the last session found, tested, and left off at.

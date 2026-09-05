@@ -1,4 +1,4 @@
-name: Build and Deploy to FTP
+name: Build, Test, Migrate & Deploy
 
 on:
   push:
@@ -7,7 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  migrate:
+    uses: ./.github/workflows/db-migrate.yml
+    secrets: inherit
+
+  build-test-deploy:
+    needs: migrate
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +28,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint (non-blocking while technical debt is paid down — see docs/PRIORITIES.md)
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Architecture boundary check
+        run: npm run check:architecture
+
       - name: Build app for /qms/
         env:
           VITE_BASE_PATH: /qms/
@@ -36,9 +48,9 @@ jobs:
       - name: Deploy dist/ to FTP server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ftp.macerti.com
-          username: qms@macerti.com
-          password: Azerty123456
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
           local-dir: dist/
-          server-dir: /home/macerti/public_html/qms/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}

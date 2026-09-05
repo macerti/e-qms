@@ -1,0 +1,43 @@
+name: Technical debt
+description: Something works but is fragile, duplicated, unsafe, or blocking future work. This is not optional cleanup — track it here so it gets scheduled instead of silently deferred.
+title: "[Tech Debt] "
+labels: ["technical-debt"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What's the debt
+      description: What's wrong with the current implementation? Where does it live (files/folders)?
+    validations:
+      required: true
+  - type: textarea
+    id: risk
+    attributes:
+      label: Why it matters / what it blocks
+      description: What breaks or gets harder if this is left as-is? What feature/fix does it block?
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "P0 - Security/data risk, fix before anything else"
+        - "P1 - Actively slowing down / blocking current work"
+        - "P2 - Should fix soon, not urgent"
+        - "P3 - Would be nice to clean up eventually"
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: Suggested fix / scope estimate
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Who/what introduced it, related issues/PRs, whether it's already logged in docs/DEV_LOG.md.
+    validations:
+      required: false

@@ -1,0 +1,54 @@
+name: Bug report
+description: Something is broken in the app, API, build, or deploy pipeline.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What's broken
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "P0 - Blocking (build/deploy broken, data loss, app unusable)"
+        - "P1 - Major (core feature broken, no workaround)"
+        - "P2 - Minor (workaround exists)"
+        - "P3 - Cosmetic"
+    validations:
+      required: true
+  - type: textarea
+    id: area
+    attributes:
+      label: Affected area
+      description: Frontend page/component, PHP API endpoint, Supabase edge function, CI workflow, etc.
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs / screenshots / stack trace
+      description: Paste relevant console output, CI job logs, or screenshots.
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything a future dev picking this up should know (related PRs, previous attempts, suspected root cause).
+    validations:
+      required: false
